@@ -1,0 +1,140 @@
+.match-list-container {
+  margin-bottom: 20px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.match-card {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 35%;
+}
+
+.team-logo {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 5px;
+}
+
+.team-name {
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+}
+
+.prediction-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30%;
+}
+
+.score-input {
+  width: 60px;
+  text-align: center;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  border: 1px solid var(--ion-color-medium);
+  border-radius: 4px;
+  margin: 0 4px;
+}
+
+.score-separator {
+  font-weight: bold;
+  font-size: 24px;
+  margin: 0 8px;
+}
+
+.match-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+.submit-button {
+  margin: 20px 0;
+}
+
+.jornada-header {
+  text-align: center;
+  color: var(--ion-color-dark);
+  margin: 16px 0;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+.scores-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+}
+
+.final-score {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.prediction-score {
+  font-size: 0.9em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-align: center;
+  position: relative;
+
+  &.exact-match {
+    background-color: rgba(var(--ion-color-success-rgb), 0.2);
+    color: var(--ion-color-success-shade);
+  }
+
+  &.partial-match {
+    background-color: rgba(var(--ion-color-primary-rgb), 0.2);
+    color: var(--ion-color-primary-shade);
+  }
+
+  &.no-match {
+    background-color: rgba(var(--ion-color-danger-rgb), 0.2);
+    color: var(--ion-color-danger-shade);
+  }
+}
+
+.points-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--ion-color-medium);
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.8em;
+  font-weight: bold;
+}
+
+.points-summary {
+  font-size: 0.9em;
+  color: var(--ion-color-medium);
+  margin-top: 8px;
+}

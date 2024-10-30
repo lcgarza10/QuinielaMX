@@ -1,0 +1,56 @@
+.match-card {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40%;
+}
+
+.team-logo {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 5px;
+}
+
+.team-name {
+  font-weight: bold;
+  text-align: center;
+}
+
+.vs {
+  font-weight: bold;
+}
+
+.scores {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.actual-score, .predicted-score {
+  margin-bottom: 5px;
+}
+
+.points {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.total-points {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
+}

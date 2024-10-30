@@ -1,0 +1,132 @@
+.points-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.loading-container,
+.error-container,
+.offline-container,
+.empty-container {
+  text-align: center;
+  padding: 20px;
+  margin: 20px 0;
+
+  ion-spinner {
+    margin-bottom: 10px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin-bottom: 10px;
+  }
+}
+
+.match-item {
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 16px;
+}
+
+.match-card {
+  width: 100%;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  ion-card-header {
+    padding: 16px;
+    
+    ion-card-subtitle {
+      font-size: 0.9em;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 35%;
+
+  .team-logo {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    object-fit: contain;
+  }
+
+  .team-name {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.scores-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+  position: relative;
+
+  .final-score {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  .prediction-score {
+    font-size: 0.9em;
+    color: var(--ion-color-medium);
+  }
+
+  .points-badge {
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    background: var(--ion-color-primary);
+    color: white;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-weight: bold;
+    font-size: 0.9em;
+  }
+}
+
+.total-points {
+  margin: 20px 0;
+  
+  ion-card {
+    margin: 0;
+    border-radius: 12px;
+    background: var(--ion-color-primary);
+    
+    ion-card-content {
+      padding: 20px;
+      text-align: center;
+      
+      h2 {
+        color: white;
+        font-size: 1.4em;
+        font-weight: 600;
+        margin: 0;
+      }
+    }
+  }
+}
+
+// Dark mode adjustments
+:host-context(.dark) {
+  .match-card {
+    background: rgba(var(--ion-card-background-rgb), 0.8);
+  }
+}

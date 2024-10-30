@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start" *ngIf="showBackButton">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Quiniela Liga MX</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" class="logout-button" *ngIf="authService.user$ | async as user">
+        <div class="user-info">
+          <span class="user-name">{{ user.username || user.displayName || user.email }}</span>
+          <div class="logout-container">
+            <ion-icon name="log-out-outline" class="logout-icon"></ion-icon>
+            <span class="logout-text">Salir</span>
+          </div>
+        </div>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

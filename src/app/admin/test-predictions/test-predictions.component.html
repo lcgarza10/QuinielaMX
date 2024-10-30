@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Panel de Administración</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Herramientas de Administración</ion-card-title>
+      <ion-card-subtitle>Gestión de temporada y datos del sistema</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <div class="season-info" *ngIf="currentSeason">
+        <h2>Temporada Actual</h2>
+        <p>{{ currentSeason.name }}</p>
+        <p>Inicio: {{ currentSeason.startDate | date:'mediumDate' }}</p>
+        <p>Fin: {{ currentSeason.endDate | date:'mediumDate' }}</p>
+      </div>
+
+      <ion-list>
+        <ion-item>
+          <ion-button expand="block" routerLink="/admin/season" color="primary">
+            <ion-icon name="calendar-outline" slot="start"></ion-icon>
+            Configurar Temporada
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" (click)="clearPredictions()" color="danger" [disabled]="loading">
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            Eliminar Predicciones
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" (click)="insertTestData()" color="secondary" [disabled]="loading">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Insertar Datos de Prueba
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" (click)="resetPasswords()" color="warning" [disabled]="loading">
+            <ion-icon name="key-outline" slot="start"></ion-icon>
+            Restablecer Contraseñas
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" (click)="fixWeekNumbers()" color="tertiary" [disabled]="loading">
+            <ion-icon name="build-outline" slot="start"></ion-icon>
+            Corregir Números de Semana
+          </ion-button>
+        </ion-item>
+      </ion-list>
+
+      <div class="loading-container" *ngIf="loading">
+        <ion-spinner></ion-spinner>
+        <p>Procesando operación...</p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

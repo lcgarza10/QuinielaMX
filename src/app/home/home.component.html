@@ -1,0 +1,37 @@
+<div class="home-content">
+  <h1 class="main-title">Bienvenido a Quiniela Liga MX</h1>
+  <p>Elige una opción del menú a continuación:</p>
+
+  <ion-list>
+    <ion-item button routerLink="/scores">
+      <ion-icon name="football-outline" slot="start"></ion-icon>
+      <ion-label>Marcadores</ion-label>
+    </ion-item>
+    <ion-item button routerLink="/pools">
+      <ion-icon name="create-outline" slot="start"></ion-icon>
+      <ion-label>Sube tu Quiniela</ion-label>
+    </ion-item>
+    <ion-item button routerLink="/points">
+      <ion-icon name="trophy-outline" slot="start"></ion-icon>
+      <ion-label>Mis puntos</ion-label>
+    </ion-item>
+    <ion-item button routerLink="/leaderboard">
+      <ion-icon name="podium-outline" slot="start"></ion-icon>
+      <ion-label>Tabla General</ion-label>
+    </ion-item>
+    <ion-item button routerLink="/user-list">
+      <ion-icon name="people-outline" slot="start"></ion-icon>
+      <ion-label>Participantes</ion-label>
+    </ion-item>
+
+    <!-- Admin Section -->
+    <ion-item-divider>
+      <ion-label>Administración</ion-label>
+    </ion-item-divider>
+    
+    <ion-item button routerLink="/admin/test-predictions">
+      <ion-icon name="construct-outline" slot="start"></ion-icon>
+      <ion-label>Ajustes de Administrador</ion-label>
+    </ion-item>
+  </ion-list>
+</div>

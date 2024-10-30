@@ -1,0 +1,98 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis Puntos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="points-container">
+    <!-- Round Selection -->
+    <ion-item>
+      <ion-select 
+        [(ngModel)]="selectedRound" 
+        (ionChange)="onRoundChange()"
+        label="Seleccionar Jornada"
+        labelPlacement="floating">
+        <ion-select-option *ngFor="let round of rounds" [value]="round">
+          Jornada {{ round }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <ion-spinner></ion-spinner>
+      <p>Cargando partidos y puntos...</p>
+    </div>
+
+    <!-- Error State -->
+    <ion-text color="danger" *ngIf="error" class="error-container">
+      <p>{{ error }}</p>
+      <ion-button (click)="loadMatches()" size="small" fill="outline">
+        Reintentar
+      </ion-button>
+    </ion-text>
+
+    <!-- Offline Warning -->
+    <ion-text color="warning" *ngIf="isOffline" class="offline-container">
+      <p>Estás desconectado. Algunos datos pueden no estar actualizados.</p>
+      <ion-button (click)="retryConnection()" size="small" fill="outline">
+        Reintentar Conexión
+      </ion-button>
+    </ion-text>
+
+    <!-- Match List -->
+    <ion-list *ngIf="!loading && !error && matches.length > 0">
+      <ion-item *ngFor="let match of matches" lines="none" class="match-item">
+        <ion-card class="match-card">
+          <ion-card-header>
+            <ion-card-subtitle>{{ match.date | date:'EEEE d MMMM, y' }}</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="teams">
+              <div class="team">
+                <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
+                <div class="team-name">{{ match.homeTeam }}</div>
+              </div>
+              <div class="scores-container">
+                <div class="final-score">
+                  {{ match.homeScore !== undefined ? match.homeScore : '-' }} - 
+                  {{ match.awayScore !== undefined ? match.awayScore : '-' }}
+                </div>
+                <div class="prediction-score">
+                  Tu predicción: 
+                  {{ match.predictedHomeScore !== null ? match.predictedHomeScore : '-' }} - 
+                  {{ match.predictedAwayScore !== null ? match.predictedAwayScore : '-' }}
+                </div>
+                <div class="points-badge">
+                  {{ match.points }} pts
+                </div>
+              </div>
+              <div class="team">
+                <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
+                <div class="team-name">{{ match.awayTeam }}</div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-item>
+    </ion-list>
+
+    <!-- Empty State -->
+    <ion-text *ngIf="!loading && !error && matches.length === 0" class="empty-container">
+      <p>No hay partidos para la jornada seleccionada.</p>
+    </ion-text>
+
+    <!-- Total Points -->
+    <div class="total-points" *ngIf="!loading && !error && matches.length > 0">
+      <ion-card>
+        <ion-card-content>
+          <h2>Total de Puntos: {{ totalPoints }}</h2>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </div>
+</ion-content>

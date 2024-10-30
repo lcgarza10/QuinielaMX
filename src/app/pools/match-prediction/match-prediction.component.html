@@ -1,0 +1,52 @@
+<div class="prediction-container">
+  <div class="score-section">
+    <!-- Actual Score -->
+    <div class="actual-score" *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE'">
+      <div class="score-label">Resultado actual:</div>
+      <div class="score-display">
+        {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
+      </div>
+      <div class="status-badge" [class.live]="match.status.short === 'LIVE'">
+        {{ match.status.short === 'LIVE' ? 'EN VIVO' : 'FINAL' }}
+      </div>
+    </div>
+
+    <!-- Prediction Input/Display -->
+    <div class="prediction-score" [ngClass]="getScoreClass()">
+      <div class="score-label">{{ isCompleted ? 'Tu predicción:' : 'Ingresa tu predicción:' }}</div>
+      <div class="score-input-group" *ngIf="!isCompleted && canPredict">
+        <ion-input 
+          type="number" 
+          [(ngModel)]="prediction.homeScore"
+          (ionChange)="onScoreChange()"
+          placeholder="Local"
+          min="0"
+          max="99"
+          class="score-input">
+        </ion-input>
+        <span class="score-separator">-</span>
+        <ion-input 
+          type="number" 
+          [(ngModel)]="prediction.awayScore"
+          (ionChange)="onScoreChange()"
+          placeholder="Visitante"
+          min="0"
+          max="99"
+          class="score-input">
+        </ion-input>
+      </div>
+      <div class="score-display" *ngIf="isCompleted">
+        {{ prediction.homeScore ?? '-' }} - {{ prediction.awayScore ?? '-' }}
+        <div class="points-badge" *ngIf="match.status.short === 'FT'">
+          {{ getPoints() }} pts
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prediction-status" *ngIf="!canPredict && !isCompleted">
+    <ion-text color="medium">
+      <small>Las predicciones están cerradas para este partido</small>
+    </ion-text>
+  </div>
+</div>

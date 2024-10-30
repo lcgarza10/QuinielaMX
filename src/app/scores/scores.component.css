@@ -1,0 +1,103 @@
+.match-card {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 35%;
+}
+
+.team-logo {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 5px;
+}
+
+.team-name {
+  font-weight: bold;
+  text-align: center;
+  font-size: 14px;
+}
+
+.scores {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30%;
+}
+
+.score {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.score.live {
+  color: var(--ion-color-success);
+  animation: pulse 2s infinite;
+}
+
+.score-separator {
+  font-weight: bold;
+  font-size: 24px;
+  margin: 0 10px;
+}
+
+.match-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+}
+
+.status-countdown {
+  color: var(--ion-color-warning);
+}
+
+.status-live {
+  color: var(--ion-color-success);
+  animation: pulse 2s infinite;
+}
+
+.status-finished {
+  color: var(--ion-color-medium);
+}
+
+.jornada-select {
+  margin-top: 16px;
+}
+
+ion-segment {
+  margin-bottom: 16px;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}

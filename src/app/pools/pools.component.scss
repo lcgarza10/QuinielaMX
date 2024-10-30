@@ -1,0 +1,251 @@
+.week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.week-title {
+  font-size: 1.3em;
+  margin: 0;
+  color: var(--ion-color-dark);
+  font-weight: 600;
+}
+
+.points-badge {
+  display: flex;
+  align-items: center;
+  background: var(--ion-color-primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1.1em;
+  animation: fadeIn 0.3s ease-in;
+
+  ion-icon {
+    margin-right: 8px;
+    font-size: 1.2em;
+  }
+}
+
+.round-select {
+  margin: 16px 0;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--ion-color-light);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  
+  p {
+    margin-top: 16px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.match-card {
+  width: 100%;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  ion-card-header {
+    position: relative;
+    padding-bottom: 8px;
+  }
+}
+
+.match-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 35%;
+
+  &-logo {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    object-fit: contain;
+  }
+
+  &-name {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.scores-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+}
+
+.final-score {
+  font-size: 1.4em;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.prediction-inputs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--ion-color-light);
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin: 0 12px;
+
+  .score-input {
+    width: 60px;
+    text-align: center;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    font-size: 20px;
+    font-weight: bold;
+
+    &.ion-input-disabled {
+      opacity: 0.5;
+    }
+  }
+
+  .score-separator {
+    font-weight: bold;
+    font-size: 24px;
+    margin: 0 12px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.prediction-display {
+  text-align: center;
+
+  .prediction-label {
+    font-size: 0.9em;
+    color: var(--ion-color-medium);
+    margin-bottom: 4px;
+  }
+
+  .prediction-score {
+    font-size: 1.1em;
+    font-weight: 500;
+    padding: 6px 16px;
+    border-radius: 16px;
+    position: relative;
+    
+    &.exact-match {
+      background-color: rgba(var(--ion-color-success-rgb), 0.1);
+      color: var(--ion-color-success);
+    }
+    
+    &.partial-match {
+      background-color: rgba(var(--ion-color-warning-rgb), 0.1);
+      color: var(--ion-color-warning);
+    }
+    
+    &.no-match {
+      background-color: rgba(var(--ion-color-danger-rgb), 0.1);
+      color: var(--ion-color-danger);
+    }
+
+    .points-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--ion-color-primary);
+      color: white;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+  }
+}
+
+.prediction-closed-message {
+  text-align: center;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(var(--ion-color-medium-rgb), 0.1);
+  border-radius: 8px;
+
+  small {
+    font-style: italic;
+  }
+}
+
+.submit-button {
+  margin: 24px 16px;
+  --border-radius: 12px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  font-weight: 600;
+  font-size: 1.1em;
+  letter-spacing: 0.5px;
+
+  &.button-disabled {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Dark mode adjustments
+:host-context(.dark) {
+  .prediction-inputs {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
+
+  .match-card {
+    background: rgba(var(--ion-card-background-rgb), 0.8);
+  }
+
+  .prediction-closed-message {
+    background: rgba(var(--ion-color-medium-rgb), 0.2);
+  }
+
+  .week-header {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
+
+  .round-select {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
+}

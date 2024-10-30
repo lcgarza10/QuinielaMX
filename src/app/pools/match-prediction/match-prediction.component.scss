@@ -1,0 +1,121 @@
+.prediction-container {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--ion-color-light);
+}
+
+.score-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.score-label {
+  font-size: 0.9em;
+  color: var(--ion-color-medium);
+  margin-bottom: 4px;
+}
+
+.actual-score, .prediction-score {
+  padding: 12px;
+  border-radius: 8px;
+  background: white;
+  position: relative;
+}
+
+.score-display {
+  font-size: 1.2em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  background: var(--ion-color-medium);
+  color: white;
+
+  &.live {
+    background: var(--ion-color-success);
+    animation: pulse 2s infinite;
+  }
+}
+
+.score-input-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.score-input {
+  width: 60px;
+  text-align: center;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --background: var(--ion-color-light);
+  border-radius: 4px;
+}
+
+.score-separator {
+  font-weight: bold;
+  font-size: 20px;
+  color: var(--ion-color-medium);
+}
+
+.prediction-score {
+  &.exact-match {
+    background: rgba(var(--ion-color-success-rgb), 0.1);
+    border: 1px solid var(--ion-color-success);
+  }
+
+  &.partial-match {
+    background: rgba(var(--ion-color-warning-rgb), 0.1);
+    border: 1px solid var(--ion-color-warning);
+  }
+
+  &.no-match {
+    background: rgba(var(--ion-color-danger-rgb), 0.1);
+    border: 1px solid var(--ion-color-danger);
+  }
+}
+
+.points-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--ion-color-primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.prediction-status {
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+// Dark mode adjustments
+:host-context(.dark) {
+  .actual-score, .prediction-score {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .score-input {
+    --background: rgba(255, 255, 255, 0.1);
+  }
+}

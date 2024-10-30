@@ -1,0 +1,163 @@
+.week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.week-title {
+  font-size: 1.3em;
+  margin: 0;
+  color: var(--ion-color-dark);
+  font-weight: 600;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  
+  p {
+    margin-top: 16px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.matches-container {
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+}
+
+.match-card {
+  width: 100%;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  ion-card-header {
+    position: relative;
+    padding-bottom: 8px;
+  }
+}
+
+.match-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.teams {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 35%;
+
+  &-logo {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 8px;
+    object-fit: contain;
+  }
+
+  &-name {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+.scores-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+  background: var(--ion-color-light);
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+
+  &.live {
+    color: var(--ion-color-success);
+    animation: pulse 2s infinite;
+  }
+
+  .score {
+    min-width: 32px;
+    text-align: center;
+  }
+
+  .score-separator {
+    margin: 0 12px;
+    color: var(--ion-color-medium);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// Dark mode adjustments
+:host-context(.dark) {
+  .week-header {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
+
+  .match-card {
+    background: rgba(var(--ion-card-background-rgb), 0.8);
+  }
+
+  .scores-container {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
+}
+
+// Media queries for responsiveness
+@media (max-width: 480px) {
+  .teams {
+    padding: 12px 8px;
+  }
+
+  .team-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .team-name {
+    font-size: 12px;
+  }
+
+  .score-display {
+    font-size: 20px;
+
+    .score-separator {
+      margin: 0 8px;
+    }
+  }
+}

@@ -1,0 +1,212 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Tabla General</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="leaderboard-container">
+    <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange()" mode="ios" class="custom-segment">
+      <ion-segment-button value="weekly">
+        <ion-label>
+          <ion-icon name="calendar-outline"></ion-icon>
+          Jornada
+        </ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="overall">
+        <ion-label>
+          <ion-icon name="trophy-outline"></ion-icon>
+          General
+        </ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <div class="round-info" *ngIf="selectedView === 'weekly'">
+      <div class="round-status">
+        {{ getRoundStatus() }}
+        <ion-badge [color]="isCurrentRoundActive ? 'success' : 'medium'" class="round-badge">
+          {{ isCurrentRoundActive ? 'EN VIVO' : 'FINALIZADA' }}
+        </ion-badge>
+      </div>
+      
+      <ion-item lines="none" class="week-selector">
+        <ion-select 
+          [(ngModel)]="selectedWeek" 
+          (ionChange)="onRoundChange()"
+          label="Cambiar Jornada"
+          labelPlacement="floating">
+          <ion-select-option *ngFor="let round of rounds" [value]="round">
+            Jornada {{ round }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <div *ngIf="loading" class="loading-container">
+      <ion-spinner></ion-spinner>
+      <p>Cargando tabla general...</p>
+    </div>
+
+    <ion-text color="danger" *ngIf="error">
+      <p>{{ error }}</p>
+    </ion-text>
+
+    <ng-container *ngIf="!(loading || error)">
+      <ng-container *ngIf="selectedView === 'weekly'; else overallView">
+        <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
+          <div class="leaderboard-content">
+            <div class="top-three" *ngIf="weeklyLeaderboard.length > 0">
+              <!-- Second Place -->
+              <div class="podium-spot position-2" *ngIf="weeklyLeaderboard.length > 1">
+                <div class="position-indicator">2</div>
+                <div class="avatar">
+                  🥈
+                </div>
+                <div class="user-info">
+                  <div class="user-row">
+                    <h3>{{ weeklyLeaderboard[1].username }}</h3>
+                    <span class="points">{{ weeklyLeaderboard[1].weeklyPoints }} pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- First Place -->
+              <div class="podium-spot position-1" *ngIf="weeklyLeaderboard.length > 0">
+                <div class="position-indicator">1</div>
+                <div class="crown-icon">👑</div>
+                <div class="avatar">
+                  <ion-icon name="trophy"></ion-icon>
+                </div>
+                <div class="user-info">
+                  <div class="user-row">
+                    <h3>{{ weeklyLeaderboard[0].username }}</h3>
+                    <span class="points">{{ weeklyLeaderboard[0].weeklyPoints }} pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Third Place -->
+              <div class="podium-spot position-3" *ngIf="weeklyLeaderboard.length > 2">
+                <div class="position-indicator">3</div>
+                <div class="avatar">
+                  🥉
+                </div>
+                <div class="user-info">
+                  <div class="user-row">
+                    <h3>{{ weeklyLeaderboard[2].username }}</h3>
+                    <span class="points">{{ weeklyLeaderboard[2].weeklyPoints }} pts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="other-positions" *ngIf="weeklyLeaderboard.length > 3">
+              <ion-list>
+                <ion-item *ngFor="let entry of weeklyLeaderboard.slice(3); let i = index" lines="full" class="leaderboard-item">
+                  <div class="position">{{ i + 4 }}</div>
+                  <ion-label>
+                    <div class="user-row">
+                      <h2>{{ entry.username }}</h2>
+                      <span class="points">{{ entry.weeklyPoints }} pts</span>
+                    </div>
+                  </ion-label>
+                </ion-item>
+              </ion-list>
+            </div>
+
+            <div class="empty-state" *ngIf="weeklyLeaderboard.length === 0">
+              <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+              <h2>No hay participantes</h2>
+              <p>Los resultados aparecerán cuando los usuarios empiecen a participar</p>
+            </div>
+          </div>
+        </ng-container>
+      </ng-container>
+
+      <ng-template #overallView>
+        <ng-container *ngIf="overallLeaderboard$ | async as overallLeaderboard">
+          <div class="leaderboard-content">
+            <div class="stats-summary">
+              <div class="stat-card">
+                <div class="stat-value">{{ getLeaderPoints(overallLeaderboard) }}</div>
+                <div class="stat-label">Puntos Líder</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">{{ overallLeaderboard.length }}</div>
+                <div class="stat-label">Participantes</div>
+              </div>
+            </div>
+
+            <div class="top-three" *ngIf="overallLeaderboard.length > 0">
+              <!-- Second Place -->
+              <div class="podium-spot position-2" *ngIf="overallLeaderboard.length > 1">
+                <div class="position-indicator">2</div>
+                <div class="avatar">
+                  🥈
+                </div>
+                <div class="user-info">
+                  <div class="user-row">
+                    <h3>{{ overallLeaderboard[1].username }}</h3>
+                    <span class="points">{{ overallLeaderboard[1].totalPoints }} pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- First Place -->
+              <div class="podium-spot position-1" *ngIf="overallLeaderboard.length > 0">
+                <div class="position-indicator">1</div>
+                <div class="crown-icon">👑</div>
+                <div class="avatar">
+                  <ion-icon name="trophy"></ion-icon>
+                </div>
+                <div class="user-info">
+                  <div class="user-row">
+                    <h3>{{ overallLeaderboard[0].username }}</h3>
+                    <span class="points">{{ overallLeaderboard[0].totalPoints }} pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Third Place -->
+              <div class="podium-spot position-3" *ngIf="overallLeaderboard.length > 2">
+                <div class="position-indicator">3</div>
+                <div class="avatar">
+                  🥉
+                </div>
+                <div class="user-info">
+                  <div class="user-row">
+                    <h3>{{ overallLeaderboard[2].username }}</h3>
+                    <span class="points">{{ overallLeaderboard[2].totalPoints }} pts</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="other-positions" *ngIf="overallLeaderboard.length > 3">
+              <ion-list>
+                <ion-item *ngFor="let entry of overallLeaderboard.slice(3); let i = index" lines="full" class="leaderboard-item">
+                  <div class="position">{{ i + 4 }}</div>
+                  <ion-label>
+                    <div class="user-row">
+                      <h2>{{ entry.username }}</h2>
+                      <span class="points">{{ entry.totalPoints }} pts</span>
+                    </div>
+                  </ion-label>
+                </ion-item>
+              </ion-list>
+            </div>
+
+            <div class="empty-state" *ngIf="overallLeaderboard.length === 0">
+              <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+              <h2>No hay participantes</h2>
+              <p>Los resultados aparecerán cuando los usuarios empiecen a participar</p>
+            </div>
+          </div>
+        </ng-container>
+      </ng-template>
+    </ng-container>
+  </div>
+</ion-content>

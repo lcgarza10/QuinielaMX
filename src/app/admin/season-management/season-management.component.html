@@ -1,0 +1,66 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/test-predictions"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Configuración de Temporada</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="seasonForm" (ngSubmit)="saveSeason()">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Configuración de Temporada Liga MX</ion-card-title>
+        <ion-card-subtitle>Define las fechas de inicio y fin del torneo actual</ion-card-subtitle>
+      </ion-card-header>
+      
+      <ion-card-content>
+        <ion-item>
+          <ion-label position="floating">Nombre del Torneo</ion-label>
+          <ion-select formControlName="name">
+            <ion-select-option value="Clausura 2024">Clausura 2024</ion-select-option>
+            <ion-select-option value="Apertura 2024">Apertura 2024</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Fecha de Inicio</ion-label>
+          <ion-input type="date" formControlName="startDate"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Fecha de Fin</ion-label>
+          <ion-input type="date" formControlName="endDate"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Establecer como Temporada Activa</ion-label>
+          <ion-toggle formControlName="isActive"></ion-toggle>
+        </ion-item>
+
+        <div class="button-container">
+          <ion-button 
+            expand="block" 
+            type="submit" 
+            [disabled]="!seasonForm.valid || loading"
+            class="ion-margin-top">
+            <ion-icon name="save-outline" slot="start"></ion-icon>
+            Guardar Configuración
+          </ion-button>
+        </div>
+
+        <div class="loading-container" *ngIf="loading">
+          <ion-spinner></ion-spinner>
+          <p>Guardando configuración de temporada...</p>
+        </div>
+
+        <div class="error-container" *ngIf="error">
+          <ion-text color="danger">
+            <p>{{ error }}</p>
+          </ion-text>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </form>
+</ion-content>

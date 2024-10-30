@@ -1,0 +1,79 @@
+<div class="match-list-container">
+  <h2 class="jornada-header">
+    {{ isCompleted ? 'Resultados de la jornada' : 'Juegos por jugar de la jornada' }} {{ weekLabel }}
+    <div class="points-summary" *ngIf="isCompleted && weeklyPoints > 0">
+      Puntos acumulados: {{ weeklyPoints }}
+    </div>
+  </h2>
+
+  <ion-list>
+    <ion-item *ngFor="let match of matches">
+      <ion-card class="match-card">
+        <ion-card-header>
+          <ion-card-subtitle>
+            {{ formatDate(match.date) }}
+            <br>
+            <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
+          </ion-card-subtitle>
+          <ion-badge [color]="isCompleted ? 'medium' : 'warning'" class="match-status">
+            {{ getMatchStatus(match) }}
+          </ion-badge>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="teams">
+            <div class="team">
+              <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
+              <div class="team-name">{{ match.homeTeam }}</div>
+            </div>
+            <ng-container *ngIf="!isCompleted">
+              <div class="prediction-inputs">
+                <ion-input 
+                  type="number" 
+                  [(ngModel)]="match.prediction!.homeScore"
+                  placeholder="Local"
+                  min="0"
+                  max="99"
+                  class="score-input">
+                </ion-input>
+                <span class="score-separator">-</span>
+                <ion-input 
+                  type="number" 
+                  [(ngModel)]="match.prediction!.awayScore"
+                  placeholder="Visitante"
+                  min="0"
+                  max="99"
+                  class="score-input">
+                </ion-input>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="isCompleted">
+              <div class="scores-container">
+                <div class="final-score">
+                  {{ match.homeScore }} - {{ match.awayScore }}
+                </div>
+                <div class="prediction-score" [ngClass]="getPredictionClass(match)">
+                  Tu predicción: {{ match.prediction?.homeScore ?? '-' }} - {{ match.prediction?.awayScore ?? '-' }}
+                  <div class="points-badge">
+                    {{ getMatchPoints(match) }} pts
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+            <div class="team">
+              <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
+              <div class="team-name">{{ match.awayTeam }}</div>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ion-item>
+  </ion-list>
+
+  <ion-button 
+    *ngIf="!isCompleted && matches.length > 0"
+    expand="block" 
+    (click)="onSubmit()"
+    class="submit-button">
+    Guardar Predicciones
+  </ion-button>
+</div>
