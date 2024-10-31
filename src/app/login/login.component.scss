@@ -32,6 +32,11 @@
   }
 }
 
+.logo {
+   width: 33.33%; /* Reduce size to one-third (100% / 300%) */
+   height: auto; /* Maintain aspect ratio */
+}
+
 .login-form {
   width: 100%;
   max-width: 400px;
@@ -129,6 +134,18 @@
       margin-left: 4px;
     }
   }
+}
+
+.version-info {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: white;
+  font-size: 12px;
+  padding: 8px;
+  opacity: 0.7;
 }
 
 @media (max-width: 480px) {

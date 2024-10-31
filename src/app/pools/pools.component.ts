@@ -62,7 +62,27 @@ export class PoolsComponent implements OnInit {
       const currentRound = await this.footballService.getCurrentRound();
       if (currentRound) {
         this.currentRound = currentRound;
-        this.selectedRound = currentRound;
+        
+        // Get matches for current round to check if they're finished
+        const currentMatches = await firstValueFrom(this.footballService.getMatches(currentRound));
+        const allFinished = currentMatches.every(match => match.status.short === 'FT');
+        
+        if (allFinished) {
+          // Check if last match was finished more than 24 hours ago
+          const lastMatchDate = Math.max(...currentMatches.map(m => new Date(m.date).getTime()));
+          const now = new Date().getTime();
+          const hoursSinceLastMatch = (now - lastMatchDate) / (1000 * 60 * 60);
+          
+          if (hoursSinceLastMatch >= 24 && currentRound < 17) {
+            // Show next round
+            this.selectedRound = currentRound + 1;
+          } else {
+            this.selectedRound = currentRound;
+          }
+        } else {
+          this.selectedRound = currentRound;
+        }
+        
         await this.loadMatches();
       } else {
         throw new Error('No se pudo determinar la jornada actual');

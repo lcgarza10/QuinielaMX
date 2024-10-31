@@ -1,12 +1,14 @@
 <ion-content class="ion-padding">
   <div class="login-container">
     <div class="logo-container">
-      <ion-icon name="football-outline" class="logo-icon"></ion-icon>
-      <h1>Liga MX Predictions</h1>
+     
+   <!--   <ion-icon name="football-outline" class="logo-icon"></ion-icon> -->
+      <h1>Quiniela de la Liga MX</h1>
       <p class="subtitle">Inicia sesión para continuar</p>
-    </div>
-    
-    <form [formGroup]="loginForm" (ngSubmit)="loginWithEmail()" class="login-form">
+        <img src="https://stackblitz.com/storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBOWdSRXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--a9d0bcdf53d9038083712fc795093e53b3873adb/quiniela-mx-logo.png" alt="Quiniela Liga MX Logo" class="logo">
+      </div>
+ 
+      <form [formGroup]="loginForm" (ngSubmit)="loginWithEmail()" class="login-form">
       <ion-card>
         <ion-card-content>
           <ion-item class="form-item">
@@ -17,7 +19,7 @@
             <ion-input 
               type="email" 
               formControlName="email"
-              placeholder="tu@email.com">
+              placeholder="tucorreo@email.com">
             </ion-input>
           </ion-item>
 
@@ -62,6 +64,10 @@
           <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
         </ion-button>
       </p>
+    </div>
+
+    <div class="version-info">
+      <span>{{ version }}</span>
     </div>
   </div>
 </ion-content>

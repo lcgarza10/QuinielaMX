@@ -3,26 +3,71 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  text-align: center;
+  min-height: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
 
   h1 {
     font-size: 24px;
     margin-bottom: 10px;
+    color: white;
+    text-align: center;
   }
 
   p {
     font-size: 16px;
     margin-bottom: 20px;
+    color: white;
+    text-align: center;
   }
 
   form {
     width: 100%;
-    max-width: 300px;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
   }
 
+  ion-item {
+    --background: transparent;
+    --border-color: var(--ion-color-medium);
+    --border-radius: 8px;
+    --border-width: 1px;
+    --padding-start: 8px;
+    --padding-end: 8px;
+    margin-bottom: 16px;
+
+    &:last-of-type {
+      margin-bottom: 24px;
+    }
+  }
+
   ion-button {
-    margin-bottom: 10px;
+    margin-top: 16px;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+    font-weight: 600;
+    height: 48px;
+  }
+
+  a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+:host-context(.dark) {
+  .signup-container {
+    form {
+      background: rgba(var(--ion-card-background-rgb), 0.9);
+    }
   }
 }

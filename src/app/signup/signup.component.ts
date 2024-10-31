@@ -11,7 +11,6 @@ import { Router } from '@angular/router';
 export class SignupComponent implements OnInit {
   signupForm: FormGroup;
   errorMessage: string = '';
-  maxDate: string;
 
   constructor(
     private authService: AuthService,
@@ -23,10 +22,8 @@ export class SignupComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]],
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
-      username: ['', [Validators.required]],
-      dob: ['', [Validators.required]]
+      username: ['', [Validators.required]]
     });
-    this.maxDate = new Date().toISOString().split('T')[0];
   }
 
   ngOnInit() {
@@ -35,12 +32,12 @@ export class SignupComponent implements OnInit {
 
   async signupWithEmail() {
     if (this.signupForm.valid) {
-      const { email, password, firstName, lastName, username, dob } = this.signupForm.value;
+      const { email, password, firstName, lastName, username } = this.signupForm.value;
       try {
-        await this.authService.signUpWithEmail(email, password, firstName, lastName, username, dob);
+        await this.authService.signUpWithEmail(email, password, firstName, lastName, username, '');
         this.router.navigate(['/home']);
       } catch (error: any) {
-        this.errorMessage = 'Signup failed: ' + error.message;
+        this.errorMessage = 'Error al registrarse: ' + error.message;
       }
     }
   }

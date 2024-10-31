@@ -32,6 +32,30 @@ export class MatchPredictionComponent {
     return 0;
   }
 
+  incrementScore(team: 'home' | 'away') {
+    if (team === 'home') {
+      this.prediction.homeScore = (this.prediction.homeScore ?? 0) + 1;
+    } else {
+      this.prediction.awayScore = (this.prediction.awayScore ?? 0) + 1;
+    }
+    this.onScoreChange();
+  }
+
+  decrementScore(team: 'home' | 'away') {
+    if (team === 'home' && (this.prediction.homeScore ?? 0) > 0) {
+      this.prediction.homeScore = (this.prediction.homeScore ?? 1) - 1;
+    } else if (team === 'away' && (this.prediction.awayScore ?? 0) > 0) {
+      this.prediction.awayScore = (this.prediction.awayScore ?? 1) - 1;
+    }
+    this.onScoreChange();
+  }
+
+  setQuickScore(home: number, away: number) {
+    this.prediction.homeScore = home;
+    this.prediction.awayScore = away;
+    this.onScoreChange();
+  }
+
   private isExactMatch(): boolean {
     return this.match.homeScore === this.prediction.homeScore && 
            this.match.awayScore === this.prediction.awayScore;

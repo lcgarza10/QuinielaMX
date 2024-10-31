@@ -46,26 +46,85 @@
   }
 }
 
-.score-input-group {
+.score-input-modern {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 16px;
+  padding: 16px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  margin: 12px 0;
+
+  .team-score {
+    .score-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-button {
+        --padding-start: 4px;
+        --padding-end: 4px;
+        height: 36px;
+        
+        ion-icon {
+          font-size: 24px;
+          color: var(--ion-color-primary);
+        }
+
+        &:disabled ion-icon {
+          opacity: 0.5;
+        }
+      }
+
+      .score-value {
+        font-size: 24px;
+        font-weight: 600;
+        min-width: 32px;
+        text-align: center;
+        color: var(--ion-color-dark);
+      }
+    }
+  }
+
+  .score-separator {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--ion-color-medium);
+    margin: 0 8px;
+  }
 }
 
-.score-input {
-  width: 60px;
-  text-align: center;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --background: var(--ion-color-light);
-  border-radius: 4px;
-}
+.quick-scores {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
 
-.score-separator {
-  font-weight: bold;
-  font-size: 20px;
-  color: var(--ion-color-medium);
+  .quick-score-label {
+    font-size: 0.85em;
+    color: var(--ion-color-medium);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .quick-score-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    ion-button {
+      --padding-start: 12px;
+      --padding-end: 12px;
+      height: 32px;
+      font-size: 0.9em;
+      --color: var(--ion-color-primary);
+
+      &:hover {
+        --background: rgba(var(--ion-color-primary-rgb), 0.1);
+      }
+    }
+  }
 }
 
 .prediction-score {
@@ -115,7 +174,11 @@
     background: rgba(255, 255, 255, 0.05);
   }
 
-  .score-input {
-    --background: rgba(255, 255, 255, 0.1);
+  .score-input-modern {
+    background: rgba(255, 255, 255, 0.1);
+
+    .team-score .score-controls .score-value {
+      color: var(--ion-color-light);
+    }
   }
 }

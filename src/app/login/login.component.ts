@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastController, AlertController } from '@ionic/angular';
+import { VersionService } from '../services/version.service';
 
 @Component({
   selector: 'app-login',
@@ -12,18 +13,21 @@ import { ToastController, AlertController } from '@ionic/angular';
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   errorMessage: string = '';
+  version: string;
 
   constructor(
     private authService: AuthService,
     private router: Router,
     private fb: FormBuilder,
     private toastController: ToastController,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private versionService: VersionService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+    this.version = this.versionService.getVersion();
   }
 
   ngOnInit() {}
