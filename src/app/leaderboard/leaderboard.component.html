@@ -34,40 +34,12 @@
         </div>
       </div>
 
-      <div class="rounds-grid">
-        <div class="rounds-row">
-          <div 
-            *ngFor="let round of firstHalfRounds" 
-            class="round-chip" 
-            [class.active]="selectedWeek === round"
-            [class.current]="round === currentRound"
-            (click)="onRoundChange(round)">
-            J{{ round }}
-            <ion-icon 
-              *ngIf="round === currentRound" 
-              name="radio" 
-              class="live-indicator"
-              [class.pulse]="isCurrentRoundActive">
-            </ion-icon>
-          </div>
-        </div>
-        <div class="rounds-row">
-          <div 
-            *ngFor="let round of secondHalfRounds" 
-            class="round-chip" 
-            [class.active]="selectedWeek === round"
-            [class.current]="round === currentRound"
-            (click)="onRoundChange(round)">
-            J{{ round }}
-            <ion-icon 
-              *ngIf="round === currentRound" 
-              name="radio" 
-              class="live-indicator"
-              [class.pulse]="isCurrentRoundActive">
-            </ion-icon>
-          </div>
-        </div>
-      </div>
+      <app-rounds-selector
+        [selectedRound]="selectedWeek"
+        [currentRound]="currentRound"
+        [isLiveRound]="isCurrentRoundActive"
+        (roundChange)="onRoundChange($event)">
+      </app-rounds-selector>
     </ng-container>
 
     <ng-container *ngIf="!(loading || error)">

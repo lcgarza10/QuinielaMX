@@ -78,7 +78,7 @@ export class TestPredictionsComponent implements OnInit {
   async resetPasswords() {
     this.loading = true;
     try {
-      await this.databaseService.resetAllUserPasswords('Password123!');
+      await this.databaseService.resetAllUserPasswords('hola123!');
       const toast = await this.toastController.create({
         message: 'Contraseñas restablecidas exitosamente',
         duration: 2000,

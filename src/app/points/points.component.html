@@ -18,40 +18,12 @@
       </div>
     </div>
 
-    <div class="rounds-grid">
-      <div class="rounds-row">
-        <div 
-          *ngFor="let round of firstHalfRounds" 
-          class="round-chip" 
-          [class.active]="selectedRound === round"
-          [class.current]="round === currentRound"
-          (click)="onRoundChange(round)">
-          J{{ round }}
-          <ion-icon 
-            *ngIf="round === currentRound" 
-            name="radio" 
-            class="live-indicator"
-            [class.pulse]="isLiveRound">
-          </ion-icon>
-        </div>
-      </div>
-      <div class="rounds-row">
-        <div 
-          *ngFor="let round of secondHalfRounds" 
-          class="round-chip" 
-          [class.active]="selectedRound === round"
-          [class.current]="round === currentRound"
-          (click)="onRoundChange(round)">
-          J{{ round }}
-          <ion-icon 
-            *ngIf="round === currentRound" 
-            name="radio" 
-            class="live-indicator"
-            [class.pulse]="isLiveRound">
-          </ion-icon>
-        </div>
-      </div>
-    </div>
+    <app-rounds-selector
+      [selectedRound]="selectedRound"
+      [currentRound]="currentRound"
+      [isLiveRound]="isLiveRound"
+      (roundChange)="onRoundChange($event)">
+    </app-rounds-selector>
 
     <!-- Loading State -->
     <div *ngIf="loading" class="loading-container">

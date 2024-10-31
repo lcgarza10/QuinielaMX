@@ -25,8 +25,6 @@ export class LeaderboardComponent implements OnInit {
   selectedWeek: number = 1;
   selectedView: 'weekly' | 'overall' = 'weekly';
   rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
-  firstHalfRounds: number[] = [];
-  secondHalfRounds: number[] = [];
   currentRound: number = 1;
   isCurrentRoundActive: boolean = false;
   nextRoundStartDate: Date | null = null;
@@ -36,12 +34,7 @@ export class LeaderboardComponent implements OnInit {
     private authService: AuthService,
     private seasonService: SeasonService,
     private footballService: FootballService
-  ) {
-    // Split rounds into two arrays for the grid
-    const midPoint = Math.ceil(this.rounds.length / 2);
-    this.firstHalfRounds = this.rounds.slice(0, midPoint);
-    this.secondHalfRounds = this.rounds.slice(midPoint);
-  }
+  ) {}
 
   async ngOnInit() {
     await this.findCurrentRound();

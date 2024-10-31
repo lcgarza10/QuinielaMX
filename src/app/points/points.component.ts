@@ -23,8 +23,6 @@ export class PointsComponent implements OnInit {
   selectedRound: number = 1;
   currentRound: number = 1;
   rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
-  firstHalfRounds: number[] = [];
-  secondHalfRounds: number[] = [];
   userId: string | null = null;
   isOffline: boolean = false;
   totalPoints: number = 0;
@@ -37,12 +35,7 @@ export class PointsComponent implements OnInit {
     private authService: AuthService,
     private alertController: AlertController,
     private toastController: ToastController
-  ) {
-    // Split rounds into two arrays for the grid
-    const midPoint = Math.ceil(this.rounds.length / 2);
-    this.firstHalfRounds = this.rounds.slice(0, midPoint);
-    this.secondHalfRounds = this.rounds.slice(midPoint);
-  }
+  ) {}
 
   ngOnInit() {
     this.authService.user$.subscribe(async user => {

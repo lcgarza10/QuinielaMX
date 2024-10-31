@@ -18,6 +18,7 @@ import { PoolsComponent } from './pools/pools.component';
 import { PointsComponent } from './points/points.component';
 import { UserListComponent } from './user-list/user-list.component';
 import { HeaderComponent } from './components/header/header.component';
+import { RoundsSelectorComponent } from './components/rounds-selector/rounds-selector.component';
 import { TestPredictionsComponent } from './admin/test-predictions/test-predictions.component';
 import { SeasonManagementComponent } from './admin/season-management/season-management.component';
 import { MatchPredictionComponent } from './pools/match-prediction/match-prediction.component';
@@ -52,6 +53,7 @@ registerLocaleData(localeEs);
     PointsComponent,
     UserListComponent,
     HeaderComponent,
+    RoundsSelectorComponent,
     TestPredictionsComponent,
     SeasonManagementComponent,
     MatchPredictionComponent,

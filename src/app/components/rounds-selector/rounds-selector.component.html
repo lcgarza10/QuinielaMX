@@ -1,0 +1,18 @@
+<div class="rounds-scroll">
+  <div class="rounds-container">
+    <div 
+      *ngFor="let round of rounds" 
+      class="round-chip" 
+      [class.active]="selectedRound === round"
+      [class.current]="round === currentRound"
+      (click)="onRoundChange(round)">
+      J{{ round }}
+      <ion-icon 
+        *ngIf="round === currentRound" 
+        name="radio" 
+        class="live-indicator"
+        [class.pulse]="isLiveRound">
+      </ion-icon>
+    </div>
+  </div>
+</div>
