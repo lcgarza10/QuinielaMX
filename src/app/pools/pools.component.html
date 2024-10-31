@@ -11,7 +11,10 @@
   <div class="week-header">
     <div class="round-status">
       {{ getWeekTitle() }}
-      <ion-badge [color]="hasPredictions ? 'medium' : 'warning'" class="round-badge">
+      <ion-badge
+        [color]="hasPredictions ? 'medium' : 'warning'"
+        class="round-badge"
+      >
         {{ hasPredictions ? 'COMPLETADA' : 'PENDIENTE' }}
       </ion-badge>
     </div>
@@ -19,17 +22,19 @@
 
   <div class="rounds-scroll">
     <div class="rounds-container">
-      <div 
-        *ngFor="let round of rounds" 
-        class="round-chip" 
+      <div
+        *ngFor="let round of rounds"
+        class="round-chip"
         [class.active]="selectedRound === round"
         [class.current]="round === currentRound"
-        (click)="onRoundChange(round)">
+        (click)="onRoundChange(round)"
+      >
         J{{ round }}
-        <ion-icon 
-          *ngIf="round === currentRound" 
-          name="radio" 
-          class="live-indicator">
+        <ion-icon
+          *ngIf="round === currentRound"
+          name="radio"
+          class="live-indicator"
+        >
         </ion-icon>
       </div>
     </div>
@@ -53,7 +58,9 @@
   </ion-text>
 
   <ion-text color="warning" *ngIf="isOffline">
-    <p>No hay conexión a internet. Algunos datos pueden no estar actualizados.</p>
+    <p>
+      No hay conexión a internet. Algunos datos pueden no estar actualizados.
+    </p>
     <ion-button (click)="loadMatches()" size="small" fill="outline">
       Reintentar Conexión
     </ion-button>
@@ -63,18 +70,14 @@
     <ion-list>
       <ion-item *ngFor="let match of matches">
         <ion-card class="match-card">
-          <ion-card-header>
-            <ion-card-subtitle>
-              {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • {{ match.date | date:'h:mm a':'':'es-MX' }}
-              <br>
-              <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
-            </ion-card-subtitle>
-          </ion-card-header>
-
           <ion-card-content>
             <div class="teams">
               <div class="team">
-                <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
+                <img
+                  [src]="match.homeTeamLogo"
+                  [alt]="match.homeTeam"
+                  class="team-logo"
+                />
                 <div class="team-name">{{ match.homeTeam }}</div>
               </div>
 
@@ -83,25 +86,39 @@
                 [prediction]="match.prediction"
                 [canPredict]="match.canPredict"
                 [isCompleted]="hasPredictions"
-                (predictionChange)="onPredictionChange(match, $event)">
+                (predictionChange)="onPredictionChange(match, $event)"
+              >
               </app-match-prediction>
 
               <div class="team">
-                <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
+                <img
+                  [src]="match.awayTeamLogo"
+                  [alt]="match.awayTeam"
+                  class="team-logo"
+                />
                 <div class="team-name">{{ match.awayTeam }}</div>
               </div>
             </div>
+            <ion-card-header align="center">
+              <ion-card-subtitle>
+                {{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} •
+                {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}
+                <br />
+                <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
+              </ion-card-subtitle>
+            </ion-card-header>
           </ion-card-content>
         </ion-card>
       </ion-item>
     </ion-list>
 
-    <ion-button 
-      expand="block" 
+    <ion-button
+      expand="block"
       (click)="submitPredictions()"
       [disabled]="isSubmitDisabled()"
       class="submit-button"
-      *ngIf="!hasPredictions">
+      *ngIf="!hasPredictions"
+    >
       Guardar Predicciones
     </ion-button>
   </div>
