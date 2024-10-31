@@ -7,7 +7,7 @@
     <ion-buttons slot="end">
       <ion-button (click)="logout()" class="logout-button" *ngIf="authService.user$ | async as user">
         <div class="user-info">
-          <span class="user-name">{{ user.username || user.displayName || user.email }}</span>
+          <span class="user-name">{{ user.username || user.email }}</span>
           <div class="logout-container">
             <ion-icon name="log-out-outline" class="logout-icon"></ion-icon>
             <span class="logout-text">Salir</span>

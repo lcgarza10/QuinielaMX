@@ -7,12 +7,9 @@ import { switchMap, map, catchError, tap } from 'rxjs/operators';
 export interface User {
   uid: string;
   email: string;
-  displayName?: string;
   firstName?: string;
   lastName?: string;
   username?: string;
-  dob?: string;
-  totalPoints?: number;
 }
 
 @Injectable({
@@ -35,10 +32,10 @@ export class AuthService {
                 this.updateUserData(user);
               }
             }),
-            map(dbUser => dbUser || { uid: user.uid, email: user.email || '', totalPoints: 0 }),
+            map(dbUser => dbUser || { uid: user.uid, email: user.email || '' }),
             catchError(error => {
               console.error('Error fetching user data:', error);
-              return of({ uid: user.uid, email: user.email || '', totalPoints: 0 });
+              return of({ uid: user.uid, email: user.email || '' });
             })
           );
         } else {
@@ -62,10 +59,10 @@ export class AuthService {
     }
   }
 
-  async signUpWithEmail(email: string, password: string, firstName: string, lastName: string, username: string, dob: string): Promise<void> {
+  async signUpWithEmail(email: string, password: string, firstName: string, lastName: string, username: string): Promise<void> {
     try {
       const credential = await this.afAuth.createUserWithEmailAndPassword(email, password);
-      await this.updateUserData(credential.user, { firstName, lastName, username, dob });
+      await this.updateUserData(credential.user, { firstName, lastName, username });
     } catch (error) {
       console.error('Error signing up:', error);
       throw error;
@@ -95,15 +92,10 @@ export class AuthService {
     const userData: User = {
       uid: user.uid,
       email: user.email,
-      displayName: user.displayName || `${additionalData?.firstName} ${additionalData?.lastName}`,
       ...additionalData
     };
 
     try {
-      const currentData = await userRef.get().toPromise();
-      const currentUser = currentData?.data() as User;
-      userData.totalPoints = currentUser?.totalPoints ?? 0;
-
       await userRef.set(userData, { merge: true });
       console.log('User data updated in Firestore');
     } catch (error) {

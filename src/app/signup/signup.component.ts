@@ -34,7 +34,7 @@ export class SignupComponent implements OnInit {
     if (this.signupForm.valid) {
       const { email, password, firstName, lastName, username } = this.signupForm.value;
       try {
-        await this.authService.signUpWithEmail(email, password, firstName, lastName, username, '');
+        await this.authService.signUpWithEmail(email, password, firstName, lastName, username);
         this.router.navigate(['/home']);
       } catch (error: any) {
         this.errorMessage = 'Error al registrarse: ' + error.message;

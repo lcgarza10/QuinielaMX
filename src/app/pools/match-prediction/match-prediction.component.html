@@ -13,10 +13,12 @@
 
     <!-- Prediction Input/Display -->
     <div class="prediction-score" [ngClass]="getScoreClass()">
-      <div class="score-label">{{ isCompleted ? 'Tu predicción:' : 'Ingresa tu predicción:' }}</div>
+      <div class="score-label">
+        {{ isCompleted ? 'Tu predicción:' : (canEdit ? 'Aún puedes predecir:' : 'Ingresa tu predicción:') }}
+      </div>
       
       <!-- Modern Score Input Interface -->
-      <div class="score-input-modern" *ngIf="!isCompleted && canPredict">
+      <div class="score-input-modern" *ngIf="(!isCompleted && canPredict) || canEdit">
         <div class="team-score">
           <div class="score-controls">
             <ion-button fill="clear" (click)="decrementScore('home')" [disabled]="prediction.homeScore === 0">
@@ -52,7 +54,7 @@
       </div>
 
       <!-- Quick Score Suggestions -->
-      <div class="quick-scores" *ngIf="!isCompleted && canPredict">
+      <div class="quick-scores" *ngIf="(!isCompleted && canPredict) || canEdit">
         <div class="quick-score-label">Resultados comunes:</div>
         <div class="quick-score-buttons">
           <ion-button fill="clear" size="small" (click)="setQuickScore(1, 0)">
@@ -75,7 +77,7 @@
     </div>
   </div>
 
-  <div class="prediction-status" *ngIf="!canPredict && !isCompleted">
+  <div class="prediction-status" *ngIf="!canPredict && !canEdit && !isCompleted">
     <ion-text color="medium">
       <small>Las predicciones están cerradas para este partido</small>
     </ion-text>

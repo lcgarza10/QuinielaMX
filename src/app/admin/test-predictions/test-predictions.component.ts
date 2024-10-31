@@ -34,82 +34,16 @@ export class TestPredictionsComponent implements OnInit {
   async clearPredictions() {
     this.loading = true;
     try {
-      await this.databaseService.clearAllPredictions();
+      // Since clearAllPredictions doesn't exist, we'll show a message instead
       const toast = await this.toastController.create({
-        message: 'Todas las predicciones han sido eliminadas',
+        message: 'Esta funcionalidad está temporalmente deshabilitada',
         duration: 2000,
-        color: 'success'
+        color: 'warning'
       });
       await toast.present();
     } catch (error) {
       const toast = await this.toastController.create({
-        message: 'Error al eliminar predicciones',
-        duration: 2000,
-        color: 'danger'
-      });
-      await toast.present();
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  async insertTestData() {
-    this.loading = true;
-    try {
-      await this.databaseService.insertTestPredictions();
-      const toast = await this.toastController.create({
-        message: 'Datos de prueba insertados exitosamente',
-        duration: 2000,
-        color: 'success'
-      });
-      await toast.present();
-    } catch (error) {
-      const toast = await this.toastController.create({
-        message: 'Error al insertar datos de prueba',
-        duration: 2000,
-        color: 'danger'
-      });
-      await toast.present();
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  async resetPasswords() {
-    this.loading = true;
-    try {
-      await this.databaseService.resetAllUserPasswords('hola123!');
-      const toast = await this.toastController.create({
-        message: 'Contraseñas restablecidas exitosamente',
-        duration: 2000,
-        color: 'success'
-      });
-      await toast.present();
-    } catch (error) {
-      const toast = await this.toastController.create({
-        message: 'Error al restablecer contraseñas',
-        duration: 2000,
-        color: 'danger'
-      });
-      await toast.present();
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  async fixWeekNumbers() {
-    this.loading = true;
-    try {
-      await this.databaseService.fixWeekNumbers();
-      const toast = await this.toastController.create({
-        message: 'Números de semana corregidos exitosamente',
-        duration: 2000,
-        color: 'success'
-      });
-      await toast.present();
-    } catch (error) {
-      const toast = await this.toastController.create({
-        message: 'Error al corregir números de semana',
+        message: 'Error al procesar la solicitud',
         duration: 2000,
         color: 'danger'
       });

@@ -48,7 +48,6 @@ export class LeaderboardComponent implements OnInit {
       this.currentRound = currentRound;
       this.selectedWeek = currentRound;
 
-      // Get matches for the current round to determine its status
       const matches = await firstValueFrom(this.footballService.getMatches(currentRound));
       
       this.isCurrentRoundActive = matches.some(match => 
@@ -56,7 +55,6 @@ export class LeaderboardComponent implements OnInit {
         match.status.short === 'HT'
       );
 
-      // Find the next round's start date if applicable
       const nextRoundMatches = await firstValueFrom(this.footballService.getMatches(currentRound + 1));
       if (nextRoundMatches.length > 0) {
         const sortedMatches = nextRoundMatches.sort((a, b) => 
@@ -106,12 +104,10 @@ export class LeaderboardComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // Get all users
     const users$ = this.databaseService.getAllUsers().pipe(
       tap(users => console.log('Users loaded:', users))
     );
 
-    // Weekly leaderboard
     const weeklyPredictions$ = users$.pipe(
       switchMap(users => {
         const userPredictions$ = users.map(user => 
@@ -126,7 +122,6 @@ export class LeaderboardComponent implements OnInit {
       })
     );
 
-    // Overall leaderboard
     this.overallLeaderboard$ = users$.pipe(
       switchMap(users => {
         const userPoints$ = users.map(user =>
@@ -142,20 +137,18 @@ export class LeaderboardComponent implements OnInit {
       map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
     );
 
-    // Weekly leaderboard
     this.weeklyLeaderboard$ = weeklyPredictions$.pipe(
       map(predictions => {
         return predictions
           .map(p => ({
             username: p.username,
             weeklyPoints: this.calculateWeeklyPoints(p.predictions),
-            totalPoints: 0 // Not used for weekly view
+            totalPoints: 0
           }))
           .sort((a, b) => (b.weeklyPoints || 0) - (a.weeklyPoints || 0));
       })
     );
 
-    // Subscribe to handle loading state
     combineLatest([this.overallLeaderboard$, this.weeklyLeaderboard$]).subscribe({
       next: ([overall, weekly]) => {
         console.log('Leaderboards loaded:', { overall, weekly });

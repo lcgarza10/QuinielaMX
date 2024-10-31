@@ -29,6 +29,7 @@ export class PoolsComponent implements OnInit {
   hasPredictions: boolean = false;
   weeklyPoints: number = 0;
   isRateLimited: boolean = false;
+  savingPredictions: boolean = false;
 
   constructor(
     private footballService: FootballService,
@@ -63,18 +64,15 @@ export class PoolsComponent implements OnInit {
       if (currentRound) {
         this.currentRound = currentRound;
         
-        // Get matches for current round to check if they're finished
         const currentMatches = await firstValueFrom(this.footballService.getMatches(currentRound));
         const allFinished = currentMatches.every(match => match.status.short === 'FT');
         
         if (allFinished) {
-          // Check if last match was finished more than 24 hours ago
           const lastMatchDate = Math.max(...currentMatches.map(m => new Date(m.date).getTime()));
           const now = new Date().getTime();
           const hoursSinceLastMatch = (now - lastMatchDate) / (1000 * 60 * 60);
           
           if (hoursSinceLastMatch >= 24 && currentRound < 17) {
-            // Show next round
             this.selectedRound = currentRound + 1;
           } else {
             this.selectedRound = currentRound;
@@ -114,22 +112,29 @@ export class PoolsComponent implements OnInit {
     const now = new Date();
     const matchDate = new Date(match.date);
     
-    if (match.status.short === 'LIVE' || 
-        match.status.short === 'HT' || 
-        match.status.short === 'FT') {
+    // If match is finished, no predictions allowed
+    if (match.status.short === 'FT') {
       return false;
     }
 
-    const fiveMinutes = 5 * 60 * 1000;
-    if (matchDate.getTime() - now.getTime() <= fiveMinutes) {
+    // If match is live or at halftime, no predictions allowed
+    if (match.status.short === 'LIVE' || match.status.short === 'HT') {
       return false;
     }
 
-    return true;
+    // Allow predictions if match hasn't started yet
+    if (match.status.short === 'NS') {
+      return true;
+    }
+
+    // For any other status, check if we're within 5 minutes of match start
+    const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+    const timeUntilMatch = matchDate.getTime() - now.getTime();
+    return timeUntilMatch > fiveMinutes;
   }
 
   isSubmitDisabled(): boolean {
-    return this.loading || !this.matches.some(m => m.canPredict === true) || this.hasPredictions;
+    return this.loading || !this.matches.some(m => m.canPredict === true);
   }
 
   async loadMatches() {
@@ -145,17 +150,22 @@ export class PoolsComponent implements OnInit {
           firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound.toString()))
         ]);
         
-        this.hasPredictions = predictions.length > 0;
+        const validPredictions = predictions.filter(p => 
+          p.matchId && (p.homeScore !== null && p.awayScore !== null)
+        );
+        this.hasPredictions = validPredictions.length > 0;
         
         this.matches = matches.map(match => {
           const prediction = predictions.find(p => p.matchId === match.id);
+          const canPredict = this.canPredictMatch(match);
+          
           return {
             ...match,
             prediction: {
               homeScore: prediction?.homeScore ?? null,
               awayScore: prediction?.awayScore ?? null
             },
-            canPredict: this.canPredictMatch(match)
+            canPredict
           };
         });
 
@@ -214,6 +224,7 @@ export class PoolsComponent implements OnInit {
     }
 
     let loading: HTMLIonLoadingElement | null = null;
+    this.savingPredictions = true;
 
     try {
       loading = await this.loadingController.create({
@@ -223,27 +234,36 @@ export class PoolsComponent implements OnInit {
       await loading.present();
 
       const predictions = this.matches
-        .filter(m => m.canPredict && m.prediction?.homeScore !== null && m.prediction?.awayScore !== null)
+        .filter(m => m.canPredict && 
+                    m.prediction?.homeScore !== null && 
+                    m.prediction?.awayScore !== null)
         .map(m => ({
           matchId: m.id,
           homeScore: m.prediction.homeScore!,
           awayScore: m.prediction.awayScore!
         }));
 
-      await firstValueFrom(this.databaseService.savePredictions(
+      if (predictions.length === 0) {
+        throw new Error('No hay predicciones válidas para guardar');
+      }
+
+      await this.databaseService.savePredictions(
         this.userId,
         this.selectedRound.toString(),
         predictions,
         0
-      ));
+      );
 
       await this.showToast('Predicciones guardadas exitosamente', 'success');
-      this.hasPredictions = true;
       await this.loadMatches();
     } catch (error) {
       console.error('Error saving predictions:', error);
-      await this.showToast('Error al guardar las predicciones', 'danger');
+      await this.showToast(
+        typeof error === 'string' ? error : 'Error al guardar las predicciones. Por favor intente nuevamente.',
+        'danger'
+      );
     } finally {
+      this.savingPredictions = false;
       if (loading) {
         await loading.dismiss();
       }

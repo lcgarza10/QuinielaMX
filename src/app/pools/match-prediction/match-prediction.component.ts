@@ -15,6 +15,7 @@ export class MatchPredictionComponent {
   @Input() match!: Match;
   @Input() prediction!: PredictionData;
   @Input() canPredict: boolean = false;
+  @Input() canEdit: boolean = false;
   @Input() isCompleted: boolean = false;
   @Output() predictionChange = new EventEmitter<PredictionData>();
 
@@ -33,6 +34,8 @@ export class MatchPredictionComponent {
   }
 
   incrementScore(team: 'home' | 'away') {
+    if (!this.canPredict && !this.canEdit) return;
+    
     if (team === 'home') {
       this.prediction.homeScore = (this.prediction.homeScore ?? 0) + 1;
     } else {
@@ -42,6 +45,8 @@ export class MatchPredictionComponent {
   }
 
   decrementScore(team: 'home' | 'away') {
+    if (!this.canPredict && !this.canEdit) return;
+    
     if (team === 'home' && (this.prediction.homeScore ?? 0) > 0) {
       this.prediction.homeScore = (this.prediction.homeScore ?? 1) - 1;
     } else if (team === 'away' && (this.prediction.awayScore ?? 0) > 0) {
@@ -51,6 +56,8 @@ export class MatchPredictionComponent {
   }
 
   setQuickScore(home: number, away: number) {
+    if (!this.canPredict && !this.canEdit) return;
+    
     this.prediction.homeScore = home;
     this.prediction.awayScore = away;
     this.onScoreChange();

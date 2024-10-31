@@ -65,7 +65,7 @@
         <ion-card class="match-card">
           <ion-card-header>
             <ion-card-subtitle>
-              {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }}
+              {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • {{ match.date | date:'h:mm a':'':'es-MX' }}
               <br>
               <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
             </ion-card-subtitle>

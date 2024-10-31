@@ -36,27 +36,6 @@
             Eliminar Predicciones
           </ion-button>
         </ion-item>
-
-        <ion-item>
-          <ion-button expand="block" (click)="insertTestData()" color="secondary" [disabled]="loading">
-            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-            Insertar Datos de Prueba
-          </ion-button>
-        </ion-item>
-
-        <ion-item>
-          <ion-button expand="block" (click)="resetPasswords()" color="warning" [disabled]="loading">
-            <ion-icon name="key-outline" slot="start"></ion-icon>
-            Restablecer Contraseñas
-          </ion-button>
-        </ion-item>
-
-        <ion-item>
-          <ion-button expand="block" (click)="fixWeekNumbers()" color="tertiary" [disabled]="loading">
-            <ion-icon name="build-outline" slot="start"></ion-icon>
-            Corregir Números de Semana
-          </ion-button>
-        </ion-item>
       </ion-list>
 
       <div class="loading-container" *ngIf="loading">
