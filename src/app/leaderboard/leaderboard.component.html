@@ -24,35 +24,51 @@
       </ion-segment-button>
     </ion-segment>
 
-    <div class="round-info" *ngIf="selectedView === 'weekly'">
-      <div class="round-status">
-        {{ getRoundStatus() }}
-        <ion-badge [color]="isCurrentRoundActive ? 'success' : 'medium'" class="round-badge">
-          {{ isCurrentRoundActive ? 'EN VIVO' : 'FINALIZADA' }}
-        </ion-badge>
+    <ng-container *ngIf="selectedView === 'weekly'">
+      <div class="round-info">
+        <div class="round-status">
+          {{ getRoundStatus() }}
+          <ion-badge [color]="isCurrentRoundActive ? 'success' : 'medium'" class="round-badge">
+            {{ isCurrentRoundActive ? 'EN VIVO' : 'FINALIZADA' }}
+          </ion-badge>
+        </div>
       </div>
-      
-      <ion-item lines="none" class="week-selector">
-        <ion-select 
-          [(ngModel)]="selectedWeek" 
-          (ionChange)="onRoundChange()"
-          label="Cambiar Jornada"
-          labelPlacement="floating">
-          <ion-select-option *ngFor="let round of rounds" [value]="round">
-            Jornada {{ round }}
-          </ion-select-option>
-        </ion-select>
-      </ion-item>
-    </div>
 
-    <div *ngIf="loading" class="loading-container">
-      <ion-spinner></ion-spinner>
-      <p>Cargando tabla general...</p>
-    </div>
-
-    <ion-text color="danger" *ngIf="error">
-      <p>{{ error }}</p>
-    </ion-text>
+      <div class="rounds-grid">
+        <div class="rounds-row">
+          <div 
+            *ngFor="let round of firstHalfRounds" 
+            class="round-chip" 
+            [class.active]="selectedWeek === round"
+            [class.current]="round === currentRound"
+            (click)="onRoundChange(round)">
+            J{{ round }}
+            <ion-icon 
+              *ngIf="round === currentRound" 
+              name="radio" 
+              class="live-indicator"
+              [class.pulse]="isCurrentRoundActive">
+            </ion-icon>
+          </div>
+        </div>
+        <div class="rounds-row">
+          <div 
+            *ngFor="let round of secondHalfRounds" 
+            class="round-chip" 
+            [class.active]="selectedWeek === round"
+            [class.current]="round === currentRound"
+            (click)="onRoundChange(round)">
+            J{{ round }}
+            <ion-icon 
+              *ngIf="round === currentRound" 
+              name="radio" 
+              class="live-indicator"
+              [class.pulse]="isCurrentRoundActive">
+            </ion-icon>
+          </div>
+        </div>
+      </div>
+    </ng-container>
 
     <ng-container *ngIf="!(loading || error)">
       <ng-container *ngIf="selectedView === 'weekly'; else overallView">

@@ -9,18 +9,49 @@
 
 <ion-content class="ion-padding">
   <div class="points-container">
-    <!-- Round Selection -->
-    <ion-item>
-      <ion-select 
-        [(ngModel)]="selectedRound" 
-        (ionChange)="onRoundChange()"
-        label="Seleccionar Jornada"
-        labelPlacement="floating">
-        <ion-select-option *ngFor="let round of rounds" [value]="round">
-          Jornada {{ round }}
-        </ion-select-option>
-      </ion-select>
-    </ion-item>
+    <div class="round-info">
+      <div class="round-status">
+        {{ getRoundStatus() }}
+        <ion-badge [color]="isLiveRound ? 'success' : isRoundFinished ? 'medium' : 'warning'" class="round-badge">
+          {{ isLiveRound ? 'EN VIVO' : isRoundFinished ? 'FINALIZADA' : 'PROGRAMADA' }}
+        </ion-badge>
+      </div>
+    </div>
+
+    <div class="rounds-grid">
+      <div class="rounds-row">
+        <div 
+          *ngFor="let round of firstHalfRounds" 
+          class="round-chip" 
+          [class.active]="selectedRound === round"
+          [class.current]="round === currentRound"
+          (click)="onRoundChange(round)">
+          J{{ round }}
+          <ion-icon 
+            *ngIf="round === currentRound" 
+            name="radio" 
+            class="live-indicator"
+            [class.pulse]="isLiveRound">
+          </ion-icon>
+        </div>
+      </div>
+      <div class="rounds-row">
+        <div 
+          *ngFor="let round of secondHalfRounds" 
+          class="round-chip" 
+          [class.active]="selectedRound === round"
+          [class.current]="round === currentRound"
+          (click)="onRoundChange(round)">
+          J{{ round }}
+          <ion-icon 
+            *ngIf="round === currentRound" 
+            name="radio" 
+            class="live-indicator"
+            [class.pulse]="isLiveRound">
+          </ion-icon>
+        </div>
+      </div>
+    </div>
 
     <!-- Loading State -->
     <div *ngIf="loading" class="loading-container">
@@ -59,13 +90,11 @@
               </div>
               <div class="scores-container">
                 <div class="final-score">
-                  {{ match.homeScore !== undefined ? match.homeScore : '-' }} - 
-                  {{ match.awayScore !== undefined ? match.awayScore : '-' }}
+                  {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
                 </div>
                 <div class="prediction-score">
                   Tu predicción: 
-                  {{ match.predictedHomeScore !== null ? match.predictedHomeScore : '-' }} - 
-                  {{ match.predictedAwayScore !== null ? match.predictedAwayScore : '-' }}
+                  {{ match.predictedHomeScore ?? '-' }} - {{ match.predictedAwayScore ?? '-' }}
                 </div>
                 <div class="points-badge">
                   {{ match.points }} pts

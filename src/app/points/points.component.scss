@@ -3,6 +3,89 @@
   margin: 0 auto;
 }
 
+.round-info {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  
+  .round-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.1em;
+    font-weight: 500;
+    padding: 0 8px;
+    
+    .round-badge {
+      font-size: 0.8em;
+      padding: 4px 8px;
+      border-radius: 12px;
+      
+      &.active {
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+}
+
+.rounds-grid {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rounds-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px;
+}
+
+.round-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--ion-color-light);
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 48px;
+  justify-content: center;
+  
+  &.active {
+    background: var(--ion-color-primary);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+  }
+  
+  &.current {
+    border: 2px solid var(--ion-color-success);
+    
+    &:not(.active) {
+      color: var(--ion-color-success);
+    }
+  }
+
+  .round-number {
+    font-size: 14px;
+  }
+
+  .live-indicator {
+    font-size: 12px;
+    color: var(--ion-color-success);
+    
+    &.pulse {
+      animation: pulse 2s infinite;
+    }
+  }
+}
+
 .loading-container,
 .error-container,
 .offline-container,
@@ -124,9 +207,22 @@
   }
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 // Dark mode adjustments
 :host-context(.dark) {
+  .round-chip {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
+
   .match-card {
     background: rgba(var(--ion-card-background-rgb), 0.8);
+  }
+
+  .round-info {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
   }
 }

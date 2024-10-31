@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, of } from 'rxjs';
 import { map, catchError, timeout, tap, shareReplay, retryWhen, delay, take } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 
 export interface Venue {
   id?: number;
@@ -83,12 +84,10 @@ export class FootballService {
   private readonly CURRENT_SEASON = '2024';
   private readonly TIMEZONE = 'America/Mexico_City';
   
-  // Cache durations
   private readonly STANDARD_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   private readonly RATE_LIMIT_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
   private readonly MAX_CACHE_AGE = 24 * 60 * 60 * 1000; // 24 hours
   
-  // Rate limiting
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000;
   private readonly RATE_LIMIT_COOLDOWN = 60 * 60 * 1000; // 1 hour
@@ -102,48 +101,69 @@ export class FootballService {
     window.addEventListener('beforeunload', () => this.saveCacheToStorage());
   }
 
-  private loadCacheFromStorage(): void {
+  async getCurrentRound(): Promise<number> {
     try {
-      const savedCache = localStorage.getItem('footballMatchesCache');
-      if (savedCache) {
-        const parsed = JSON.parse(savedCache);
-        if (this.isValidCache(parsed)) {
-          const now = Date.now();
-          Object.keys(parsed).forEach(key => {
-            if (now > parsed[key].expiresAt) {
-              delete parsed[key];
-            }
-          });
-          this.cache = parsed;
-        } else {
-          this.clearCache();
+      const now = new Date();
+      let currentRound = 1;
+      
+      // Get all matches for all rounds
+      const allMatches: Match[] = [];
+      for (let round = 1; round <= 17; round++) {
+        const matches = await firstValueFrom(this.getMatches(round));
+        allMatches.push(...matches);
+      }
+
+      // Sort all matches by date
+      const sortedMatches = allMatches.sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+
+      // Find the round that contains matches closest to current date
+      let closestMatch: Match | null = null;
+      let minTimeDiff = Infinity;
+      let roundHasStarted = false;
+
+      for (const match of sortedMatches) {
+        const matchDate = new Date(match.date);
+        const timeDiff = matchDate.getTime() - now.getTime();
+        
+        // If match is live or in progress, return its round immediately
+        if (match.status.short === 'LIVE' || match.status.short === 'HT') {
+          return this.extractWeekNumber(match.round);
+        }
+
+        // Update closest match if this one is closer to current time
+        if (Math.abs(timeDiff) < minTimeDiff) {
+          minTimeDiff = Math.abs(timeDiff);
+          closestMatch = match;
         }
       }
-    } catch (error) {
-      console.warn('Error loading cache:', error);
-      this.clearCache();
-    }
-  }
 
-  private isValidCache(cache: any): cache is Cache {
-    if (typeof cache !== 'object' || cache === null) return false;
-    
-    for (const key in cache) {
-      const entry = cache[key];
-      if (!entry || typeof entry !== 'object') return false;
-      if (!Array.isArray(entry.data)) return false;
-      if (typeof entry.timestamp !== 'number') return false;
-      if (typeof entry.expiresAt !== 'number') return false;
-    }
-    
-    return true;
-  }
+      if (closestMatch) {
+        const closestMatchDate = new Date(closestMatch.date);
+        const roundNumber = this.extractWeekNumber(closestMatch.round);
+        
+        // Check if any match in the current round has started
+        const currentRoundMatches = sortedMatches.filter(m => 
+          this.extractWeekNumber(m.round) === roundNumber
+        );
+        
+        roundHasStarted = currentRoundMatches.some(match => 
+          new Date(match.date) <= now
+        );
 
-  private saveCacheToStorage(): void {
-    try {
-      localStorage.setItem('footballMatchesCache', JSON.stringify(this.cache));
+        // If the round hasn't started yet, return the previous round
+        if (!roundHasStarted && roundNumber > 1) {
+          return roundNumber - 1;
+        }
+        
+        return roundNumber;
+      }
+
+      return currentRound;
     } catch (error) {
-      console.warn('Error saving cache:', error);
+      console.error('Error determining current round:', error);
+      return 1;
     }
   }
 
@@ -261,6 +281,51 @@ export class FootballService {
     );
 
     return this.requestsInProgress[cacheKey];
+  }
+
+  private loadCacheFromStorage(): void {
+    try {
+      const savedCache = localStorage.getItem('footballMatchesCache');
+      if (savedCache) {
+        const parsed = JSON.parse(savedCache);
+        if (this.isValidCache(parsed)) {
+          const now = Date.now();
+          Object.keys(parsed).forEach(key => {
+            if (now > parsed[key].expiresAt) {
+              delete parsed[key];
+            }
+          });
+          this.cache = parsed;
+        } else {
+          this.clearCache();
+        }
+      }
+    } catch (error) {
+      console.warn('Error loading cache:', error);
+      this.clearCache();
+    }
+  }
+
+  private isValidCache(cache: any): cache is Cache {
+    if (typeof cache !== 'object' || cache === null) return false;
+    
+    for (const key in cache) {
+      const entry = cache[key];
+      if (!entry || typeof entry !== 'object') return false;
+      if (!Array.isArray(entry.data)) return false;
+      if (typeof entry.timestamp !== 'number') return false;
+      if (typeof entry.expiresAt !== 'number') return false;
+    }
+    
+    return true;
+  }
+
+  private saveCacheToStorage(): void {
+    try {
+      localStorage.setItem('footballMatchesCache', JSON.stringify(this.cache));
+    } catch (error) {
+      console.warn('Error saving cache:', error);
+    }
   }
 
   clearCache(): void {

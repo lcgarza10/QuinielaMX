@@ -9,20 +9,32 @@
 
 <ion-content class="ion-padding">
   <div class="week-header">
-    <h2 class="week-title">Jornada {{ selectedRound }}</h2>
+    <div class="round-status">
+      {{ getRoundStatus() }}
+      <ion-badge [color]="isLiveRound ? 'success' : isRoundFinished ? 'medium' : 'warning'" class="round-badge">
+        {{ isLiveRound ? 'EN VIVO' : isRoundFinished ? 'FINALIZADA' : 'PROGRAMADA' }}
+      </ion-badge>
+    </div>
   </div>
 
-  <ion-item>
-    <ion-select 
-      [(ngModel)]="selectedRound" 
-      (ionChange)="onRoundChange()"
-      label="Seleccionar Jornada"
-      labelPlacement="floating">
-      <ion-select-option *ngFor="let round of rounds" [value]="round">
-        Jornada {{ round }}
-      </ion-select-option>
-    </ion-select>
-  </ion-item>
+  <div class="rounds-scroll">
+    <div class="rounds-container">
+      <div 
+        *ngFor="let round of rounds" 
+        class="round-chip" 
+        [class.active]="selectedRound === round"
+        [class.current]="round === currentRound"
+        (click)="onRoundChange(round)">
+        <span class="round-number">J{{ round }}</span>
+        <ion-icon 
+          *ngIf="round === currentRound" 
+          name="radio" 
+          class="live-indicator"
+          [class.pulse]="isLiveRound">
+        </ion-icon>
+      </div>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading-container">
     <ion-spinner></ion-spinner>
@@ -67,9 +79,9 @@
 
               <div class="scores-container">
                 <div class="score-display" [class.live]="match.status.short === 'LIVE'">
-                  <span class="score">{{ match.homeScore !== null ? match.homeScore : '-' }}</span>
+                  <span class="score">{{ match.homeScore ?? '-' }}</span>
                   <span class="score-separator">-</span>
-                  <span class="score">{{ match.awayScore !== null ? match.awayScore : '-' }}</span>
+                  <span class="score">{{ match.awayScore ?? '-' }}</span>
                 </div>
               </div>
 

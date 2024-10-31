@@ -13,8 +13,11 @@ export class ScoresComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
   selectedRound: number = 1;
-  rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1); // Liga MX has 17 rounds
+  currentRound: number = 1;
+  rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
   isRateLimited: boolean = false;
+  isLiveRound: boolean = false;
+  isRoundFinished: boolean = false;
 
   constructor(
     private footballService: FootballService,
@@ -22,7 +25,21 @@ export class ScoresComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.loadMatches();
+    await this.findCurrentRound();
+  }
+
+  private async findCurrentRound() {
+    this.loading = true;
+    try {
+      const currentRound = await this.footballService.getCurrentRound();
+      this.currentRound = currentRound;
+      this.selectedRound = currentRound;
+      await this.loadMatches();
+    } catch (error) {
+      console.error('Error finding current round:', error);
+      this.loading = false;
+      this.error = 'Error al cargar la jornada actual';
+    }
   }
 
   async loadMatches() {
@@ -33,6 +50,18 @@ export class ScoresComponent implements OnInit {
     try {
       const matches = await firstValueFrom(this.footballService.getMatches(this.selectedRound));
       this.matches = matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      this.isLiveRound = matches.some(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT'
+      );
+
+      const completedMatches = matches.filter(match => 
+        match.status.short === 'FT' || 
+        match.status.short === 'AET' || 
+        match.status.short === 'PEN'
+      );
+      this.isRoundFinished = completedMatches.length === matches.length;
       
       if (this.matches.length === 0) {
         await this.showToast('No hay partidos programados para esta jornada', 'warning');
@@ -53,24 +82,19 @@ export class ScoresComponent implements OnInit {
     }
   }
 
-  onRoundChange() {
+  onRoundChange(round: number) {
+    this.selectedRound = round;
     this.loadMatches();
   }
 
-  private async showToast(message: string, color: string = 'primary') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      position: 'bottom',
-      color,
-      buttons: [
-        {
-          text: 'OK',
-          role: 'cancel'
-        }
-      ]
-    });
-    await toast.present();
+  getRoundStatus(): string {
+    if (this.isLiveRound) {
+      return 'Jornada en curso';
+    }
+    if (this.isRoundFinished) {
+      return 'Jornada finalizada';
+    }
+    return `Jornada ${this.selectedRound}`;
   }
 
   getMatchStatus(match: Match): string {
@@ -113,5 +137,21 @@ export class ScoresComponent implements OnInit {
       minute: '2-digit',
       hour12: true
     });
+  }
+
+  private async showToast(message: string, color: string = 'primary') {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position: 'bottom',
+      color,
+      buttons: [
+        {
+          text: 'OK',
+          role: 'cancel'
+        }
+      ]
+    });
+    await toast.present();
   }
 }

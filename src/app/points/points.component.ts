@@ -21,10 +21,15 @@ export class PointsComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
   selectedRound: number = 1;
-  rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1); // Liga MX has 17 rounds
+  currentRound: number = 1;
+  rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
+  firstHalfRounds: number[] = [];
+  secondHalfRounds: number[] = [];
   userId: string | null = null;
   isOffline: boolean = false;
   totalPoints: number = 0;
+  isLiveRound: boolean = false;
+  isRoundFinished: boolean = false;
 
   constructor(
     private footballService: FootballService,
@@ -32,21 +37,41 @@ export class PointsComponent implements OnInit {
     private authService: AuthService,
     private alertController: AlertController,
     private toastController: ToastController
-  ) {}
+  ) {
+    // Split rounds into two arrays for the grid
+    const midPoint = Math.ceil(this.rounds.length / 2);
+    this.firstHalfRounds = this.rounds.slice(0, midPoint);
+    this.secondHalfRounds = this.rounds.slice(midPoint);
+  }
 
   ngOnInit() {
     this.authService.user$.subscribe(async user => {
       this.userId = user ? user.uid : null;
       if (this.userId) {
-        await this.loadMatches();
+        await this.findCurrentRound();
       } else {
-        this.error = 'User not authenticated';
+        this.error = 'Usuario no autenticado';
         this.loading = false;
       }
     });
   }
 
-  onRoundChange() {
+  private async findCurrentRound() {
+    this.loading = true;
+    try {
+      const currentRound = await this.footballService.getCurrentRound();
+      this.currentRound = currentRound;
+      this.selectedRound = currentRound;
+      await this.loadMatches();
+    } catch (error) {
+      console.error('Error finding current round:', error);
+      this.loading = false;
+      this.error = 'Error al cargar la jornada actual';
+    }
+  }
+
+  onRoundChange(round: number) {
+    this.selectedRound = round;
     this.loadMatches();
   }
 
@@ -59,8 +84,17 @@ export class PointsComponent implements OnInit {
         const matches = await firstValueFrom(this.footballService.getMatches(this.selectedRound));
         const predictions = await firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound.toString()));
         
-        console.log('Fetched matches:', matches);
-        console.log('Fetched predictions:', predictions);
+        this.isLiveRound = matches.some(match => 
+          match.status.short === 'LIVE' || 
+          match.status.short === 'HT'
+        );
+
+        const completedMatches = matches.filter(match => 
+          match.status.short === 'FT' || 
+          match.status.short === 'AET' || 
+          match.status.short === 'PEN'
+        );
+        this.isRoundFinished = completedMatches.length === matches.length;
 
         this.matches = matches.map(match => {
           const prediction = predictions.find((p: any) => p.matchId === match.id);
@@ -73,24 +107,22 @@ export class PointsComponent implements OnInit {
           return pointsMatch;
         });
 
-        console.log('Processed matches with predictions:', this.matches);
-
         this.totalPoints = this.matches.reduce((sum, match) => sum + match.points, 0);
         this.loading = false;
         this.isOffline = false;
 
         if (this.matches.length === 0) {
-          this.error = 'No matches found for the selected round.';
+          this.error = 'No hay partidos para la jornada seleccionada.';
         }
       } catch (error) {
         console.error('Error fetching matches or predictions:', error);
         this.isOffline = true;
         await this.showOfflineAlert();
-        this.error = 'Failed to fetch data. Please try again.';
+        this.error = 'Error al cargar los datos. Por favor intente nuevamente.';
         this.loading = false;
       }
     } else {
-      this.error = 'Invalid round selected or user not authenticated';
+      this.error = 'Usuario no autenticado';
       this.loading = false;
     }
   }
@@ -101,7 +133,6 @@ export class PointsComponent implements OnInit {
       return 0;
     }
 
-    // Now we know both scores are not null
     const homeScore = match.homeScore as number;
     const awayScore = match.awayScore as number;
 
@@ -119,10 +150,20 @@ export class PointsComponent implements OnInit {
     return 0; // Incorrect prediction
   }
 
+  getRoundStatus(): string {
+    if (this.isLiveRound) {
+      return 'Jornada en curso';
+    }
+    if (this.isRoundFinished) {
+      return 'Jornada finalizada';
+    }
+    return `Jornada ${this.selectedRound}`;
+  }
+
   async showOfflineAlert() {
     const alert = await this.alertController.create({
-      header: 'Offline Mode',
-      message: 'You are currently offline. Some features may be limited until you regain internet connectivity.',
+      header: 'Modo Sin Conexión',
+      message: 'Actualmente está sin conexión. Algunas funciones pueden estar limitadas.',
       buttons: ['OK']
     });
     await alert.present();
@@ -130,7 +171,7 @@ export class PointsComponent implements OnInit {
 
   async retryConnection() {
     const toast = await this.toastController.create({
-      message: 'Attempting to reconnect...',
+      message: 'Intentando reconectar...',
       duration: 2000
     });
     await toast.present();

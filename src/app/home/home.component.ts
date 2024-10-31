@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { VersionService } from '../services/version.service';
 
 @Component({
   selector: 'app-home',
@@ -6,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
-  constructor() {}
+  version: string;
+
+  constructor(private versionService: VersionService) {
+    this.version = this.versionService.getVersion();
+  }
 }

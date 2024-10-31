@@ -22,6 +22,7 @@ export class PoolsComponent implements OnInit {
   loading: boolean = true;
   error: string | null = null;
   selectedRound: number = 1;
+  currentRound: number = 1;
   rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
   userId: string | null = null;
   isOffline: boolean = false;
@@ -43,7 +44,7 @@ export class PoolsComponent implements OnInit {
     this.authService.user$.subscribe(user => {
       this.userId = user ? user.uid : null;
       if (this.userId) {
-        this.loadMatches();
+        this.findCurrentRound();
       } else {
         this.error = 'Usuario no autenticado';
         this.loading = false;
@@ -53,6 +54,24 @@ export class PoolsComponent implements OnInit {
     this.connectionService.getOnlineStatus().subscribe(status => {
       this.isOffline = !status;
     });
+  }
+
+  private async findCurrentRound() {
+    this.loading = true;
+    try {
+      const currentRound = await this.footballService.getCurrentRound();
+      if (currentRound) {
+        this.currentRound = currentRound;
+        this.selectedRound = currentRound;
+        await this.loadMatches();
+      } else {
+        throw new Error('No se pudo determinar la jornada actual');
+      }
+    } catch (error) {
+      console.error('Error finding current round:', error);
+      this.loading = false;
+      this.error = 'Error al cargar la jornada actual';
+    }
   }
 
   getWeekTitle(): string {
@@ -66,7 +85,8 @@ export class PoolsComponent implements OnInit {
     match.prediction = prediction;
   }
 
-  onRoundChange() {
+  onRoundChange(round: number) {
+    this.selectedRound = round;
     this.loadMatches();
   }
 

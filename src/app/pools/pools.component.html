@@ -9,22 +9,31 @@
 
 <ion-content class="ion-padding">
   <div class="week-header">
-    <h2 class="week-title">{{ getWeekTitle() }}</h2>
-    <div class="points-badge" *ngIf="hasPredictions && weeklyPoints > 0">
-      <ion-icon name="trophy-outline"></ion-icon>
-      <span>Puntos Obtenidos: {{ weeklyPoints }}</span>
+    <div class="round-status">
+      {{ getWeekTitle() }}
+      <ion-badge [color]="hasPredictions ? 'medium' : 'warning'" class="round-badge">
+        {{ hasPredictions ? 'COMPLETADA' : 'PENDIENTE' }}
+      </ion-badge>
     </div>
   </div>
 
-  <ion-select 
-    [(ngModel)]="selectedRound" 
-    (ionChange)="onRoundChange()"
-    label="Seleccionar Jornada"
-    class="round-select">
-    <ion-select-option *ngFor="let round of rounds" [value]="round">
-      Jornada {{ round }}
-    </ion-select-option>
-  </ion-select>
+  <div class="rounds-scroll">
+    <div class="rounds-container">
+      <div 
+        *ngFor="let round of rounds" 
+        class="round-chip" 
+        [class.active]="selectedRound === round"
+        [class.current]="round === currentRound"
+        (click)="onRoundChange(round)">
+        J{{ round }}
+        <ion-icon 
+          *ngIf="round === currentRound" 
+          name="radio" 
+          class="live-indicator">
+        </ion-icon>
+      </div>
+    </div>
+  </div>
 
   <div *ngIf="loading" class="loading-container">
     <ion-spinner></ion-spinner>

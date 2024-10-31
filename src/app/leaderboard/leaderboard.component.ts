@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
-import { FootballService, Match } from '../services/football.service';
+import { FootballService } from '../services/football.service';
 import { Observable, combineLatest, of, firstValueFrom } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { SeasonService } from '../services/season.service';
@@ -25,49 +25,56 @@ export class LeaderboardComponent implements OnInit {
   selectedWeek: number = 1;
   selectedView: 'weekly' | 'overall' = 'weekly';
   rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
-  lastActiveRound: number = 1;
+  firstHalfRounds: number[] = [];
+  secondHalfRounds: number[] = [];
+  currentRound: number = 1;
   isCurrentRoundActive: boolean = false;
+  nextRoundStartDate: Date | null = null;
 
   constructor(
     private databaseService: DatabaseService,
     private authService: AuthService,
     private seasonService: SeasonService,
     private footballService: FootballService
-  ) {}
+  ) {
+    // Split rounds into two arrays for the grid
+    const midPoint = Math.ceil(this.rounds.length / 2);
+    this.firstHalfRounds = this.rounds.slice(0, midPoint);
+    this.secondHalfRounds = this.rounds.slice(midPoint);
+  }
 
   async ngOnInit() {
-    await this.findLastActiveRound();
+    await this.findCurrentRound();
     this.loadLeaderboards();
   }
 
-  private async findLastActiveRound() {
+  private async findCurrentRound() {
     this.loading = true;
     try {
-      // Start from the current round and go backwards
-      for (let round = this.rounds.length; round > 0; round--) {
-        const matches = await firstValueFrom(this.footballService.getMatches(round));
-        const completedMatches = matches.filter(match => 
-          match.status.short === 'FT' || 
-          match.status.short === 'AET' || 
-          match.status.short === 'PEN'
-        );
-        
-        const activeMatches = matches.filter(match => 
-          match.status.short === 'LIVE' || 
-          match.status.short === 'HT'
-        );
+      const currentRound = await this.footballService.getCurrentRound();
+      this.currentRound = currentRound;
+      this.selectedWeek = currentRound;
 
-        if (completedMatches.length > 0 || activeMatches.length > 0) {
-          this.lastActiveRound = round;
-          this.isCurrentRoundActive = activeMatches.length > 0;
-          this.selectedWeek = round;
-          break;
-        }
+      // Get matches for the current round to determine its status
+      const matches = await firstValueFrom(this.footballService.getMatches(currentRound));
+      
+      this.isCurrentRoundActive = matches.some(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT'
+      );
+
+      // Find the next round's start date if applicable
+      const nextRoundMatches = await firstValueFrom(this.footballService.getMatches(currentRound + 1));
+      if (nextRoundMatches.length > 0) {
+        const sortedMatches = nextRoundMatches.sort((a, b) => 
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        this.nextRoundStartDate = new Date(sortedMatches[0].date);
       }
+
     } catch (error) {
-      console.error('Error finding last active round:', error);
-      // Default to round 1 if there's an error
-      this.lastActiveRound = 1;
+      console.error('Error finding current round:', error);
+      this.currentRound = 1;
       this.selectedWeek = 1;
     }
     this.loading = false;
@@ -77,15 +84,27 @@ export class LeaderboardComponent implements OnInit {
     this.loadLeaderboards();
   }
 
-  async onRoundChange() {
-    await this.loadLeaderboards();
+  onRoundChange(round: number) {
+    this.selectedWeek = round;
+    this.loadLeaderboards();
   }
 
   getRoundStatus(): string {
-    if (this.selectedWeek === this.lastActiveRound) {
-      return this.isCurrentRoundActive ? 
-        'Jornada actual en curso' : 
-        'Última jornada completada';
+    if (this.selectedWeek === this.currentRound) {
+      if (this.isCurrentRoundActive) {
+        return 'Jornada actual en curso';
+      }
+      if (this.nextRoundStartDate) {
+        const now = new Date();
+        const isToday = this.nextRoundStartDate.getDate() === now.getDate() &&
+                       this.nextRoundStartDate.getMonth() === now.getMonth() &&
+                       this.nextRoundStartDate.getFullYear() === now.getFullYear();
+        
+        if (isToday) {
+          return 'Nueva jornada comienza hoy';
+        }
+      }
+      return 'Última jornada completada';
     }
     return `Jornada ${this.selectedWeek}`;
   }
