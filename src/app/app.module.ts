@@ -72,7 +72,9 @@ registerLocaleData(localeEs);
     }),
     AngularFireModule.initializeApp(environment.firebase),
     AngularFireAuthModule,
-    AngularFirestoreModule.enablePersistence({ synchronizeTabs: true }),
+    AngularFirestoreModule.enablePersistence({
+      synchronizeTabs: true
+    }),
     AngularFireFunctionsModule,
     AngularFireAnalyticsModule,
   ],

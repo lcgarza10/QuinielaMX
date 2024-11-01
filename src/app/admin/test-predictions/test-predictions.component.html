@@ -31,9 +31,23 @@
         </ion-item>
 
         <ion-item>
+          <ion-button expand="block" (click)="generateRandomPredictions()" color="secondary" [disabled]="loading">
+            <ion-icon name="shuffle-outline" slot="start"></ion-icon>
+            Generar Predicciones Aleatorias
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
           <ion-button expand="block" (click)="clearPredictions()" color="danger" [disabled]="loading">
             <ion-icon name="trash-outline" slot="start"></ion-icon>
             Eliminar Predicciones
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" (click)="resetPasswords()" color="warning" [disabled]="loading">
+            <ion-icon name="key-outline" slot="start"></ion-icon>
+            Resetear Contraseñas
           </ion-button>
         </ion-item>
       </ion-list>
