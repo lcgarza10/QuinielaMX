@@ -54,81 +54,65 @@ export class DatabaseService {
     );
   }
 
-  async savePredictions(
-    userId: string, 
-    week: string, 
-    predictions: Prediction[], 
-    totalPoints: number
-  ): Promise<void> {
-    if (!this.isOnline) {
-      console.warn('Offline: Cannot save predictions while offline');
-      return Promise.reject(new Error('No hay conexión a internet'));
-    }
+async savePredictions(
+  userId: string,
+  week: string,
+  predictions: Prediction[],
+  totalPoints: number
+): Promise<void> {
+  if (!this.isOnline) {
+    console.warn('Offline: Cannot save predictions while offline');
+    throw new Error('No hay conexión a internet');
+  }
 
-    const validPredictions = predictions.filter(p => 
-      p.matchId && (p.homeScore !== null && p.awayScore !== null)
+  // Filter out invalid predictions
+  const validPredictions = predictions.filter(
+    p => p.matchId && p.homeScore !== null && p.awayScore !== null
+  );
+
+  if (validPredictions.length === 0) {
+    throw new Error('No hay predicciones válidas para guardar');
+  }
+
+  // Reference to the Firestore document
+  const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`).ref;
+
+  try {
+    // Fetch existing data once to minimize read operations
+    const docSnapshot = await docRef.get();
+    const existingData = docSnapshot.data() as PredictionDocument | undefined;
+    const existingPredictions = existingData?.predictions || [];
+
+    // Create a map of existing predictions by matchId
+    const predictionMap = new Map(
+      existingPredictions.map(p => [p.matchId, p])
     );
 
-    if (validPredictions.length === 0) {
-      return Promise.reject(new Error('No hay predicciones válidas para guardar'));
-    }
+    // Update or add new predictions
+    validPredictions.forEach(prediction => {
+      predictionMap.set(prediction.matchId, prediction);
+    });
 
-    // Split predictions into batches
-    const batches: Prediction[][] = [];
-    for (let i = 0; i < validPredictions.length; i += this.BATCH_SIZE) {
-      batches.push(validPredictions.slice(i, i + this.BATCH_SIZE));
-    }
+    // Prepare the updated document data
+    const updatedPredictions = Array.from(predictionMap.values());
+    const docData: PredictionDocument = {
+      predictions: updatedPredictions,
+      totalPoints,
+      lastUpdated: firebase.firestore.Timestamp.now(),
+    };
 
-    const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
-    let currentRetry = 0;
+    // Use a batched write to update the document
+    const batch = this.afs.firestore.batch();
+    batch.set(docRef, docData, { merge: true });
+    await batch.commit();
 
-    while (currentRetry < this.MAX_RETRIES) {
-      try {
-        // Start a new transaction
-        await this.afs.firestore.runTransaction(async transaction => {
-          const docSnapshot = await transaction.get(docRef.ref);
-          const existingData = docSnapshot.data() as PredictionDocument | undefined;
-          const existingPredictions = existingData?.predictions || [];
-
-          // Create a map of existing predictions by matchId
-          const predictionMap = new Map(
-            existingPredictions.map(p => [p.matchId, p])
-          );
-
-          // Update or add new predictions
-          for (const prediction of validPredictions) {
-            predictionMap.set(prediction.matchId, prediction);
-          }
-
-          // Convert map back to array
-          const updatedPredictions = Array.from(predictionMap.values());
-
-          // Prepare the document data
-          const docData: PredictionDocument = {
-            predictions: updatedPredictions,
-            totalPoints,
-            lastUpdated: firebase.firestore.Timestamp.now()
-          };
-
-          // Set the document in the transaction
-          transaction.set(docRef.ref, docData, { merge: true });
-        });
-
-        console.log('Successfully saved predictions');
-        return;
-      } catch (error) {
-        console.error(`Error saving predictions (attempt ${currentRetry + 1}):`, error);
-        currentRetry++;
-        
-        if (currentRetry === this.MAX_RETRIES) {
-          throw new Error('Error al guardar las predicciones después de múltiples intentos');
-        }
-        
-        // Wait before retrying
-        await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
-      }
-    }
+    console.log('Successfully saved predictions');
+  } catch (error) {
+    console.error('Error saving predictions:', error);
+    throw new Error('Error al guardar las predicciones');
   }
+}
+
 
   getAllUsers(): Observable<User[]> {
     return this.firebaseRetryService.retryOperation(
