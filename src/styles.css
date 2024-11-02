@@ -4,6 +4,19 @@
   --ion-background-color-rgb: 244, 244, 244;
   --ion-text-color: #333333;
   --ion-text-color-rgb: 51, 51, 51;
+
+  /* Responsive breakpoints */
+  --breakpoint-xs: 0;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+
+  /* Container max-widths */
+  --container-max-width-sm: 540px;
+  --container-max-width-md: 720px;
+  --container-max-width-lg: 960px;
+  --container-max-width-xl: 1140px;
 }
 
 body {
@@ -12,6 +25,135 @@ body {
   padding: 0;
   background-color: var(--ion-background-color);
   color: var(--ion-text-color);
+}
+
+/* Responsive container classes */
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+/* Mobile-first responsive typography */
+:root {
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-sm: 14px;
+}
+
+/* Platform-specific styles */
+.mobile {
+  --padding-page: 12px;
+  --card-border-radius: 8px;
+  --font-size-base: 14px;
+}
+
+.tablet {
+  --padding-page: 16px;
+  --card-border-radius: 12px;
+  --font-size-base: 16px;
+}
+
+.desktop {
+  --padding-page: 24px;
+  --card-border-radius: 16px;
+  --font-size-base: 16px;
+}
+
+/* Responsive breakpoint classes */
+@media (min-width: 576px) {
+  .container {
+    max-width: var(--container-max-width-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: var(--container-max-width-md);
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: var(--container-max-width-lg);
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: var(--container-max-width-xl);
+  }
+}
+
+/* Responsive utilities */
+.d-none {
+  display: none !important;
+}
+
+.d-block {
+  display: block !important;
+}
+
+@media (min-width: 576px) {
+  .d-sm-none {
+    display: none !important;
+  }
+  .d-sm-block {
+    display: block !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .d-md-none {
+    display: none !important;
+  }
+  .d-md-block {
+    display: block !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .d-lg-none {
+    display: none !important;
+  }
+  .d-lg-block {
+    display: block !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .d-xl-none {
+    display: none !important;
+  }
+  .d-xl-block {
+    display: block !important;
+  }
+}
+
+/* Responsive grid system */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+.col {
+  position: relative;
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Responsive spacing utilities */
+.m-0 { margin: 0 !important; }
+.p-0 { padding: 0 !important; }
+
+@media (min-width: 768px) {
+  .m-md-0 { margin: 0 !important; }
+  .p-md-0 { padding: 0 !important; }
 }
 
 /* Dark theme overrides */

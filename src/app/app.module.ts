@@ -30,6 +30,7 @@ import { AuthService } from './services/auth.service';
 import { ConnectionService } from './services/connection.service';
 import { FirebaseRetryService } from './services/firebase-retry.service';
 import { SeasonService } from './services/season.service';
+import { PlatformService } from './services/platform.service';
 import { AppRoutingModule } from './app-routing.module';
 import { environment } from '../environments/environment';
 
@@ -87,6 +88,7 @@ registerLocaleData(localeEs);
     ConnectionService,
     FirebaseRetryService,
     SeasonService,
+    PlatformService,
     ScreenTrackingService,
     UserTrackingService
   ],

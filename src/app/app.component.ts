@@ -9,17 +9,33 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
+import { PlatformService, PlatformInfo } from './services/platform.service';
 
 @Component({
   selector: 'app-root',
   template: `
-    <ion-app>
+    <ion-app [class.mobile]="platformInfo?.isMobile"
+             [class.tablet]="platformInfo?.isTablet"
+             [class.desktop]="platformInfo?.isDesktop"
+             [class.xs]="platformInfo?.currentBreakpoint === 'xs'"
+             [class.sm]="platformInfo?.currentBreakpoint === 'sm'"
+             [class.md]="platformInfo?.currentBreakpoint === 'md'"
+             [class.lg]="platformInfo?.currentBreakpoint === 'lg'"
+             [class.xl]="platformInfo?.currentBreakpoint === 'xl'">
       <app-header></app-header>
       <ion-router-outlet></ion-router-outlet>
     </ion-app>
   `,
+  styles: [`
+    :host {
+      display: block;
+      height: 100%;
+    }
+  `]
 })
 export class AppComponent {
+  platformInfo: PlatformInfo | null = null;
+
   constructor(
     private platform: Platform,
     private authService: AuthService,
@@ -29,7 +45,8 @@ export class AppComponent {
     private toastController: ToastController,
     private afs: AngularFirestore,
     private afAuth: AngularFireAuth,
-    private afFunctions: AngularFireFunctions
+    private afFunctions: AngularFireFunctions,
+    private platformService: PlatformService
   ) {
     this.initializeApp();
   }
@@ -39,6 +56,16 @@ export class AppComponent {
       this.checkForUpdates();
       this.setupConnectionListener();
       this.setupAuthListener();
+      this.setupPlatformListener();
+    });
+  }
+
+  private setupPlatformListener() {
+    this.platformService.getPlatformInfo().subscribe(info => {
+      this.platformInfo = info;
+      document.body.classList.toggle('mobile', info.isMobile);
+      document.body.classList.toggle('tablet', info.isTablet);
+      document.body.classList.toggle('desktop', info.isDesktop);
     });
   }
 
