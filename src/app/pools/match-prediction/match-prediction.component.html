@@ -17,16 +17,16 @@
         {{ isCompleted ? 'Tu Pronóstico:' : (canEdit ? 'Aún puedes predecir:' : 'Ingresa tu Pronóstico:') }}
       </div>
       
-      <!-- Modern Score Input Interface -->
-      <div class="score-input-modern" *ngIf="(!isCompleted && canPredict) || canEdit">
+      <!-- Vertical Score Input Interface -->
+      <div class="score-input-vertical" *ngIf="(!isCompleted && canPredict) || canEdit">
         <div class="team-score">
           <div class="score-controls">
-            <ion-button fill="clear" (click)="decrementScore('home')" [disabled]="prediction.homeScore === 0">
-              <ion-icon name="remove-circle-outline"></ion-icon>
-            </ion-button>
-            <span class="score-value">{{ prediction.homeScore ?? 0 }}</span>
             <ion-button fill="clear" (click)="incrementScore('home')" [disabled]="prediction.homeScore === 99">
               <ion-icon name="add-circle-outline"></ion-icon>
+            </ion-button>
+            <span class="score-value">{{ prediction.homeScore ?? 0 }}</span>
+            <ion-button fill="clear" (click)="decrementScore('home')" [disabled]="prediction.homeScore === 0">
+              <ion-icon name="remove-circle-outline"></ion-icon>
             </ion-button>
           </div>
         </div>
@@ -35,12 +35,12 @@
 
         <div class="team-score">
           <div class="score-controls">
-            <ion-button fill="clear" (click)="decrementScore('away')" [disabled]="prediction.awayScore === 0">
-              <ion-icon name="remove-circle-outline"></ion-icon>
-            </ion-button>
-            <span class="score-value">{{ prediction.awayScore ?? 0 }}</span>
             <ion-button fill="clear" (click)="incrementScore('away')" [disabled]="prediction.awayScore === 99">
               <ion-icon name="add-circle-outline"></ion-icon>
+            </ion-button>
+            <span class="score-value">{{ prediction.awayScore ?? 0 }}</span>
+            <ion-button fill="clear" (click)="decrementScore('away')" [disabled]="prediction.awayScore === 0">
+              <ion-icon name="remove-circle-outline"></ion-icon>
             </ion-button>
           </div>
         </div>
@@ -79,7 +79,7 @@
 
   <div class="prediction-status" *ngIf="!canPredict && !canEdit && !isCompleted">
     <ion-text color="medium">
-      <small>Los Pronósticos están cerradas para este partido</small>
+      <small>Los Pronósticos están cerrados para este partido</small>
     </ion-text>
   </div>
 </div>

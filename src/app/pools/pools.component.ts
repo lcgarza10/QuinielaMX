@@ -94,9 +94,9 @@ export class PoolsComponent implements OnInit {
 
   getWeekTitle(): string {
     if (this.hasPredictions) {
-      return `Juegos de la Jornada ${this.selectedRound}`;
+      return `Estado de tu Quiniela para esta Jornada: `;
     }
-    return `Juegos de la Jornada ${this.selectedRound}`;
+    return `Estado de tu Quiniela para esta Jornada: `;
   }
 
   onPredictionChange(match: MatchWithPrediction, prediction: PredictionData) {

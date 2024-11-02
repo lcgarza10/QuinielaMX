@@ -51,10 +51,17 @@ export class ScoresComponent implements OnInit {
       const matches = await firstValueFrom(this.footballService.getMatches(this.selectedRound));
       this.matches = matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
-      this.isLiveRound = matches.some(match => 
-        match.status.short === 'LIVE' || 
-        match.status.short === 'HT'
-      );
+      const now = new Date();
+      
+      // Check if any match has started based on date and time
+      this.isLiveRound = matches.some(match => {
+        const matchDate = new Date(match.date);
+        return matchDate <= now || 
+               match.status.short === 'LIVE' || 
+               match.status.short === 'HT' ||
+               match.status.short === '1H' ||
+               match.status.short === '2H';
+      });
 
       const completedMatches = matches.filter(match => 
         match.status.short === 'FT' || 
@@ -99,7 +106,14 @@ export class ScoresComponent implements OnInit {
 
   getMatchStatus(match: Match): string {
     if (match.status.short === 'LIVE') {
-      return `En vivo ${match.status.elapsed}'`;
+      if (match.status.elapsed) {
+        if (match.status.elapsed <= 45) {
+          return `Primer Tiempo ${match.status.elapsed}'`;
+        } else {
+          return `Segundo Tiempo ${match.status.elapsed}'`;
+        }
+      }
+      return 'En Vivo';
     }
     
     if (match.status.short === 'HT') {
@@ -108,6 +122,14 @@ export class ScoresComponent implements OnInit {
     
     if (match.status.short === 'FT') {
       return 'Finalizado';
+    }
+
+    if (match.status.short === '1H') {
+      return `Primer Tiempo ${match.status.elapsed}'`;
+    }
+
+    if (match.status.short === '2H') {
+      return `Segundo Tiempo ${match.status.elapsed}'`;
     }
     
     if (match.status.short === 'NS') {
@@ -128,7 +150,24 @@ export class ScoresComponent implements OnInit {
       }
     }
     
-    return match.status.long || 'Programado';
+    // Traducir otros estados comunes
+    const statusTranslations: { [key: string]: string } = {
+      'PST': 'Pospuesto',
+      'CANC': 'Cancelado',
+      'ABD': 'Abandonado',
+      'INT': 'Interrumpido',
+      'SUSP': 'Suspendido',
+      'TBD': 'Por definir',
+      'AWD': 'Victoria administrativa',
+      'WO': 'Walkover',
+      'PEN': 'Penales',
+      'AET': 'Tiempo extra',
+      'BREAK': 'Descanso',
+      'ET': 'Tiempo extra',
+      'P': 'Penales'
+    };
+
+    return statusTranslations[match.status.short] || match.status.long || 'Programado';
   }
 
   private formatMatchTime(date: Date): string {

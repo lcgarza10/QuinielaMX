@@ -12,7 +12,7 @@
     <div class="round-status">
       {{ getRoundStatus() }}
       <ion-badge [color]="isLiveRound ? 'success' : isRoundFinished ? 'medium' : 'warning'" class="round-badge">
-        {{ isLiveRound ? 'EN VIVO' : isRoundFinished ? 'FINALIZADA' : 'PROGRAMADA' }}
+        {{ isLiveRound ? 'ACTIVA EN ESTOS MOMENTOS' : isRoundFinished ? 'FINALIZADA' : 'PROGRAMADA' }}
       </ion-badge>
     </div>
   </div>
