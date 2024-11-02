@@ -1,5 +1,5 @@
 .prediction-container {
-  padding: 12px;
+  padding: 8px;
   border-radius: 8px;
   background: var(--ion-color-light);
 }
@@ -7,35 +7,35 @@
 .score-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .score-label {
-  font-size: 0.9em;
+  font-size: 0.85em;
   color: var(--ion-color-medium);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .actual-score, .prediction-score {
-  padding: 12px;
+  padding: 8px;
   border-radius: 8px;
   background: white;
   position: relative;
 }
 
 .score-display {
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-weight: 600;
   text-align: center;
 }
 
 .status-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8em;
+  top: -6px;
+  right: -6px;
+  padding: 3px 6px;
+  border-radius: 10px;
+  font-size: 0.75em;
   font-weight: 500;
   background: var(--ion-color-medium);
   color: white;
@@ -50,25 +50,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 16px;
+  gap: 12px;
+  padding: 12px;
   background: var(--ion-color-light);
-  border-radius: 12px;
-  margin: 12px 0;
+  border-radius: 10px;
+  margin: 8px 0;
 
   .team-score {
     .score-controls {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
 
       ion-button {
-        --padding-start: 4px;
-        --padding-end: 4px;
-        height: 36px;
+        --padding-start: 2px;
+        --padding-end: 2px;
+        height: 32px;
         
         ion-icon {
-          font-size: 24px;
+          font-size: 20px;
           color: var(--ion-color-primary);
         }
 
@@ -78,9 +78,9 @@
       }
 
       .score-value {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 600;
-        min-width: 32px;
+        min-width: 28px;
         text-align: center;
         color: var(--ion-color-dark);
       }
@@ -88,22 +88,22 @@
   }
 
   .score-separator {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 500;
     color: var(--ion-color-medium);
-    margin: 0 8px;
+    margin: 0 6px;
   }
 }
 
 .quick-scores {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
 
   .quick-score-label {
-    font-size: 0.85em;
+    font-size: 0.8em;
     color: var(--ion-color-medium);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     text-align: center;
   }
 
@@ -111,13 +111,13 @@
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 
     ion-button {
-      --padding-start: 12px;
-      --padding-end: 12px;
-      height: 32px;
-      font-size: 0.9em;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      height: 28px;
+      font-size: 0.85em;
       --color: var(--ion-color-primary);
 
       &:hover {
@@ -146,20 +146,21 @@
 
 .points-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -6px;
+  right: -6px;
   background: var(--ion-color-primary);
   color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8em;
+  padding: 3px 6px;
+  border-radius: 10px;
+  font-size: 0.75em;
   font-weight: 500;
 }
 
 .prediction-status {
   text-align: center;
-  margin-top: 8px;
+  margin-top: 6px;
   font-style: italic;
+  font-size: 0.8em;
 }
 
 @keyframes pulse {

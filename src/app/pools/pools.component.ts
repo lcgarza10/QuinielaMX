@@ -94,7 +94,7 @@ export class PoolsComponent implements OnInit {
 
   getWeekTitle(): string {
     if (this.hasPredictions) {
-      return `Resultados de la Jornada ${this.selectedRound}`;
+      return `Juegos de la Jornada ${this.selectedRound}`;
     }
     return `Juegos de la Jornada ${this.selectedRound}`;
   }

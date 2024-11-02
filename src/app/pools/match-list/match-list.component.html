@@ -52,7 +52,7 @@
                   {{ match.homeScore }} - {{ match.awayScore }}
                 </div>
                 <div class="prediction-score" [ngClass]="getPredictionClass(match)">
-                  Tu predicción: {{ match.prediction?.homeScore ?? '-' }} - {{ match.prediction?.awayScore ?? '-' }}
+                  Tu Pronóstico: {{ match.prediction?.homeScore ?? '-' }} - {{ match.prediction?.awayScore ?? '-' }}
                   <div class="points-badge">
                     {{ getMatchPoints(match) }} pts
                   </div>
