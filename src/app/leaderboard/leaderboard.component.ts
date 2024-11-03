@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
-import { FootballService } from '../services/football.service';
+import { FootballService, Match } from '../services/football.service';
 import { Observable, combineLatest, of, firstValueFrom } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { SeasonService } from '../services/season.service';
@@ -10,6 +10,7 @@ interface LeaderboardEntry {
   username: string;
   totalPoints: number;
   weeklyPoints?: number;
+  livePoints?: number;
 }
 
 @Component({
@@ -28,6 +29,7 @@ export class LeaderboardComponent implements OnInit {
   currentRound: number = 1;
   isCurrentRoundActive: boolean = false;
   nextRoundStartDate: Date | null = null;
+  liveMatches: Match[] = [];
 
   constructor(
     private databaseService: DatabaseService,
@@ -50,10 +52,12 @@ export class LeaderboardComponent implements OnInit {
 
       const matches = await firstValueFrom(this.footballService.getMatches(currentRound));
       
-      this.isCurrentRoundActive = matches.some(match => 
+      this.liveMatches = matches.filter(match => 
         match.status.short === 'LIVE' || 
         match.status.short === 'HT'
       );
+      
+      this.isCurrentRoundActive = this.liveMatches.length > 0;
 
       const nextRoundMatches = await firstValueFrom(this.footballService.getMatches(currentRound + 1));
       if (nextRoundMatches.length > 0) {
@@ -108,20 +112,27 @@ export class LeaderboardComponent implements OnInit {
       tap(users => console.log('Users loaded:', users))
     );
 
-    const weeklyPredictions$ = users$.pipe(
+    // Weekly Leaderboard
+    this.weeklyLeaderboard$ = users$.pipe(
       switchMap(users => {
         const userPredictions$ = users.map(user => 
           this.databaseService.getPredictions(user.uid, this.selectedWeek.toString()).pipe(
-            map(predictions => ({
-              username: user.username || user.email || 'Unknown User',
-              predictions
-            }))
+            map(predictions => {
+              const weeklyPoints = predictions.reduce((total, pred) => total + (pred.points || 0), 0);
+              return {
+                username: user.username || user.email || 'Unknown User',
+                weeklyPoints,
+                totalPoints: 0
+              };
+            })
           )
         );
         return combineLatest(userPredictions$);
-      })
+      }),
+      map(entries => entries.sort((a, b) => (b.weeklyPoints || 0) - (a.weeklyPoints || 0)))
     );
 
+    // Overall Leaderboard
     this.overallLeaderboard$ = users$.pipe(
       switchMap(users => {
         const userPoints$ = users.map(user =>
@@ -135,18 +146,6 @@ export class LeaderboardComponent implements OnInit {
         return combineLatest(userPoints$);
       }),
       map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
-    );
-
-    this.weeklyLeaderboard$ = weeklyPredictions$.pipe(
-      map(predictions => {
-        return predictions
-          .map(p => ({
-            username: p.username,
-            weeklyPoints: this.calculateWeeklyPoints(p.predictions),
-            totalPoints: 0
-          }))
-          .sort((a, b) => (b.weeklyPoints || 0) - (a.weeklyPoints || 0));
-      })
     );
 
     combineLatest([this.overallLeaderboard$, this.weeklyLeaderboard$]).subscribe({
@@ -163,10 +162,9 @@ export class LeaderboardComponent implements OnInit {
   }
 
   getLeaderPoints(leaderboard: LeaderboardEntry[]): number {
+    if (this.selectedView === 'weekly') {
+      return leaderboard.length > 0 ? (leaderboard[0].weeklyPoints || 0) : 0;
+    }
     return leaderboard.length > 0 ? leaderboard[0].totalPoints : 0;
-  }
-
-  private calculateWeeklyPoints(predictions: any[]): number {
-    return predictions.reduce((total, pred) => total + (pred.points || 0), 0);
   }
 }

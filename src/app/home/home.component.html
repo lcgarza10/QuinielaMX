@@ -25,11 +25,11 @@
     </ion-item>
 
     <!-- Admin Section -->
-    <ion-item-divider>
+    <ion-item-divider *ngIf="isAdmin">
       <ion-label>Administración</ion-label>
     </ion-item-divider>
     
-    <ion-item button routerLink="/admin/test-predictions">
+    <ion-item button routerLink="/admin/test-predictions" *ngIf="isAdmin">
       <ion-icon name="construct-outline" slot="start"></ion-icon>
       <ion-label>Ajustes de Administrador</ion-label>
     </ion-item>

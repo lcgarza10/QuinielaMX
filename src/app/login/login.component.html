@@ -1,14 +1,10 @@
 <ion-content class="ion-padding">
   <div class="login-container">
-    <div class="logo-container">
-     
-   <!--   <ion-icon name="football-outline" class="logo-icon"></ion-icon> -->
+     <!--   <ion-icon name="football-outline" class="logo-icon"></ion-icon> -->
       <h1>Quiniela de la Liga MX</h1>
-      <p class="subtitle">Inicia sesión para continuar</p>
-        <img src="https://stackblitz.com/storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBOWdSRXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--a9d0bcdf53d9038083712fc795093e53b3873adb/quiniela-mx-logo.png" alt="Quiniela Liga MX Logo" class="logo">
-      </div>
- 
-      <form [formGroup]="loginForm" (ngSubmit)="loginWithEmail()" class="login-form">
+      <img src="https://stackblitz.com/storage/blobs/redirect/eyJfcmFpbHMiOnsibWVzc2FnZSI6IkJBaHBBOWdSRXc9PSIsImV4cCI6bnVsbCwicHVyIjoiYmxvYl9pZCJ9fQ==--a9d0bcdf53d9038083712fc795093e53b3873adb/quiniela-mx-logo.png" alt="Quiniela Liga MX Logo" class="logo">
+      <p class="signup-prompt">Inicia sesión para continuar</p>
+    <form [formGroup]="loginForm" (ngSubmit)="loginWithEmail()" class="login-form">
       <ion-card>
         <ion-card-content>
           <ion-item class="form-item">
@@ -58,9 +54,10 @@
     </ion-text>
 
     <div class="signup-prompt">
-      <p>¿No tienes una cuenta? 
+      <p>
         <ion-button fill="clear" routerLink="/signup" class="signup-link">
-          Regístrate aquí
+          ¿No tienes una cuenta?
+          <br>Regístrate aquí<br>
           <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
         </ion-button>
       </p>

@@ -10,6 +10,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   username?: string;
+  isAdmin?: boolean;
 }
 
 @Injectable({
@@ -32,10 +33,10 @@ export class AuthService {
                 this.updateUserData(user);
               }
             }),
-            map(dbUser => dbUser || { uid: user.uid, email: user.email || '' }),
+            map(dbUser => dbUser || { uid: user.uid, email: user.email || '', isAdmin: false }),
             catchError(error => {
               console.error('Error fetching user data:', error);
-              return of({ uid: user.uid, email: user.email || '' });
+              return of({ uid: user.uid, email: user.email || '', isAdmin: false });
             })
           );
         } else {
@@ -62,7 +63,7 @@ export class AuthService {
   async signUpWithEmail(email: string, password: string, firstName: string, lastName: string, username: string): Promise<void> {
     try {
       const credential = await this.afAuth.createUserWithEmailAndPassword(email, password);
-      await this.updateUserData(credential.user, { firstName, lastName, username });
+      await this.updateUserData(credential.user, { firstName, lastName, username, isAdmin: false });
     } catch (error) {
       console.error('Error signing up:', error);
       throw error;
@@ -92,6 +93,7 @@ export class AuthService {
     const userData: User = {
       uid: user.uid,
       email: user.email,
+      isAdmin: additionalData?.isAdmin ?? false,
       ...additionalData
     };
 
@@ -106,10 +108,14 @@ export class AuthService {
 
   getRedirectResult(): Promise<User | null> {
     return this.afAuth.getRedirectResult().then(result => {
-      return result.user ? { uid: result.user.uid, email: result.user.email || '' } : null;
+      return result.user ? { uid: result.user.uid, email: result.user.email || '', isAdmin: false } : null;
     }).catch(error => {
       console.error('Error getting redirect result:', error);
       return null;
     });
+  }
+
+  isAdmin(user: User | null): boolean {
+    return user?.isAdmin === true;
   }
 }

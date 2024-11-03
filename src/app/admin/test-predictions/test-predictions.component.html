@@ -50,6 +50,13 @@
             Resetear Contraseñas
           </ion-button>
         </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" (click)="setAdminUser()" color="tertiary" [disabled]="loading">
+            <ion-icon name="person-add-outline" slot="start"></ion-icon>
+            Asignar Administrador
+          </ion-button>
+        </ion-item>
       </ion-list>
 
       <div class="loading-container" *ngIf="loading">
