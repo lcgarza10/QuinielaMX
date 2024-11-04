@@ -12,10 +12,11 @@
 }
 
 .score-label {
-  font-size: 0.9em;
-  color: var(--ion-color-medium);
-  margin-bottom: 2px;
-  text-align: center;
+ font-size: 1em; /* Increased from 0.9em */
+    color: var(--ion-color-medium);
+    margin-bottom: 8px;
+    text-align: center;
+    font-weight: 500;
 }
 
 .actual-score, .prediction-score {
@@ -52,11 +53,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 8px;
+  gap: 13px;
+  padding: 9px;
   background: var(--ion-color-light);
-  border-radius: 8px;
-  margin: 8px 0;
+  border-radius: 9px;
+  margin: 9px 0;
 
   .team-score {
     .score-controls {
