@@ -134,7 +134,17 @@ export class PoolsComponent implements OnInit {
   }
 
   isSubmitDisabled(): boolean {
-    return this.loading || !this.matches.some(m => m.canPredict === true);
+    // Check if there are any predictable matches
+    const predictableMatches = this.matches.filter(m => m.canPredict);
+    if (predictableMatches.length === 0) {
+      return true;
+    }
+
+    // Check if at least one predictable match has a prediction
+    return !predictableMatches.some(m => 
+      m.prediction?.homeScore !== null && 
+      m.prediction?.awayScore !== null
+    );
   }
 
   async loadMatches() {
@@ -209,20 +219,6 @@ export class PoolsComponent implements OnInit {
       return;
     }
 
-    const invalidPredictions = this.matches.filter(m => 
-      !m.canPredict && 
-      m.prediction?.homeScore !== null && 
-      m.prediction?.awayScore !== null
-    );
-
-    if (invalidPredictions.length > 0) {
-      await this.showAlert(
-        'Predicciones no permitidas',
-        'No se pueden hacer predicciones para partidos que ya comenzaron o están por comenzar.'
-      );
-      return;
-    }
-
     let loading: HTMLIonLoadingElement | null = null;
     this.savingPredictions = true;
 
@@ -233,6 +229,7 @@ export class PoolsComponent implements OnInit {
       });
       await loading.present();
 
+      // Filter only matches that can be predicted and have predictions
       const predictions = this.matches
         .filter(m => m.canPredict && 
                     m.prediction?.homeScore !== null && 
@@ -254,7 +251,12 @@ export class PoolsComponent implements OnInit {
         0
       );
 
-      await this.showToast('Predicciones guardadas exitosamente', 'success');
+      // Show success message with number of predictions saved
+      await this.showToast(
+        `Se guardaron ${predictions.length} predicciones exitosamente`, 
+        'success'
+      );
+      
       await this.loadMatches();
     } catch (error) {
       console.error('Error saving predictions:', error);

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { Match } from '../../services/football.service';
 
 export interface PredictionData {
@@ -11,13 +11,27 @@ export interface PredictionData {
   templateUrl: './match-prediction.component.html',
   styleUrls: ['./match-prediction.component.scss']
 })
-export class MatchPredictionComponent {
+export class MatchPredictionComponent implements OnInit {
   @Input() match!: Match;
   @Input() prediction!: PredictionData;
   @Input() canPredict: boolean = false;
   @Input() canEdit: boolean = false;
   @Input() isCompleted: boolean = false;
   @Output() predictionChange = new EventEmitter<PredictionData>();
+
+  ngOnInit() {
+    // Only initialize predictions for matches that can be predicted
+    if (this.prediction && this.canPredict) {
+      if (this.prediction.homeScore === null) {
+        this.prediction.homeScore = 0;
+      }
+      if (this.prediction.awayScore === null) {
+        this.prediction.awayScore = 0;
+      }
+      // Emit initial values only for predictable matches
+      this.predictionChange.emit(this.prediction);
+    }
+  }
 
   getScoreClass(): string {
     if (!this.isCompleted) return '';
@@ -80,6 +94,8 @@ export class MatchPredictionComponent {
   }
 
   onScoreChange() {
-    this.predictionChange.emit(this.prediction);
+    if (this.canPredict || this.canEdit) {
+      this.predictionChange.emit(this.prediction);
+    }
   }
 }

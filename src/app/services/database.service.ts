@@ -26,7 +26,6 @@ export interface PredictionDocument {
 })
 export class DatabaseService {
   private isOnline: boolean = true;
-  private readonly BATCH_SIZE = 20;
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 1000;
 
@@ -42,10 +41,11 @@ export class DatabaseService {
   }
 
   getPredictions(userId: string, week: string): Observable<Prediction[]> {
-    return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`).valueChanges().pipe(
+    return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`).snapshotChanges().pipe(
       map(doc => {
-        if (!doc) return [];
-        return doc.predictions || [];
+        if (!doc.payload.exists) return [];
+        const data = doc.payload.data();
+        return data?.predictions || [];
       }),
       catchError(error => {
         console.error('Error getting predictions:', error);
@@ -122,9 +122,12 @@ export class DatabaseService {
   }
 
   getUserTotalPoints(userId: string): Observable<number> {
-    return this.afs.collection(`predictions/${userId}/weeks`).valueChanges().pipe(
-      map((weeks: any[]) => {
-        return weeks.reduce((total, week) => total + (week.totalPoints || 0), 0);
+    return this.afs.collection(`predictions/${userId}/weeks`).snapshotChanges().pipe(
+      map(weeks => {
+        return weeks.reduce((total, week) => {
+          const data = week.payload.doc.data() as PredictionDocument;
+          return total + (data?.totalPoints || 0);
+        }, 0);
       }),
       catchError(error => {
         console.error('Error getting user total points:', error);
@@ -134,12 +137,12 @@ export class DatabaseService {
   }
 
   getAllUsersTotalPoints(): Observable<{ userId: string; totalPoints: number }[]> {
-    return this.afs.collection('users').valueChanges({ idField: 'userId' }).pipe(
+    return this.afs.collection('users').snapshotChanges().pipe(
       switchMap((users: any[]) => {
         const userPoints$ = users.map(user => 
-          this.getUserTotalPoints(user.userId).pipe(
+          this.getUserTotalPoints(user.payload.doc.id).pipe(
             map(totalPoints => ({
-              userId: user.userId,
+              userId: user.payload.doc.id,
               totalPoints
             }))
           )
@@ -188,9 +191,12 @@ export class DatabaseService {
   }
 
   getAllUsers(): Observable<User[]> {
-    return this.firebaseRetryService.retryOperation(
-      this.afs.collection<User>('users').valueChanges()
-    ).pipe(
+    return this.afs.collection<User>('users').snapshotChanges().pipe(
+      map(actions => actions.map(a => {
+        const data = a.payload.doc.data();
+        const id = a.payload.doc.id;
+        return { ...data, id };
+      })),
       catchError(error => {
         console.error('Error getting users:', error);
         return of([]);

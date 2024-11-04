@@ -63,16 +63,6 @@ export interface ApiResponse {
   response: FixtureResponse[];
 }
 
-interface CacheEntry {
-  data: Match[];
-  timestamp: number;
-  expiresAt: number;
-}
-
-interface Cache {
-  [key: string]: CacheEntry;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -84,22 +74,10 @@ export class FootballService {
   private readonly CURRENT_SEASON = '2024';
   private readonly TIMEZONE = 'America/Mexico_City';
   
-  private readonly STANDARD_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-  private readonly RATE_LIMIT_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
-  private readonly MAX_CACHE_AGE = 24 * 60 * 60 * 1000; // 24 hours
-  
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000;
-  private readonly RATE_LIMIT_COOLDOWN = 60 * 60 * 1000; // 1 hour
 
-  private cache: Cache = {};
-  private requestsInProgress: { [key: string]: Observable<Match[]> } = {};
-  private lastRateLimitHit: number = 0;
-
-  constructor(private http: HttpClient) {
-    this.loadCacheFromStorage();
-    window.addEventListener('beforeunload', () => this.saveCacheToStorage());
-  }
+  constructor(private http: HttpClient) {}
 
   async getCurrentRound(): Promise<number> {
     try {
@@ -177,31 +155,6 @@ export class FootballService {
   }
 
   getMatches(round: number): Observable<Match[]> {
-    const cacheKey = `round-${round}`;
-    const now = Date.now();
-
-    // Check if we're in a rate limit cooldown
-    const isInRateLimitCooldown = now - this.lastRateLimitHit < this.RATE_LIMIT_COOLDOWN;
-    
-    // Check cache
-    const cachedData = this.cache[cacheKey];
-    if (cachedData && now < cachedData.expiresAt) {
-      console.log('Returning valid cached data');
-      return of(cachedData.data);
-    }
-
-    // Return existing request if one is in progress
-    if (this.requestsInProgress[cacheKey]) {
-      console.log('Returning in-progress request');
-      return this.requestsInProgress[cacheKey];
-    }
-
-    // If in rate limit cooldown and we have any cached data, return it
-    if (isInRateLimitCooldown && cachedData) {
-      console.log('Rate limit cooldown active, returning cached data');
-      return of(cachedData.data);
-    }
-
     const headers = new HttpHeaders({
       'x-apisports-key': this.API_KEY
     });
@@ -212,7 +165,7 @@ export class FootballService {
       .set('round', this.getRoundString(round))
       .set('timezone', this.TIMEZONE);
 
-    this.requestsInProgress[cacheKey] = this.http.get<ApiResponse>(this.API_URL, { headers, params }).pipe(
+    return this.http.get<ApiResponse>(this.API_URL, { headers, params }).pipe(
       timeout(10000),
       map(response => {
         if (!response || !response.response || !Array.isArray(response.response)) {
@@ -234,103 +187,13 @@ export class FootballService {
           weekNumber: this.extractWeekNumber(fixture.league.round)
         }));
       }),
-      tap(matches => {
-        // Update cache with appropriate expiration
-        const cacheDuration = isInRateLimitCooldown ? 
-          this.RATE_LIMIT_CACHE_DURATION : 
-          this.STANDARD_CACHE_DURATION;
-
-        this.cache[cacheKey] = {
-          data: matches,
-          timestamp: now,
-          expiresAt: now + cacheDuration
-        };
-        this.saveCacheToStorage();
-      }),
-      catchError((error: HttpErrorResponse) => {
-        console.error('API Error:', error);
-        
-        if (error.error?.code === 2100) {
-          console.warn('API rate limit exceeded');
-          this.lastRateLimitHit = now;
-          
-          if (cachedData) {
-            // Extend cache validity during rate limit
-            cachedData.expiresAt = now + this.RATE_LIMIT_CACHE_DURATION;
-            this.saveCacheToStorage();
-            return of(cachedData.data);
-          }
-        }
-        
-        if (cachedData) {
-          return of(cachedData.data);
-        }
-
-        return throwError(() => error);
-      }),
       retryWhen(errors => 
         errors.pipe(
           delay(this.RETRY_DELAY),
           take(this.MAX_RETRIES)
         )
       ),
-      tap(() => {
-        delete this.requestsInProgress[cacheKey];
-      }),
       shareReplay(1)
     );
-
-    return this.requestsInProgress[cacheKey];
-  }
-
-  private loadCacheFromStorage(): void {
-    try {
-      const savedCache = localStorage.getItem('footballMatchesCache');
-      if (savedCache) {
-        const parsed = JSON.parse(savedCache);
-        if (this.isValidCache(parsed)) {
-          const now = Date.now();
-          Object.keys(parsed).forEach(key => {
-            if (now > parsed[key].expiresAt) {
-              delete parsed[key];
-            }
-          });
-          this.cache = parsed;
-        } else {
-          this.clearCache();
-        }
-      }
-    } catch (error) {
-      console.warn('Error loading cache:', error);
-      this.clearCache();
-    }
-  }
-
-  private isValidCache(cache: any): cache is Cache {
-    if (typeof cache !== 'object' || cache === null) return false;
-    
-    for (const key in cache) {
-      const entry = cache[key];
-      if (!entry || typeof entry !== 'object') return false;
-      if (!Array.isArray(entry.data)) return false;
-      if (typeof entry.timestamp !== 'number') return false;
-      if (typeof entry.expiresAt !== 'number') return false;
-    }
-    
-    return true;
-  }
-
-  private saveCacheToStorage(): void {
-    try {
-      localStorage.setItem('footballMatchesCache', JSON.stringify(this.cache));
-    } catch (error) {
-      console.warn('Error saving cache:', error);
-    }
-  }
-
-  clearCache(): void {
-    this.cache = {};
-    this.requestsInProgress = {};
-    localStorage.removeItem('footballMatchesCache');
   }
 }
