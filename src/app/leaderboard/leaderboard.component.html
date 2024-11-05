@@ -35,7 +35,7 @@
       </div>
 
       <app-rounds-selector
-        [selectedRound]="selectedWeek"
+        [selectedRound]="selectedRound"
         [currentRound]="currentRound"
         [isLiveRound]="isCurrentRoundActive"
         (roundChange)="onRoundChange($event)">
@@ -46,59 +46,25 @@
       <ng-container *ngIf="selectedView === 'weekly'; else overallView">
         <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
           <div class="leaderboard-content">
-            <div class="top-three" *ngIf="weeklyLeaderboard.length > 0">
-              <!-- Second Place -->
-              <div class="podium-spot position-2" *ngIf="weeklyLeaderboard.length > 1">
-                <div class="position-indicator">2</div>
-                <div class="avatar">
-                  🥈
-                </div>
-                <div class="user-info">
-                  <div class="user-row">
-                    <h3>{{ weeklyLeaderboard[1].username }}</h3>
-                    <span class="points">{{ weeklyLeaderboard[1].weeklyPoints }} pts</span>
-                  </div>
-                </div>
+            <div class="stats-summary">
+              <div class="stat-card">
+                <div class="stat-value">{{ getLeaderPoints(weeklyLeaderboard) }}</div>
+                <div class="stat-label">Puntos Líder</div>
               </div>
-
-              <!-- First Place -->
-              <div class="podium-spot position-1" *ngIf="weeklyLeaderboard.length > 0">
-                <div class="position-indicator">1</div>
-                <div class="crown-icon">👑</div>
-                <div class="avatar">
-                  <ion-icon name="trophy"></ion-icon>
-                </div>
-                <div class="user-info">
-                  <div class="user-row">
-                    <h3>{{ weeklyLeaderboard[0].username }}</h3>
-                    <span class="points">{{ weeklyLeaderboard[0].weeklyPoints }} pts</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Third Place -->
-              <div class="podium-spot position-3" *ngIf="weeklyLeaderboard.length > 2">
-                <div class="position-indicator">3</div>
-                <div class="avatar">
-                  🥉
-                </div>
-                <div class="user-info">
-                  <div class="user-row">
-                    <h3>{{ weeklyLeaderboard[2].username }}</h3>
-                    <span class="points">{{ weeklyLeaderboard[2].weeklyPoints }} pts</span>
-                  </div>
-                </div>
+              <div class="stat-card">
+                <div class="stat-value">{{ weeklyLeaderboard.length }}</div>
+                <div class="stat-label">Participantes</div>
               </div>
             </div>
 
-            <div class="other-positions" *ngIf="weeklyLeaderboard.length > 3">
+            <div class="leaderboard-list">
               <ion-list>
-                <ion-item *ngFor="let entry of weeklyLeaderboard.slice(3); let i = index" lines="full" class="leaderboard-item">
-                  <div class="position">{{ i + 4 }}</div>
+                <ion-item *ngFor="let entry of weeklyLeaderboard; let i = index" lines="full" class="leaderboard-item" [class.top-three]="i < 3">
+                  <div class="position" [class.first]="i === 0" [class.second]="i === 1" [class.third]="i === 2">{{ i + 1 }}</div>
                   <ion-label>
                     <div class="user-row">
                       <h2>{{ entry.username }}</h2>
-                      <span class="points">{{ entry.weeklyPoints }} pts</span>
+                      <span class="points" [class.top-points]="i === 0">{{ entry.weeklyPoints }} pts</span>
                     </div>
                   </ion-label>
                 </ion-item>
@@ -128,59 +94,14 @@
               </div>
             </div>
 
-            <div class="top-three" *ngIf="overallLeaderboard.length > 0">
-              <!-- Second Place -->
-              <div class="podium-spot position-2" *ngIf="overallLeaderboard.length > 1">
-                <div class="position-indicator">2</div>
-                <div class="avatar">
-                  🥈
-                </div>
-                <div class="user-info">
-                  <div class="user-row">
-                    <h3>{{ overallLeaderboard[1].username }}</h3>
-                    <span class="points">{{ overallLeaderboard[1].totalPoints }} pts</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- First Place -->
-              <div class="podium-spot position-1" *ngIf="overallLeaderboard.length > 0">
-                <div class="position-indicator">1</div>
-                <div class="crown-icon">👑</div>
-                <div class="avatar">
-                  <ion-icon name="trophy"></ion-icon>
-                </div>
-                <div class="user-info">
-                  <div class="user-row">
-                    <h3>{{ overallLeaderboard[0].username }}</h3>
-                    <span class="points">{{ overallLeaderboard[0].totalPoints }} pts</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Third Place -->
-              <div class="podium-spot position-3" *ngIf="overallLeaderboard.length > 2">
-                <div class="position-indicator">3</div>
-                <div class="avatar">
-                  🥉
-                </div>
-                <div class="user-info">
-                  <div class="user-row">
-                    <h3>{{ overallLeaderboard[2].username }}</h3>
-                    <span class="points">{{ overallLeaderboard[2].totalPoints }} pts</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="other-positions" *ngIf="overallLeaderboard.length > 3">
+            <div class="leaderboard-list">
               <ion-list>
-                <ion-item *ngFor="let entry of overallLeaderboard.slice(3); let i = index" lines="full" class="leaderboard-item">
-                  <div class="position">{{ i + 4 }}</div>
+                <ion-item *ngFor="let entry of overallLeaderboard; let i = index" lines="full" class="leaderboard-item" [class.top-three]="i < 3">
+                  <div class="position" [class.first]="i === 0" [class.second]="i === 1" [class.third]="i === 2">{{ i + 1 }}</div>
                   <ion-label>
                     <div class="user-row">
                       <h2>{{ entry.username }}</h2>
-                      <span class="points">{{ entry.totalPoints }} pts</span>
+                      <span class="points" [class.top-points]="i === 0">{{ entry.totalPoints }} pts</span>
                     </div>
                   </ion-label>
                 </ion-item>

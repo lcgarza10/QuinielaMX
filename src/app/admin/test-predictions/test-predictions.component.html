@@ -31,6 +31,13 @@
         </ion-item>
 
         <ion-item>
+          <ion-button expand="block" (click)="updateRound16Predictions()" color="warning" [disabled]="loading">
+            <ion-icon name="refresh-outline" slot="start"></ion-icon>
+            Actualizar Puntos Jornada 16
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
           <ion-button expand="block" (click)="generateRandomPredictions()" color="secondary" [disabled]="loading">
             <ion-icon name="shuffle-outline" slot="start"></ion-icon>
             Generar Predicciones Aleatorias

@@ -30,6 +30,7 @@ export class PoolsComponent implements OnInit {
   weeklyPoints: number = 0;
   isRateLimited: boolean = false;
   savingPredictions: boolean = false;
+  isLiveRound: boolean = false;
 
   constructor(
     private footballService: FootballService,
@@ -94,9 +95,9 @@ export class PoolsComponent implements OnInit {
 
   getWeekTitle(): string {
     if (this.hasPredictions) {
-      return `Estado de tu Quiniela para esta Jornada: `;
+      return `Estatus de tu Quiniela para esta Jornada: `;
     }
-    return `Estado de tu Quiniela para esta Jornada: `;
+    return `Estatus de tu Quiniela para esta Jornada: `;
   }
 
   onPredictionChange(match: MatchWithPrediction, prediction: PredictionData) {
@@ -165,6 +166,12 @@ export class PoolsComponent implements OnInit {
         );
         this.hasPredictions = validPredictions.length > 0;
         
+        // Check if any match is live
+        this.isLiveRound = matches.some(match => 
+          match.status.short === 'LIVE' || 
+          match.status.short === 'HT'
+        );
+
         this.matches = matches.map(match => {
           const prediction = predictions.find(p => p.matchId === match.id);
           const canPredict = this.canPredictMatch(match);

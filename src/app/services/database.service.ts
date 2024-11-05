@@ -88,14 +88,22 @@ export class DatabaseService {
       const existingData = docSnapshot.data() as PredictionDocument | undefined;
       const existingPredictions = existingData?.predictions || [];
 
+      // Create a map of existing predictions
       const predictionMap = new Map(
         existingPredictions.map(p => [p.matchId, p])
       );
 
+      // Update or add new predictions, ensuring points are initialized to 0
       validPredictions.forEach(prediction => {
-        predictionMap.set(prediction.matchId, prediction);
+        const existingPrediction = predictionMap.get(prediction.matchId);
+        predictionMap.set(prediction.matchId, {
+          ...prediction,
+          // Keep existing points if they exist, otherwise set to 0
+          points: existingPrediction?.points ?? 0
+        });
       });
 
+      // Calculate total points from all predictions
       const weeklyPoints = Array.from(predictionMap.values()).reduce(
         (total, pred) => total + (pred.points || 0),
         0
@@ -122,7 +130,7 @@ export class DatabaseService {
 
       await batch.commit();
 
-      console.log('Successfully saved predictions and updated total points');
+      console.log('Successfully saved predictions with initialized points');
     } catch (error) {
       console.error('Error saving predictions:', error);
       throw new Error('Error al guardar las predicciones');
@@ -174,7 +182,7 @@ export class DatabaseService {
       const updatedPredictions = predictions.map(pred => {
         const match = matches.find(m => m.id === pred.matchId);
         if (!match || match.homeScore === null || match.awayScore === null) {
-          return pred;
+          return { ...pred, points: 0 }; // Initialize points to 0 if match hasn't started
         }
 
         let points = 0;

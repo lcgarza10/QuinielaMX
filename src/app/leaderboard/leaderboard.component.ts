@@ -23,7 +23,7 @@ export class LeaderboardComponent implements OnInit {
   weeklyLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   loading: boolean = true;
   error: string | null = null;
-  selectedWeek: number = 1;
+  selectedRound: number = 1;
   selectedView: 'weekly' | 'overall' = 'weekly';
   rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
   currentRound: number = 1;
@@ -48,7 +48,7 @@ export class LeaderboardComponent implements OnInit {
     try {
       const currentRound = await this.footballService.getCurrentRound();
       this.currentRound = currentRound;
-      this.selectedWeek = currentRound;
+      this.selectedRound = currentRound;
 
       const matches = await firstValueFrom(this.footballService.getMatches(currentRound));
       
@@ -70,7 +70,7 @@ export class LeaderboardComponent implements OnInit {
     } catch (error) {
       console.error('Error finding current round:', error);
       this.currentRound = 1;
-      this.selectedWeek = 1;
+      this.selectedRound = 1;
     }
     this.loading = false;
   }
@@ -80,12 +80,12 @@ export class LeaderboardComponent implements OnInit {
   }
 
   onRoundChange(round: number) {
-    this.selectedWeek = round;
+    this.selectedRound = round;
     this.loadLeaderboards();
   }
 
   getRoundStatus(): string {
-    if (this.selectedWeek === this.currentRound) {
+    if (this.selectedRound === this.currentRound) {
       if (this.isCurrentRoundActive) {
         return 'Jornada actual en curso';
       }
@@ -101,7 +101,7 @@ export class LeaderboardComponent implements OnInit {
       }
       return 'Última jornada completada';
     }
-    return `Jornada ${this.selectedWeek}`;
+    return `Jornada ${this.selectedRound}`;
   }
 
   loadLeaderboards() {
@@ -116,7 +116,7 @@ export class LeaderboardComponent implements OnInit {
     this.weeklyLeaderboard$ = users$.pipe(
       switchMap(users => {
         const userPredictions$ = users.map(user => 
-          this.databaseService.getPredictions(user.uid, this.selectedWeek.toString()).pipe(
+          this.databaseService.getPredictions(user.uid, this.selectedRound.toString()).pipe(
             map(predictions => {
               const weeklyPoints = predictions.reduce((total, pred) => total + (pred.points || 0), 0);
               return {

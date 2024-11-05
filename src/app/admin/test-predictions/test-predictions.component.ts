@@ -54,6 +54,79 @@ export class TestPredictionsComponent implements OnInit {
     }
   }
 
+  async updateRound16Predictions() {
+    const alert = await this.alertController.create({
+      header: 'Confirmar actualización',
+      message: '¿Estás seguro de que deseas actualizar las predicciones de la jornada 16 para agregar puntos iniciales?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Actualizar',
+          handler: async () => {
+            this.loading = true;
+            try {
+              // Get all users
+              const usersSnapshot = await this.afs.collection('users').get().toPromise();
+              const batch = this.afs.firestore.batch();
+              let updatedCount = 0;
+
+              if (usersSnapshot) {
+                for (const userDoc of usersSnapshot.docs) {
+                  // Check if user has predictions for round 16
+                  const predictionDoc = await this.afs.doc(`predictions/${userDoc.id}/weeks/16`).get().toPromise();
+                  
+                  if (predictionDoc?.exists) {
+                    const data = predictionDoc.data() as any;
+                    if (data?.predictions && Array.isArray(data.predictions)) {
+                      // Update each prediction to ensure it has points
+                      const updatedPredictions = data.predictions.map((pred: Prediction) => ({
+                        ...pred,
+                        points: pred.points ?? 0 // Add points if not exists
+                      }));
+
+                      // Update the document
+                      batch.update(predictionDoc.ref, {
+                        predictions: updatedPredictions,
+                        lastUpdated: firebase.firestore.Timestamp.now()
+                      });
+                      
+                      updatedCount++;
+                    }
+                  }
+                }
+              }
+
+              if (updatedCount > 0) {
+                await batch.commit();
+                await this.showToast(
+                  `Se actualizaron las predicciones de ${updatedCount} usuarios para la jornada 16`,
+                  'success'
+                );
+              } else {
+                await this.showToast(
+                  'No se encontraron predicciones para actualizar en la jornada 16',
+                  'warning'
+                );
+              }
+            } catch (error) {
+              console.error('Error updating round 16 predictions:', error);
+              await this.showToast(
+                'Error al actualizar las predicciones de la jornada 16',
+                'danger'
+              );
+            } finally {
+              this.loading = false;
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   private calculatePoints(prediction: Prediction, match: Match): number {
     if (!prediction || prediction.homeScore === null || prediction.awayScore === null ||
         match.homeScore === null || match.awayScore === null) {
@@ -78,14 +151,13 @@ export class TestPredictionsComponent implements OnInit {
       const prediction: Prediction = {
         matchId: match.id,
         homeScore: Math.floor(Math.random() * 4),
-        awayScore: Math.floor(Math.random() * 4)
+        awayScore: Math.floor(Math.random() * 4),
+        points: 0 // Initialize points to 0
       };
       
       // Calculate points if match is finished
       if (match.status.short === 'FT') {
         prediction.points = this.calculatePoints(prediction, match);
-      } else {
-        prediction.points = 0;
       }
 
       return prediction;

@@ -17,24 +17,12 @@
     </div>
   </div>
 
-  <div class="rounds-scroll">
-    <div class="rounds-container">
-      <div 
-        *ngFor="let round of rounds" 
-        class="round-chip" 
-        [class.active]="selectedRound === round"
-        [class.current]="round === currentRound"
-        (click)="onRoundChange(round)">
-        <span class="round-number">J{{ round }}</span>
-        <ion-icon 
-          *ngIf="round === currentRound" 
-          name="radio" 
-          class="live-indicator"
-          [class.pulse]="isLiveRound">
-        </ion-icon>
-      </div>
-    </div>
-  </div>
+  <app-rounds-selector
+    [selectedRound]="selectedRound"
+    [currentRound]="currentRound"
+    [isLiveRound]="isLiveRound"
+    (roundChange)="onRoundChange($event)">
+  </app-rounds-selector>
 
   <div *ngIf="loading" class="loading-container">
     <ion-spinner></ion-spinner>

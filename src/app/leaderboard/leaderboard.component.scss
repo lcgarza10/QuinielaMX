@@ -45,9 +45,11 @@
   background: var(--ion-color-primary);
   color: white;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: 16px;
   text-align: center;
   box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
   .stat-value {
     font-size: 24px;
@@ -61,303 +63,86 @@
   }
 }
 
-.top-three {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  padding: 40px 20px;
-  margin-bottom: 32px;
-  position: relative;
-  background: linear-gradient(180deg, rgba(var(--ion-color-primary-rgb), 0.1) 0%, transparent 100%);
-  border-radius: 16px;
-
-  @media (max-width: 480px) {
-    padding: 20px 10px;
-    margin-bottom: 24px;
+.leaderboard-list {
+  ion-list {
+    background: transparent;
+    padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
   }
 }
 
-.podium-spot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 12px;
-  position: relative;
-  transition: transform 0.3s ease;
+.leaderboard-item {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+  --background: var(--ion-card-background);
+  margin-bottom: 1px;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 
-  @media (max-width: 480px) {
-    padding: 0 6px;
+  &.top-three {
+    --background: rgba(var(--ion-color-primary-rgb), 0.05);
   }
 
-  .position-indicator {
-    position: absolute;
-    top: -24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--ion-color-medium);
-    color: white;
+  &:hover {
+    transform: translateX(8px);
+  }
+
+  .position {
     width: 32px;
     height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    font-size: 18px;
+    font-weight: 600;
+    margin-right: 16px;
+    font-size: 16px;
+    background: var(--ion-color-medium);
+    color: white;
 
-    @media (max-width: 480px) {
-      width: 28px;
-      height: 28px;
-      font-size: 16px;
-      top: -20px;
+    &.first {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    }
+
+    &.second {
+      background: linear-gradient(135deg, #C0C0C0, #E0E0E0);
+      box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
+    }
+
+    &.third {
+      background: linear-gradient(135deg, #CD7F32, #DFA878);
+      box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
     }
   }
 
-  .avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--ion-color-primary);
+  .user-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
-    font-size: 32px;
+    justify-content: space-between;
+    gap: 12px;
 
-    @media (max-width: 480px) {
-      width: 48px;
-      height: 48px;
-      font-size: 24px;
-    }
-
-    ion-icon {
-      font-size: 32px;
-      color: white;
-
-      @media (max-width: 480px) {
-        font-size: 24px;
-      }
-    }
-  }
-
-  .user-info {
-    text-align: center;
-    min-width: 120px;
-
-    @media (min-width: 481px) {
-      min-width: 160px;
-    }
-
-    .user-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-
-      h3 {
-        margin: 0;
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--ion-color-dark);
-        flex: 1;
-        text-align: left;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-
-        @media (min-width: 481px) {
-          font-size: 16px;
-        }
-      }
-
-      .points {
-        font-size: 14px;
-        color: var(--ion-color-primary);
-        font-weight: 600;
-        white-space: nowrap;
-
-        @media (min-width: 481px) {
-          font-size: 16px;
-        }
-      }
-    }
-  }
-
-  &.position-1 {
-    transform: scale(1.1);
-    z-index: 3;
-
-    .avatar {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(45deg, #FFD700, #FFA500);
-      
-      @media (max-width: 480px) {
-        width: 60px;
-        height: 60px;
-      }
-
-      ion-icon {
-        font-size: 40px;
-
-        @media (max-width: 480px) {
-          font-size: 30px;
-        }
-      }
-    }
-
-    .position-indicator {
-      background: #FFD700;
-      width: 36px;
-      height: 36px;
-      font-size: 20px;
-
-      @media (max-width: 480px) {
-        width: 32px;
-        height: 32px;
-        font-size: 18px;
-      }
-    }
-
-    .crown-icon {
-      position: absolute;
-      top: -40px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 24px;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-
-      @media (max-width: 480px) {
-        top: -32px;
-        font-size: 20px;
-      }
-    }
-
-    .user-row {
-      h3, .points {
-        font-size: 16px;
-
-        @media (min-width: 481px) {
-          font-size: 18px;
-        }
-      }
-    }
-
-    .points {
-      color: #FFD700 !important;
-    }
-  }
-
-  &.position-2 {
-    transform: translateY(20px);
-    z-index: 2;
-
-    .avatar {
-      background: linear-gradient(45deg, #C0C0C0, #E0E0E0);
-    }
-
-    .position-indicator {
-      background: #C0C0C0;
-    }
-
-    .points {
-      color: #C0C0C0 !important;
-    }
-  }
-
-  &.position-3 {
-    transform: translateY(40px);
-    z-index: 1;
-
-    .avatar {
-      background: linear-gradient(45deg, #CD7F32, #DFA878);
-    }
-
-    .position-indicator {
-      background: #CD7F32;
-    }
-
-    .points {
-      color: #CD7F32 !important;
-    }
-  }
-}
-
-.other-positions {
-  ion-list {
-    background: transparent;
-    padding: 0;
-  }
-
-  .leaderboard-item {
-    --padding-start: 12px;
-    --padding-end: 12px;
-    --padding-top: 12px;
-    --padding-bottom: 12px;
-    --background: var(--ion-card-background);
-    margin-bottom: 8px;
-    border-radius: 10px;
-
-    @media (max-width: 480px) {
-      --padding-start: 8px;
-      --padding-end: 8px;
-      --padding-top: 8px;
-      --padding-bottom: 8px;
-    }
-
-    .position {
-      background: var(--ion-color-medium);
-      color: white;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    h2 {
       font-size: 16px;
       font-weight: 600;
-      margin-right: 12px;
-
-      @media (max-width: 480px) {
-        width: 24px;
-        height: 24px;
-        font-size: 14px;
-        margin-right: 8px;
-      }
+      margin: 0;
+      color: var(--ion-color-dark);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .user-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      width: 100%;
-
-      h2 {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0;
-        color: var(--ion-color-dark);
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-
-        @media (max-width: 480px) {
-          font-size: 14px;
-        }
-      }
-
-      .points {
-        font-size: 16px;
-        color: var(--ion-color-primary);
-        font-weight: 600;
-        white-space: nowrap;
-
-        @media (max-width: 480px) {
-          font-size: 14px;
-        }
+    .points {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--ion-color-primary);
+      
+      &.top-points {
+        color: #FFD700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
     }
   }
@@ -368,94 +153,105 @@
   padding: 40px 16px;
   
   .empty-icon {
-    font-size: 40px;
+    font-size: 48px;
     color: var(--ion-color-medium);
-    margin-bottom: 12px;
-
-    @media (max-width: 480px) {
-      font-size: 32px;
-    }
+    margin-bottom: 16px;
   }
   
   h2 {
-    font-size: 1.1rem;
+    font-size: 20px;
     color: var(--ion-color-dark);
-    margin: 0 0 6px;
-
-    @media (max-width: 480px) {
-      font-size: 1rem;
-    }
+    margin: 0 0 8px;
   }
   
   p {
-    font-size: 0.85rem;
+    font-size: 16px;
     color: var(--ion-color-medium);
     margin: 0;
-
-    @media (max-width: 480px) {
-      font-size: 0.8rem;
-    }
+    line-height: 1.4;
   }
 }
 
 // Dark mode adjustments
 :host-context(.dark) {
-  .round-chip {
-    background: rgba(var(--ion-color-light-rgb), 0.1);
-  }
-
-  .leaderboard-content {
-    background: rgba(var(--ion-color-light-rgb), 0.05);
-  }
-
-  .round-info {
-    background: rgba(var(--ion-color-light-rgb), 0.05);
-  }
-
-  .top-three {
-    background: linear-gradient(180deg, rgba(var(--ion-color-primary-rgb), 0.2) 0%, transparent 100%);
-  }
-
-  .podium-spot .user-info h3 {
-    color: var(--ion-color-light);
-  }
-
   .leaderboard-item {
-    --background: rgba(var(--ion-color-light-rgb), 0.1);
+    --background: rgba(var(--ion-color-light-rgb), 0.05);
+
+    &.top-three {
+      --background: rgba(var(--ion-color-primary-rgb), 0.15);
+    }
+
+    .user-row h2 {
+      color: var(--ion-color-light);
+    }
   }
 
   .stat-card {
     background: rgba(var(--ion-color-primary-rgb), 0.2);
   }
+
+  .empty-state {
+    h2 {
+      color: var(--ion-color-light);
+    }
+  }
 }
 
-// Desktop optimizations
-@media (min-width: 768px) {
+// Media queries for responsiveness
+@media (max-width: 480px) {
   .leaderboard-container {
-    padding: 24px;
+    padding: 8px;
   }
 
-  .stats-summary {
-    max-width: 600px;
-    margin: 0 auto 32px;
+  .stat-card {
+    padding: 12px;
+
+    .stat-value {
+      font-size: 20px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+    }
   }
 
-  .top-three {
-    max-width: 800px;
-    margin: 0 auto 40px;
-    padding: 60px 40px;
-  }
+  .leaderboard-item {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
 
-  .other-positions {
-    max-width: 600px;
-    margin: 0 auto;
+    .position {
+      width: 28px;
+      height: 28px;
+      font-size: 14px;
+      margin-right: 12px;
+    }
 
-    .leaderboard-item {
-      transition: transform 0.2s ease;
-
-      &:hover {
-        transform: translateX(8px);
+    .user-row {
+      h2 {
+        font-size: 14px;
       }
+
+      .points {
+        font-size: 14px;
+      }
+    }
+  }
+
+  .empty-state {
+    padding: 32px 12px;
+    
+    .empty-icon {
+      font-size: 40px;
+    }
+    
+    h2 {
+      font-size: 18px;
+    }
+    
+    p {
+      font-size: 14px;
     }
   }
 }

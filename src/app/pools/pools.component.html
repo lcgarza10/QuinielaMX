@@ -3,16 +3,16 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
-    <ion-title>Predicciones</ion-title>
+    <ion-title>Sube tu Quiniela</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
   <div class="week-header">
-    <div class="round-status">
+    <div class="round-badge">
       {{ getWeekTitle() }}
       <ion-badge
-        [color]="hasPredictions ? 'medium' : 'warning'"
+        [color]="hasPredictions ? 'success' : 'warning'"
         class="round-badge"
       >
         {{ hasPredictions ? 'COMPLETADA' : 'PENDIENTE' }}
@@ -20,25 +20,12 @@
     </div>
   </div>
 
-  <div class="rounds-scroll">
-    <div class="rounds-container">
-      <div
-        *ngFor="let round of rounds"
-        class="round-chip"
-        [class.active]="selectedRound === round"
-        [class.current]="round === currentRound"
-        (click)="onRoundChange(round)"
-      >
-        J{{ round }}
-        <ion-icon
-          *ngIf="round === currentRound"
-          name="radio"
-          class="live-indicator"
-        >
-        </ion-icon>
-      </div>
-    </div>
-  </div>
+  <app-rounds-selector
+    [selectedRound]="selectedRound"
+    [currentRound]="currentRound"
+    [isLiveRound]="isLiveRound"
+    (roundChange)="onRoundChange($event)">
+  </app-rounds-selector>
 
   <div *ngIf="loading" class="loading-container">
     <ion-spinner></ion-spinner>
