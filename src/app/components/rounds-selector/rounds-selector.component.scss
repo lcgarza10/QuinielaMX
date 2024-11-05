@@ -1,7 +1,15 @@
 .rounds-scroll {
   margin: 0 -16px 20px;
   padding: 0 16px;
+  overflow: hidden; // Changed from overflow-x to hide vertical scrollbar
+}
+
+.rounds-container {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
   overflow-x: auto;
+  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -9,12 +17,6 @@
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-.rounds-container {
-  display: flex;
-  gap: 8px;
-  padding: 4px 0;
 }
 
 .round-chip {
@@ -30,6 +32,7 @@
   position: relative;
   min-width: 48px;
   justify-content: center;
+  flex-shrink: 0; // Prevent chips from shrinking
   
   &.active {
     background: var(--ion-color-primary);
