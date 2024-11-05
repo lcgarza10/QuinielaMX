@@ -21,6 +21,7 @@ import { HeaderComponent } from './components/header/header.component';
 import { RoundsSelectorComponent } from './components/rounds-selector/rounds-selector.component';
 import { TestPredictionsComponent } from './admin/test-predictions/test-predictions.component';
 import { SeasonManagementComponent } from './admin/season-management/season-management.component';
+import { GroupManagementComponent } from './admin/group-management/group-management.component';
 import { MatchPredictionComponent } from './pools/match-prediction/match-prediction.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 
@@ -30,6 +31,7 @@ import { AuthService } from './services/auth.service';
 import { ConnectionService } from './services/connection.service';
 import { FirebaseRetryService } from './services/firebase-retry.service';
 import { SeasonService } from './services/season.service';
+import { GroupService } from './services/group.service';
 import { PlatformService } from './services/platform.service';
 import { ThemeService } from './services/theme.service';
 import { AppRoutingModule } from './app-routing.module';
@@ -58,6 +60,7 @@ registerLocaleData(localeEs);
     RoundsSelectorComponent,
     TestPredictionsComponent,
     SeasonManagementComponent,
+    GroupManagementComponent,
     MatchPredictionComponent,
     LeaderboardComponent
   ],
@@ -89,6 +92,7 @@ registerLocaleData(localeEs);
     ConnectionService,
     FirebaseRetryService,
     SeasonService,
+    GroupService,
     PlatformService,
     ThemeService,
     ScreenTrackingService,

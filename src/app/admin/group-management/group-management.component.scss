@@ -1,0 +1,129 @@
+.group-item {
+  position: relative;
+  overflow: visible;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  --background: var(--ion-color-light-tint);
+
+  ion-label {
+    h2 {
+      font-size: 1.1em;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    p {
+      margin: 4px 0;
+    }
+
+    ion-badge {
+      margin-right: 8px;
+    }
+  }
+}
+
+.members-list {
+  position: relative;
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .members-header {
+    margin-bottom: 16px;
+    
+    h3 {
+      font-size: 1.1em;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--ion-color-dark);
+    }
+
+    .status-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 0.9em;
+      color: var(--ion-color-medium);
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        ion-icon {
+          font-size: 1.2em;
+        }
+      }
+    }
+  }
+
+  .member-item {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    --background: var(--ion-background-color);
+    margin-bottom: 4px;
+    border-radius: 8px;
+
+    ion-avatar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+
+      .prediction-status-icon {
+        font-size: 1.8em;
+      }
+    }
+
+    ion-label {
+      h3 {
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+
+      p {
+        font-size: 0.9em;
+        color: var(--ion-color-medium);
+      }
+
+      ion-badge {
+        margin-top: 4px;
+        font-size: 0.8em;
+        padding: 4px 8px;
+      }
+    }
+
+    ion-note {
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+  }
+}
+
+.button-container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Dark mode adjustments
+:host-context(.dark) {
+  .group-item {
+    --background: rgba(var(--ion-color-light-rgb), 0.05);
+  }
+
+  .members-list {
+    background: rgba(var(--ion-color-light-rgb), 0.05);
+
+    .members-header h3 {
+      color: var(--ion-color-light);
+    }
+
+    .member-item {
+      --background: rgba(var(--ion-background-color-rgb), 0.3);
+    }
+  }
+}

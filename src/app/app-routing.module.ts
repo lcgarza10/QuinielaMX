@@ -10,6 +10,7 @@ import { UserListComponent } from './user-list/user-list.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { TestPredictionsComponent } from './admin/test-predictions/test-predictions.component';
 import { SeasonManagementComponent } from './admin/season-management/season-management.component';
+import { GroupManagementComponent } from './admin/group-management/group-management.component';
 import { AuthGuard } from './services/auth.guard';
 import { AdminGuard } from './services/admin.guard';
 
@@ -22,12 +23,14 @@ const routes: Routes = [
   { path: 'points', component: PointsComponent, canActivate: [AuthGuard] },
   { path: 'user-list', component: UserListComponent, canActivate: [AuthGuard] },
   { path: 'leaderboard', component: LeaderboardComponent, canActivate: [AuthGuard] },
+  { path: 'groups', component: GroupManagementComponent, canActivate: [AuthGuard] },
   { 
     path: 'admin', 
     canActivate: [AuthGuard, AdminGuard],
     children: [
       { path: 'test-predictions', component: TestPredictionsComponent },
-      { path: 'season', component: SeasonManagementComponent }
+      { path: 'season', component: SeasonManagementComponent },
+      { path: 'groups', component: GroupManagementComponent }
     ]
   },
   { path: '', redirectTo: '/home', pathMatch: 'full' },

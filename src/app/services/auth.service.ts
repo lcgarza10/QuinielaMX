@@ -33,7 +33,16 @@ export class AuthService {
                 this.updateUserData(user);
               }
             }),
-            map(dbUser => dbUser || { uid: user.uid, email: user.email || '', isAdmin: false }),
+            map(dbUser => {
+              if (!dbUser) {
+                return { uid: user.uid, email: user.email || '', isAdmin: false };
+              }
+              return {
+                ...dbUser,
+                uid: user.uid,
+                email: user.email || dbUser.email
+              };
+            }),
             catchError(error => {
               console.error('Error fetching user data:', error);
               return of({ uid: user.uid, email: user.email || '', isAdmin: false });
@@ -53,7 +62,9 @@ export class AuthService {
   async signInWithEmail(email: string, password: string): Promise<void> {
     try {
       const credential = await this.afAuth.signInWithEmailAndPassword(email, password);
-      await this.updateUserData(credential.user);
+      if (credential.user) {
+        await this.updateAuthData(credential.user);
+      }
     } catch (error) {
       console.error('Error signing in:', error);
       throw error;
@@ -88,16 +99,47 @@ export class AuthService {
     }
   }
 
-  private async updateUserData(user: any, additionalData?: Partial<User>): Promise<void> {
-    const userRef = this.afs.doc(`users/${user.uid}`);
-    const userData: User = {
-      uid: user.uid,
-      email: user.email,
-      isAdmin: additionalData?.isAdmin ?? false,
-      ...additionalData
-    };
+  private async updateAuthData(user: any): Promise<void> {
+    if (!user) return;
 
+    const userRef = this.afs.doc(`users/${user.uid}`);
     try {
+      const existingUser = await userRef.get().toPromise();
+      const existingData = existingUser?.data() as User | undefined;
+      
+      const updatedData: User = {
+        uid: user.uid,
+        email: user.email || '',
+        firstName: existingData?.firstName,
+        lastName: existingData?.lastName,
+        username: existingData?.username,
+        isAdmin: existingData?.isAdmin ?? false
+      };
+
+      await userRef.set(updatedData, { merge: true });
+    } catch (error) {
+      console.error('Error updating auth data:', error);
+      throw error;
+    }
+  }
+
+  private async updateUserData(user: any, additionalData?: Partial<User>): Promise<void> {
+    if (!user) return;
+
+    const userRef = this.afs.doc(`users/${user.uid}`);
+    try {
+      const existingUser = await userRef.get().toPromise();
+      const existingData = existingUser?.data() as User | undefined;
+
+      const userData: User = {
+        uid: user.uid,
+        email: user.email || existingData?.email || '',
+        firstName: additionalData?.firstName || existingData?.firstName,
+        lastName: additionalData?.lastName || existingData?.lastName,
+        username: additionalData?.username || existingData?.username,
+        isAdmin: existingData?.isAdmin ?? false
+      };
+
       await userRef.set(userData, { merge: true });
       console.log('User data updated in Firestore');
     } catch (error) {

@@ -1,0 +1,130 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis Grupos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- My Groups Section -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        Mis Grupos
+        <ion-button fill="clear" (click)="toggleCreateGroup()">
+          <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-list *ngIf="groups$ | async as groups">
+        <ion-item *ngFor="let group of groups" lines="full" class="group-item">
+          <ion-label>
+            <h2>{{ group.name }}</h2>
+            <p *ngIf="group.description">{{ group.description }}</p>
+            <p>
+              <ion-badge color="medium">{{ group.memberCount || 0 }} miembros</ion-badge>
+              <ion-badge color="primary" *ngIf="group.isPrivate">Privado</ion-badge>
+            </p>
+          </ion-label>
+          <ion-buttons slot="end">
+            <ion-button (click)="showInviteCode(group)" title="Compartir código">
+              <ion-icon name="share-social-outline"></ion-icon>
+            </ion-button>
+            <ion-button (click)="toggleMembersList(group)" [color]="selectedGroup?.id === group.id && showMembersList ? 'primary' : ''" title="Ver miembros">
+              <ion-icon name="people-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+
+          <!-- Members List Section -->
+          <div class="members-list" *ngIf="selectedGroup?.id === group.id && showMembersList">
+            <div class="members-header">
+              <h3>Participantes - Jornada {{ currentRound }}</h3>
+              <div class="status-legend">
+                <span class="legend-item">
+                  <ion-icon name="checkmark-circle" color="success"></ion-icon> Ya subió quiniela
+                </span>
+                <span class="legend-item">
+                  <ion-icon name="alert-circle" color="warning"></ion-icon> Pendiente
+                </span>
+              </div>
+            </div>
+
+            <ion-list>
+              <ion-item *ngFor="let member of selectedGroupMembers | async" lines="full" class="member-item">
+                <ion-avatar slot="start">
+                  <ion-icon [name]="member.hasPredicted ? 'checkmark-circle' : 'alert-circle'" 
+                           [color]="member.hasPredicted ? 'success' : 'warning'"
+                           class="prediction-status-icon">
+                  </ion-icon>
+                </ion-avatar>
+                <ion-label>
+                  <h3>{{ member.username || member.email }}</h3>
+                  <p>{{ member.firstName }} {{ member.lastName }}</p>
+                  <ion-badge *ngIf="member.role === 'admin'" color="primary">Admin</ion-badge>
+                </ion-label>
+                <ion-note slot="end" [color]="member.hasPredicted ? 'success' : 'warning'">
+                  {{ member.hasPredicted ? 'Completado' : 'Pendiente' }}
+                </ion-note>
+              </ion-item>
+            </ion-list>
+          </div>
+        </ion-item>
+
+        <ion-item *ngIf="!groups.length">
+          <ion-label color="medium">
+            No perteneces a ningún grupo
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <ion-button expand="block" (click)="joinGroup()" color="secondary" class="ion-margin-top">
+        <ion-icon name="enter-outline" slot="start"></ion-icon>
+        Unirse a un Grupo
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Create Group Section -->
+  <ion-card *ngIf="showCreateGroup">
+    <ion-card-header>
+      <ion-card-title>Crear Nuevo Grupo</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <form [formGroup]="groupForm" (ngSubmit)="createGroup()">
+        <ion-item>
+          <ion-label position="floating">Nombre del Grupo</ion-label>
+          <ion-input formControlName="name" type="text"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label position="floating">Descripción</ion-label>
+          <ion-textarea formControlName="description" rows="3"></ion-textarea>
+        </ion-item>
+
+        <ion-item>
+          <ion-label>Grupo Privado</ion-label>
+          <ion-toggle formControlName="isPrivate"></ion-toggle>
+        </ion-item>
+
+        <div class="button-container">
+          <ion-button expand="block" type="submit" [disabled]="!groupForm.valid || loading">
+            <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+            Crear Grupo
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" (click)="toggleCreateGroup()" color="medium">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Cancelar
+          </ion-button>
+        </div>
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-loading [isOpen]="loading" message="Por favor espere..."></ion-loading>
+</ion-content>

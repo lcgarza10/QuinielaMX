@@ -6,12 +6,13 @@
 
 .custom-segment {
   margin-bottom: 24px;
-  border-radius: 12px;
+  border-radius: 16px;
   --background: var(--ion-color-light);
   padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
   ion-segment-button {
-    --border-radius: 8px;
+    --border-radius: 12px;
     --indicator-color: var(--ion-color-primary);
     --color: var(--ion-color-medium);
     --color-checked: white;
@@ -25,7 +26,7 @@
     }
 
     &::part(indicator) {
-      border-radius: 8px;
+      border-radius: 12px;
     }
 
     &.segment-button-checked {
@@ -44,15 +45,15 @@
 .stat-card {
   background: var(--ion-color-primary);
   color: white;
-  padding: 16px;
-  border-radius: 16px;
+  padding: 20px;
+  border-radius: 20px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+  box-shadow: 0 8px 24px rgba(var(--ion-color-primary-rgb), 0.2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
   .stat-value {
-    font-size: 24px;
+    font-size: 28px;
     font-weight: 700;
     margin-bottom: 4px;
   }
@@ -67,26 +68,57 @@
   ion-list {
     background: transparent;
     padding: 0;
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
   }
 }
 
 .leaderboard-item {
-  --padding-start: 12px;
-  --padding-end: 12px;
+  --padding-start: 16px;
+  --padding-end: 16px;
   --padding-top: 16px;
   --padding-bottom: 16px;
-  --background: var(--ion-card-background);
-  margin-bottom: 1px;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  --background: linear-gradient(135deg, rgba(30, 136, 229, 0.15), rgba(66, 165, 245, 0.15));
+  margin-bottom: 2px;
+  transition: all 0.3s ease;
+  border-radius: 16px;
+  margin: 8px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(30, 136, 229, 0.3);
 
-  &.top-three {
-    --background: rgba(var(--ion-color-primary-rgb), 0.05);
+  &:first-child {
+    --background: linear-gradient(135deg, rgba(37, 211, 102, 0.15), rgba(52, 183, 241, 0.15));
+    transform: scale(1.02);
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.15);
+    border: 1px solid rgba(37, 211, 102, 0.3);
+    
+    .position {
+      background: linear-gradient(135deg, #25D366, #34B7F1);
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+    }
+
+    .user-row {
+      h2 {
+        color: #25D366;
+        font-size: 18px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+
+      .points {
+        color: #25D366;
+        font-size: 18px;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+    }
   }
 
   &:hover {
     transform: translateX(8px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   }
 
   .position {
@@ -99,23 +131,9 @@
     font-weight: 600;
     margin-right: 16px;
     font-size: 16px;
-    background: var(--ion-color-medium);
+    background: linear-gradient(135deg, #1E88E5, #42A5F5);
     color: white;
-
-    &.first {
-      background: linear-gradient(135deg, #FFD700, #FFA500);
-      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-    }
-
-    &.second {
-      background: linear-gradient(135deg, #C0C0C0, #E0E0E0);
-      box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
-    }
-
-    &.third {
-      background: linear-gradient(135deg, #CD7F32, #DFA878);
-      box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
-    }
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
   }
 
   .user-row {
@@ -125,10 +143,10 @@
     gap: 12px;
 
     h2 {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: 500;
       margin: 0;
-      color: var(--ion-color-dark);
+      color: #1E88E5;
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -136,14 +154,12 @@
     }
 
     .points {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
-      color: var(--ion-color-primary);
-      
-      &.top-points {
-        color: #FFD700;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-      }
+      color: #1E88E5;
+      background: rgba(30, 136, 229, 0.1);
+      padding: 4px 12px;
+      border-radius: 20px;
     }
   }
 }
@@ -160,7 +176,7 @@
   
   h2 {
     font-size: 20px;
-    color: var(--ion-color-dark);
+    color: var(--ion-text-color);
     margin: 0 0 8px;
   }
   
@@ -175,83 +191,38 @@
 // Dark mode adjustments
 :host-context(.dark) {
   .leaderboard-item {
-    --background: rgba(var(--ion-color-light-rgb), 0.05);
+    --background: rgba(30, 136, 229, 0.1);
+    border: 1px solid rgba(30, 136, 229, 0.2);
 
-    &.top-three {
-      --background: rgba(var(--ion-color-primary-rgb), 0.15);
+    &:first-child {
+      --background: linear-gradient(135deg, rgba(37, 211, 102, 0.2), rgba(52, 183, 241, 0.2));
+      border: 1px solid rgba(37, 211, 102, 0.4);
     }
 
-    .user-row h2 {
-      color: var(--ion-color-light);
+    .user-row {
+      h2 {
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .points {
+        background: rgba(30, 136, 229, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+      }
+    }
+
+    &:first-child .user-row {
+      h2, .points {
+        color: #25D366;
+      }
     }
   }
 
   .stat-card {
     background: rgba(var(--ion-color-primary-rgb), 0.2);
+    border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
   }
 
-  .empty-state {
-    h2 {
-      color: var(--ion-color-light);
-    }
-  }
-}
-
-// Media queries for responsiveness
-@media (max-width: 480px) {
-  .leaderboard-container {
-    padding: 8px;
-  }
-
-  .stat-card {
-    padding: 12px;
-
-    .stat-value {
-      font-size: 20px;
-    }
-
-    .stat-label {
-      font-size: 12px;
-    }
-  }
-
-  .leaderboard-item {
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --padding-top: 12px;
-    --padding-bottom: 12px;
-
-    .position {
-      width: 28px;
-      height: 28px;
-      font-size: 14px;
-      margin-right: 12px;
-    }
-
-    .user-row {
-      h2 {
-        font-size: 14px;
-      }
-
-      .points {
-        font-size: 14px;
-      }
-    }
-  }
-
-  .empty-state {
-    padding: 32px 12px;
-    
-    .empty-icon {
-      font-size: 40px;
-    }
-    
-    h2 {
-      font-size: 18px;
-    }
-    
-    p {
-      font-size: 14px;
-    }
+  .empty-state h2 {
+    color: rgba(255, 255, 255, 0.9);
   }
 }

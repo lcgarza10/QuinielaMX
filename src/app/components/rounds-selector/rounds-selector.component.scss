@@ -1,7 +1,8 @@
 .rounds-scroll {
   margin: 0 -16px 20px;
   padding: 0 16px;
-  overflow: hidden; // Changed from overflow-x to hide vertical scrollbar
+  overflow: hidden;
+  position: relative;
 }
 
 .rounds-container {
@@ -13,6 +14,7 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  scroll-snap-type: x mandatory;
   
   &::-webkit-scrollbar {
     display: none;
@@ -32,7 +34,8 @@
   position: relative;
   min-width: 48px;
   justify-content: center;
-  flex-shrink: 0; // Prevent chips from shrinking
+  flex-shrink: 0;
+  scroll-snap-align: center;
   
   &.active {
     background: var(--ion-color-primary);
