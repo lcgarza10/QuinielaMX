@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { AngularFirestore, SetOptions } from '@angular/fire/compat/firestore';
 import firebase from 'firebase/compat/app';
 import { Observable, of, from, throwError, firstValueFrom, combineLatest } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
@@ -21,6 +21,12 @@ export interface PredictionDocument {
   lastUpdated: firebase.firestore.Timestamp;
 }
 
+export interface WeekDocument {
+  predictions: Prediction[];
+  totalPoints: number;
+  lastUpdated: firebase.firestore.Timestamp;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -28,6 +34,7 @@ export class DatabaseService {
   private isOnline: boolean = true;
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 1000;
+  private readonly serverConfig = { source: 'server' };
 
   constructor(
     private afs: AngularFirestore,
@@ -41,17 +48,18 @@ export class DatabaseService {
   }
 
   getPredictions(userId: string, week: string): Observable<Prediction[]> {
-    return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`).snapshotChanges().pipe(
-      map(doc => {
-        if (!doc.payload.exists) return [];
-        const data = doc.payload.data();
-        return data?.predictions || [];
-      }),
-      catchError(error => {
-        console.error('Error getting predictions:', error);
-        return of([]);
-      })
-    );
+    return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`)
+      .valueChanges()
+      .pipe(
+        map(doc => {
+          if (!doc) return [];
+          return doc.predictions || [];
+        }),
+        catchError(error => {
+          console.error('Error getting predictions:', error);
+          return of([]);
+        })
+      );
   }
 
   async savePredictions(
@@ -76,7 +84,7 @@ export class DatabaseService {
     const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`).ref;
 
     try {
-      const docSnapshot = await docRef.get();
+      const docSnapshot = await docRef.get({ source: 'server' });
       const existingData = docSnapshot.data() as PredictionDocument | undefined;
       const existingPredictions = existingData?.predictions || [];
 
@@ -104,7 +112,7 @@ export class DatabaseService {
 
       // Update user's total points
       const userPointsRef = this.afs.doc(`userPoints/${userId}`).ref;
-      const userPointsDoc = await userPointsRef.get();
+      const userPointsDoc = await userPointsRef.get({ source: 'server' });
       const currentTotalPoints = userPointsDoc.exists ? (userPointsDoc.data() as any).totalPoints || 0 : 0;
 
       batch.set(userPointsRef, {
@@ -122,38 +130,39 @@ export class DatabaseService {
   }
 
   getUserTotalPoints(userId: string): Observable<number> {
-    return this.afs.collection(`predictions/${userId}/weeks`).snapshotChanges().pipe(
-      map(weeks => {
-        return weeks.reduce((total, week) => {
-          const data = week.payload.doc.data() as PredictionDocument;
-          return total + (data?.totalPoints || 0);
-        }, 0);
-      }),
-      catchError(error => {
-        console.error('Error getting user total points:', error);
-        return of(0);
-      })
-    );
+    return this.afs.collection<WeekDocument>(`predictions/${userId}/weeks`)
+      .valueChanges()
+      .pipe(
+        map((weeks: WeekDocument[]) => {
+          return weeks.reduce((total, week) => total + (week.totalPoints || 0), 0);
+        }),
+        catchError(error => {
+          console.error('Error getting user total points:', error);
+          return of(0);
+        })
+      );
   }
 
   getAllUsersTotalPoints(): Observable<{ userId: string; totalPoints: number }[]> {
-    return this.afs.collection('users').snapshotChanges().pipe(
-      switchMap((users: any[]) => {
-        const userPoints$ = users.map(user => 
-          this.getUserTotalPoints(user.payload.doc.id).pipe(
-            map(totalPoints => ({
-              userId: user.payload.doc.id,
-              totalPoints
-            }))
-          )
-        );
-        return combineLatest(userPoints$);
-      }),
-      catchError(error => {
-        console.error('Error getting all users total points:', error);
-        return of([]);
-      })
-    );
+    return this.afs.collection('users')
+      .valueChanges({ idField: 'id' })
+      .pipe(
+        switchMap((users: any[]) => {
+          const userPoints$ = users.map(user => 
+            this.getUserTotalPoints(user.id).pipe(
+              map(totalPoints => ({
+                userId: user.id,
+                totalPoints
+              }))
+            )
+          );
+          return combineLatest(userPoints$);
+        }),
+        catchError(error => {
+          console.error('Error getting all users total points:', error);
+          return of([]);
+        })
+      );
   }
 
   async calculateAndUpdatePoints(userId: string, week: string): Promise<void> {
@@ -191,16 +200,13 @@ export class DatabaseService {
   }
 
   getAllUsers(): Observable<User[]> {
-    return this.afs.collection<User>('users').snapshotChanges().pipe(
-      map(actions => actions.map(a => {
-        const data = a.payload.doc.data();
-        const id = a.payload.doc.id;
-        return { ...data, id };
-      })),
-      catchError(error => {
-        console.error('Error getting users:', error);
-        return of([]);
-      })
-    );
+    return this.afs.collection<User>('users')
+      .valueChanges({ idField: 'id' })
+      .pipe(
+        catchError(error => {
+          console.error('Error getting users:', error);
+          return of([]);
+        })
+      );
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError, of } from 'rxjs';
-import { map, catchError, timeout, tap, shareReplay, retryWhen, delay, take } from 'rxjs/operators';
+import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { Observable, throwError, of, BehaviorSubject } from 'rxjs';
+import { map, catchError, timeout, retryWhen, delay, take, tap } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
 export interface Venue {
@@ -27,7 +27,22 @@ export interface Goals {
   away: number | null;
 }
 
-export interface FixtureResponse {
+export interface Match {
+  id: number;
+  date: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeTeamLogo: string;
+  awayTeamLogo: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  status: Status;
+  venue: Venue;
+  round: string;
+  weekNumber: number;
+}
+
+interface FixtureResponse {
   fixture: {
     id: number;
     date: string;
@@ -44,23 +59,13 @@ export interface FixtureResponse {
   };
 }
 
-export interface Match {
-  id: number;
-  date: string;
-  homeTeam: string;
-  awayTeam: string;
-  homeTeamLogo: string;
-  awayTeamLogo: string;
-  homeScore: number | null;
-  awayScore: number | null;
-  status: Status;
-  venue: Venue;
-  round: string;
-  weekNumber: number;
+interface ApiResponse {
+  response: FixtureResponse[];
 }
 
-export interface ApiResponse {
-  response: FixtureResponse[];
+interface MatchCache {
+  timestamp: number;
+  matches: Match[];
 }
 
 @Injectable({
@@ -68,79 +73,70 @@ export interface ApiResponse {
 })
 export class FootballService {
   private readonly API_HOST = 'v3.football.api-sports.io';
-  private readonly API_URL = `https://${this.API_HOST}/fixtures`;
+  private readonly API_URL = `https://${this.API_HOST}`;
   private readonly API_KEY = 'c141edc534ff1faa37eb2b951c0642d1';
   private readonly LIGA_MX_ID = '262';
   private readonly CURRENT_SEASON = '2024';
   private readonly TIMEZONE = 'America/Mexico_City';
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
   
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000;
 
-  constructor(private http: HttpClient) {}
+  private readonly matchesCache = new Map<number, MatchCache>();
+  private currentRoundSubject = new BehaviorSubject<number>(1);
+  private currentRoundPromise: Promise<number> | null = null;
+
+  constructor(private http: HttpClient) {
+    this.initializeCurrentRound();
+  }
+
+  private async initializeCurrentRound() {
+    try {
+      const round = await this.fetchCurrentRound();
+      this.currentRoundSubject.next(round);
+    } catch (error) {
+      console.error('Error initializing current round:', error);
+    }
+  }
 
   async getCurrentRound(): Promise<number> {
-    try {
-      const now = new Date();
-      let currentRound = 1;
-      
-      // Get all matches for all rounds
-      const allMatches: Match[] = [];
-      for (let round = 1; round <= 17; round++) {
-        const matches = await firstValueFrom(this.getMatches(round));
-        allMatches.push(...matches);
+    if (this.currentRoundSubject.value === 1) {
+      if (!this.currentRoundPromise) {
+        this.currentRoundPromise = this.fetchCurrentRound();
       }
+      const round = await this.currentRoundPromise;
+      this.currentRoundSubject.next(round);
+      this.currentRoundPromise = null;
+    }
+    return this.currentRoundSubject.value;
+  }
 
-      // Sort all matches by date
-      const sortedMatches = allMatches.sort((a, b) => 
-        new Date(a.date).getTime() - new Date(b.date).getTime()
+  private async fetchCurrentRound(): Promise<number> {
+    const headers = new HttpHeaders({
+      'x-apisports-key': this.API_KEY
+    });
+
+    const params = new HttpParams()
+      .set('league', this.LIGA_MX_ID)
+      .set('season', this.CURRENT_SEASON)
+      .set('current', 'true');
+
+    try {
+      const response = await firstValueFrom(
+        this.http.get<any>(`${this.API_URL}/fixtures/rounds`, { headers, params })
       );
 
-      // Find the round that contains matches closest to current date
-      let closestMatch: Match | null = null;
-      let minTimeDiff = Infinity;
-      let roundHasStarted = false;
-
-      for (const match of sortedMatches) {
-        const matchDate = new Date(match.date);
-        const timeDiff = matchDate.getTime() - now.getTime();
-        
-        // If match is live or in progress, return its round immediately
-        if (match.status.short === 'LIVE' || match.status.short === 'HT') {
-          return this.extractWeekNumber(match.round);
-        }
-
-        // Update closest match if this one is closer to current time
-        if (Math.abs(timeDiff) < minTimeDiff) {
-          minTimeDiff = Math.abs(timeDiff);
-          closestMatch = match;
-        }
-      }
-
-      if (closestMatch) {
-        const closestMatchDate = new Date(closestMatch.date);
-        const roundNumber = this.extractWeekNumber(closestMatch.round);
-        
-        // Check if any match in the current round has started
-        const currentRoundMatches = sortedMatches.filter(m => 
-          this.extractWeekNumber(m.round) === roundNumber
-        );
-        
-        roundHasStarted = currentRoundMatches.some(match => 
-          new Date(match.date) <= now
-        );
-
-        // If the round hasn't started yet, return the previous round
-        if (!roundHasStarted && roundNumber > 1) {
-          return roundNumber - 1;
-        }
-        
+      if (response && Array.isArray(response.response) && response.response.length > 0) {
+        const currentRound = response.response[response.response.length - 1];
+        const roundNumber = this.extractWeekNumber(currentRound);
         return roundNumber;
       }
 
-      return currentRound;
+      console.warn('Invalid response from rounds API, defaulting to round 1');
+      return 1;
     } catch (error) {
-      console.error('Error determining current round:', error);
+      console.error('Error fetching current round:', error);
       return 1;
     }
   }
@@ -154,7 +150,32 @@ export class FootballService {
     return match ? parseInt(match[0], 10) : 1;
   }
 
+  private getCachedMatches(round: number): Match[] | null {
+    const cached = this.matchesCache.get(round);
+    if (!cached) return null;
+
+    const now = Date.now();
+    if (now - cached.timestamp > this.CACHE_DURATION) {
+      this.matchesCache.delete(round);
+      return null;
+    }
+
+    return cached.matches;
+  }
+
+  private setCachedMatches(round: number, matches: Match[]) {
+    this.matchesCache.set(round, {
+      timestamp: Date.now(),
+      matches
+    });
+  }
+
   getMatches(round: number): Observable<Match[]> {
+    const cachedMatches = this.getCachedMatches(round);
+    if (cachedMatches) {
+      return of(cachedMatches);
+    }
+
     const headers = new HttpHeaders({
       'x-apisports-key': this.API_KEY
     });
@@ -165,14 +186,19 @@ export class FootballService {
       .set('round', this.getRoundString(round))
       .set('timezone', this.TIMEZONE);
 
-    return this.http.get<ApiResponse>(this.API_URL, { headers, params }).pipe(
+    return this.http.get<ApiResponse>(`${this.API_URL}/fixtures`, { 
+      headers, 
+      params,
+      observe: 'response'
+    }).pipe(
       timeout(10000),
       map(response => {
-        if (!response || !response.response || !Array.isArray(response.response)) {
-          throw new Error('Invalid API response format');
+        if (!response.body?.response) {
+          console.warn('Empty or invalid API response');
+          return [];
         }
         
-        return response.response.map((fixture: FixtureResponse) => ({
+        const matches = response.body.response.map((fixture: FixtureResponse) => ({
           id: fixture.fixture.id,
           date: fixture.fixture.date,
           homeTeam: fixture.teams.home.name,
@@ -186,14 +212,27 @@ export class FootballService {
           round: fixture.league.round,
           weekNumber: this.extractWeekNumber(fixture.league.round)
         }));
+
+        this.setCachedMatches(round, matches);
+        return matches;
+      }),
+      catchError(error => {
+        if (error instanceof HttpErrorResponse) {
+          console.error('API request failed:', error.message);
+          if (error.status === 0) {
+            console.error('Network error - check internet connection');
+          }
+        } else {
+          console.error('Unexpected error:', error);
+        }
+        return of([]);
       }),
       retryWhen(errors => 
         errors.pipe(
           delay(this.RETRY_DELAY),
           take(this.MAX_RETRIES)
         )
-      ),
-      shareReplay(1)
+      )
     );
   }
 }

@@ -45,7 +45,7 @@ export class PoolsComponent implements OnInit {
     this.authService.user$.subscribe(user => {
       this.userId = user ? user.uid : null;
       if (this.userId) {
-        this.findCurrentRound();
+        this.findPendingRound();
       } else {
         this.error = 'Usuario no autenticado';
         this.loading = false;
@@ -57,36 +57,36 @@ export class PoolsComponent implements OnInit {
     });
   }
 
-  private async findCurrentRound() {
+  private async findPendingRound() {
     this.loading = true;
     try {
       const currentRound = await this.footballService.getCurrentRound();
-      if (currentRound) {
-        this.currentRound = currentRound;
+      this.currentRound = currentRound;
+
+      // Start checking from current round
+      for (let round = currentRound; round <= 17; round++) {
+        const matches = await firstValueFrom(this.footballService.getMatches(round));
+        const now = new Date();
         
-        const currentMatches = await firstValueFrom(this.footballService.getMatches(currentRound));
-        const allFinished = currentMatches.every(match => match.status.short === 'FT');
-        
-        if (allFinished) {
-          const lastMatchDate = Math.max(...currentMatches.map(m => new Date(m.date).getTime()));
-          const now = new Date().getTime();
-          const hoursSinceLastMatch = (now - lastMatchDate) / (1000 * 60 * 60);
-          
-          if (hoursSinceLastMatch >= 24 && currentRound < 17) {
-            this.selectedRound = currentRound + 1;
-          } else {
-            this.selectedRound = currentRound;
-          }
-        } else {
-          this.selectedRound = currentRound;
+        // Find matches that haven't started yet
+        const pendingMatches = matches.filter(match => {
+          const matchDate = new Date(match.date);
+          return matchDate > now && match.status.short === 'NS';
+        });
+
+        if (pendingMatches.length > 0) {
+          // Found a round with pending matches
+          this.selectedRound = round;
+          await this.loadMatches();
+          return;
         }
-        
-        await this.loadMatches();
-      } else {
-        throw new Error('No se pudo determinar la jornada actual');
       }
+
+      // If no pending matches found, default to current round
+      this.selectedRound = currentRound;
+      await this.loadMatches();
     } catch (error) {
-      console.error('Error finding current round:', error);
+      console.error('Error finding pending round:', error);
       this.loading = false;
       this.error = 'Error al cargar la jornada actual';
     }
