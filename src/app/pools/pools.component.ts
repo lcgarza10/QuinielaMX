@@ -6,6 +6,7 @@ import { ToastController, LoadingController, AlertController } from '@ionic/angu
 import { firstValueFrom } from 'rxjs';
 import { ConnectionService } from '../services/connection.service';
 import { PredictionData } from './match-prediction/match-prediction.component';
+import { AdsService } from '../services/ads.service';
 
 interface MatchWithPrediction extends Match {
   prediction: PredictionData;
@@ -39,7 +40,8 @@ export class PoolsComponent implements OnInit {
     private toastController: ToastController,
     private loadingController: LoadingController,
     private alertController: AlertController,
-    private connectionService: ConnectionService
+    private connectionService: ConnectionService,
+    private adsService: AdsService
   ) {}
 
   ngOnInit() {
@@ -258,11 +260,13 @@ export class PoolsComponent implements OnInit {
         0
       );
 
-      // Show success message with number of predictions saved
       await this.showToast(
         `Se guardaron ${predictions.length} predicciones exitosamente`, 
         'success'
       );
+
+      // Show interstitial ad after successful submission
+      await this.adsService.showInterstitial();
       
       await this.loadMatches();
     } catch (error) {

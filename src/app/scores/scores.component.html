@@ -46,12 +46,12 @@
       <ion-item *ngFor="let match of matches">
         <ion-card class="match-card">
           <ion-card-header>
-            <ion-card-subtitle>
-              {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }}
+            <ion-card-subtitle class="match-date">
+              {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • {{ match.date | date:'h:mm a':'':'es-MX' }}
               <br>
               <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
             </ion-card-subtitle>
-            <ion-badge [color]="match.status.short === 'LIVE' ? 'success' : 
+            <ion-badge [color]="match.status.short === 'LIVE' ? 'success' :
                               match.status.short === 'NS' ? 'warning' : 'medium'"
                       class="match-status">
               {{ getMatchStatus(match) }}

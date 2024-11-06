@@ -3,6 +3,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable, of } from 'rxjs';
 import { switchMap, map, catchError, tap } from 'rxjs/operators';
+import { SessionService } from './session.service';
 
 export interface User {
   uid: string;
@@ -92,6 +93,9 @@ export class AuthService {
 
   async logout(): Promise<void> {
     try {
+      // Clear any cached data
+      localStorage.clear();
+      sessionStorage.clear();
       await this.afAuth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);

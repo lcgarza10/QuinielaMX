@@ -14,5 +14,10 @@ export const environment = {
     auth: 'localhost:9099',
     firestore: 'localhost:8080',
     functions: 'localhost:5001',
+  },
+  admob: {
+    bannerId: 'ca-app-pub-3940256099942544/6300978111', // Test banner ID
+    interstitialId: 'ca-app-pub-3940256099942544/1033173712', // Test interstitial ID
+    rewardedId: 'ca-app-pub-3940256099942544/5224354917', // Test rewarded ID
   }
 };

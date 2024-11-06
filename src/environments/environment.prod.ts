@@ -8,5 +8,10 @@ export const environment = {
     messagingSenderId: "91963681658",
     appId: "1:91963681658:web:74bbd27e7c90af981544c3",
     measurementId: "G-GQSKBPKFQZ"
+  },
+  admob: {
+    bannerId: 'YOUR_PRODUCTION_BANNER_ID',
+    interstitialId: 'YOUR_PRODUCTION_INTERSTITIAL_ID',
+    rewardedId: 'YOUR_PRODUCTION_REWARDED_ID',
   }
 };

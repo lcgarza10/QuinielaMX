@@ -10,6 +10,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
 import { PlatformService, PlatformInfo } from './services/platform.service';
+import { AdsService } from './services/ads.service';
 
 @Component({
   selector: 'app-root',
@@ -46,18 +47,26 @@ export class AppComponent {
     private afs: AngularFirestore,
     private afAuth: AngularFireAuth,
     private afFunctions: AngularFireFunctions,
-    private platformService: PlatformService
+    private platformService: PlatformService,
+    private adsService: AdsService
   ) {
     this.initializeApp();
   }
 
-  initializeApp() {
-    this.platform.ready().then(() => {
-      this.checkForUpdates();
-      this.setupConnectionListener();
-      this.setupAuthListener();
-      this.setupPlatformListener();
-    });
+  async initializeApp() {
+    await this.platform.ready();
+    
+    // Initialize features
+    this.checkForUpdates();
+    this.setupConnectionListener();
+    this.setupAuthListener();
+    this.setupPlatformListener();
+    
+    // Setup ads if not in development
+    if (environment.production) {
+      await this.adsService.setupAds();
+      await this.adsService.showBanner();
+    }
   }
 
   private setupPlatformListener() {
@@ -91,7 +100,7 @@ export class AppComponent {
         }
       ]
     });
-    toast.present();
+    await toast.present();
   }
 
   private setupConnectionListener() {
