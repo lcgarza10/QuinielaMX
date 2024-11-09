@@ -1,3 +1,16 @@
+.page-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.groups-card, .create-group-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ion-card-background);
+}
+
 .group-item {
   position: relative;
   overflow: visible;
@@ -14,6 +27,17 @@
 
     p {
       margin: 4px 0;
+      
+      &.user-id {
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--ion-color-medium);
+        background: rgba(var(--ion-color-medium-rgb), 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: inline-block;
+        margin: 4px 0;
+      }
     }
 
     ion-badge {
@@ -33,27 +57,40 @@
 
   .members-header {
     margin-bottom: 16px;
+    background: var(--ion-color-primary);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.2);
     
     h3 {
-      font-size: 1.1em;
-      font-weight: 600;
-      margin: 0 0 8px 0;
-      color: var(--ion-color-dark);
+      font-size: 1.3em;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      color: white;
+      text-align: center;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .status-legend {
       display: flex;
-      gap: 16px;
-      font-size: 0.9em;
-      color: var(--ion-color-medium);
+      justify-content: center;
+      gap: 24px;
+      font-size: 1em;
+      color: white;
+      margin-top: 8px;
+      font-weight: 500;
 
       .legend-item {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 6px 12px;
+        border-radius: 20px;
+        backdrop-filter: blur(4px);
 
         ion-icon {
-          font-size: 1.2em;
+          font-size: 1.4em;
         }
       }
     }
@@ -152,17 +189,37 @@
 :host-context(.dark) {
   .group-item {
     --background: rgba(var(--ion-color-light-rgb), 0.05);
+
+    .user-id {
+      background: rgba(var(--ion-color-medium-rgb), 0.2) !important;
+    }
   }
 
   .members-list {
     background: rgba(var(--ion-color-light-rgb), 0.05);
 
-    .members-header h3 {
-      color: var(--ion-color-light);
+    .members-header {
+      background: var(--ion-color-primary-shade);
+
+      h3 {
+        color: white;
+      }
+
+      .status-legend {
+        color: white;
+
+        .legend-item {
+          background: rgba(255, 255, 255, 0.15);
+        }
+      }
     }
 
     .member-item {
       --background: rgba(var(--ion-background-color-rgb), 0.3);
+      
+      ion-label h3 {
+        color: var(--ion-color-light);
+      }
     }
   }
 
@@ -170,5 +227,9 @@
     .code-container {
       background: rgba(var(--ion-color-primary-rgb), 0.2);
     }
+  }
+
+  .groups-card, .create-group-card {
+    background: rgba(var(--ion-card-background-rgb), 0.8);
   }
 }

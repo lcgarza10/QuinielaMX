@@ -9,17 +9,25 @@
 
 <ion-content class="ion-padding">
   <div class="leaderboard-container">
+    <h1 class="main-title">Tabla General</h1>
+    
     <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange()" mode="ios" class="custom-segment">
       <ion-segment-button value="weekly">
         <ion-label>
           <ion-icon name="calendar-outline"></ion-icon>
-          Jornada
+          De la Jornada
         </ion-label>
       </ion-segment-button>
       <ion-segment-button value="overall">
         <ion-label>
           <ion-icon name="trophy-outline"></ion-icon>
-          General
+          De la Temporada
+        </ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="global">
+        <ion-label>
+          <ion-icon name="globe-outline"></ion-icon>
+          General Mundial De la Temporada
         </ion-label>
       </ion-segment-button>
     </ion-segment>
@@ -43,7 +51,8 @@
     </ng-container>
 
     <ng-container *ngIf="!(loading || error)">
-      <ng-container *ngIf="selectedView === 'weekly'; else overallView">
+      <!-- Weekly View -->
+      <ng-container *ngIf="selectedView === 'weekly'">
         <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
           <div class="leaderboard-content">
             <div class="stats-summary">
@@ -70,17 +79,12 @@
                 </ion-item>
               </ion-list>
             </div>
-
-            <div class="empty-state" *ngIf="weeklyLeaderboard.length === 0">
-              <ion-icon name="people-outline" class="empty-icon"></ion-icon>
-              <h2>No hay participantes</h2>
-              <p>Los resultados aparecerán cuando los usuarios empiecen a participar</p>
-            </div>
           </div>
         </ng-container>
       </ng-container>
 
-      <ng-template #overallView>
+      <!-- Overall Group View -->
+      <ng-container *ngIf="selectedView === 'overall'">
         <ng-container *ngIf="overallLeaderboard$ | async as overallLeaderboard">
           <div class="leaderboard-content">
             <div class="stats-summary">
@@ -107,15 +111,56 @@
                 </ion-item>
               </ion-list>
             </div>
+          </div>
+        </ng-container>
+      </ng-container>
 
-            <div class="empty-state" *ngIf="overallLeaderboard.length === 0">
-              <ion-icon name="people-outline" class="empty-icon"></ion-icon>
-              <h2>No hay participantes</h2>
-              <p>Los resultados aparecerán cuando los usuarios empiecen a participar</p>
+      <!-- Global View -->
+      <ng-container *ngIf="selectedView === 'global'">
+        <ng-container *ngIf="globalLeaderboard$ | async as globalLeaderboard">
+          <div class="leaderboard-content">
+            <div class="stats-summary">
+              <div class="stat-card">
+                <div class="stat-value">{{ getLeaderPoints(globalLeaderboard) }}</div>
+                <div class="stat-label">Puntos Líder Mundial</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value">{{ globalLeaderboard.length }}</div>
+                <div class="stat-label">Total Participantes</div>
+              </div>
+            </div>
+
+            <div class="leaderboard-list">
+              <ion-list>
+                <ion-item *ngFor="let entry of globalLeaderboard; let i = index" lines="full" class="leaderboard-item" [class.top-three]="i < 3">
+                  <div class="position" [class.first]="i === 0" [class.second]="i === 1" [class.third]="i === 2">{{ i + 1 }}</div>
+                  <ion-label>
+                    <div class="user-row">
+                      <h2>{{ entry.username }}</h2>
+                      <span class="points" [class.top-points]="i === 0">{{ entry.totalPoints }} pts</span>
+                    </div>
+                  </ion-label>
+                </ion-item>
+              </ion-list>
             </div>
           </div>
         </ng-container>
-      </ng-template>
+      </ng-container>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="(selectedView === 'weekly' && (weeklyLeaderboard$ | async)?.length === 0) || 
+                                    (selectedView === 'overall' && (overallLeaderboard$ | async)?.length === 0) ||
+                                    (selectedView === 'global' && (globalLeaderboard$ | async)?.length === 0)">
+        <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+        <h2>No hay participantes</h2>
+        <p>Los resultados aparecerán cuando los usuarios empiecen a participar</p>
+      </div>
     </ng-container>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="error">
+      <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
+      <h2>{{ error }}</h2>
+    </div>
   </div>
 </ion-content>

@@ -4,6 +4,15 @@
   padding: 12px;
 }
 
+.main-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+  margin: 0 0 20px 0;
+  padding: 0;
+}
+
 .custom-segment {
   margin-bottom: 24px;
   border-radius: 16px;
@@ -188,8 +197,29 @@
   }
 }
 
+.error-state {
+  text-align: center;
+  padding: 40px 16px;
+  
+  .error-icon {
+    font-size: 48px;
+    color: var(--ion-color-danger);
+    margin-bottom: 16px;
+  }
+  
+  h2 {
+    font-size: 20px;
+    color: var(--ion-color-danger);
+    margin: 0;
+  }
+}
+
 // Dark mode adjustments
 :host-context(.dark) {
+  .main-title {
+    color: var(--ion-color-light);
+  }
+
   .leaderboard-item {
     --background: rgba(30, 136, 229, 0.1);
     border: 1px solid rgba(30, 136, 229, 0.2);

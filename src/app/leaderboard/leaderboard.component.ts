@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
 import { FootballService, Match } from '../services/football.service';
+import { GroupService } from '../services/group.service';
 import { Observable, combineLatest, of, firstValueFrom, interval, Subscription } from 'rxjs';
 import { map, switchMap, tap, takeWhile } from 'rxjs/operators';
 import { SeasonService } from '../services/season.service';
@@ -21,15 +22,18 @@ interface LeaderboardEntry {
 export class LeaderboardComponent implements OnInit, OnDestroy {
   overallLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   weeklyLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
+  globalLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   loading: boolean = true;
   error: string | null = null;
   selectedRound: number = 1;
-  selectedView: 'weekly' | 'overall' = 'weekly';
+  selectedView: 'weekly' | 'overall' | 'global' = 'weekly';
   rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
   currentRound: number = 1;
   isCurrentRoundActive: boolean = false;
   nextRoundStartDate: Date | null = null;
   liveMatches: Match[] = [];
+  currentUserId: string | null = null;
+  currentGroupId: string | null = null;
   private liveUpdateSubscription?: Subscription;
   private readonly LIVE_UPDATE_INTERVAL = 30000; // 30 seconds
 
@@ -37,19 +41,33 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     private databaseService: DatabaseService,
     private authService: AuthService,
     private seasonService: SeasonService,
-    private footballService: FootballService
+    private footballService: FootballService,
+    private groupService: GroupService
   ) {}
 
   async ngOnInit() {
     await this.findCurrentRound();
-    this.loadLeaderboards();
-    this.setupLiveUpdates();
+    this.setupUserAndGroup();
   }
 
   ngOnDestroy() {
     if (this.liveUpdateSubscription) {
       this.liveUpdateSubscription.unsubscribe();
     }
+  }
+
+  private async setupUserAndGroup() {
+    this.authService.user$.subscribe(async user => {
+      if (user) {
+        this.currentUserId = user.uid;
+        // Get user's first group
+        const groups = await firstValueFrom(this.groupService.getUserGroups());
+        if (groups.length > 0) {
+          this.currentGroupId = groups[0].id || null;
+        }
+        this.loadLeaderboards();
+      }
+    });
   }
 
   private setupLiveUpdates() {
@@ -77,14 +95,12 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
           match.status.short === 'LIVE' || 
           match.status.short === 'HT'
         );
-        this.loadLeaderboards(true); // true indicates it's a live update
+        this.loadLeaderboards(true);
       } else {
-        // No more live matches, stop updates
         this.isCurrentRoundActive = false;
         if (this.liveUpdateSubscription) {
           this.liveUpdateSubscription.unsubscribe();
         }
-        // Final update of the leaderboard
         this.loadLeaderboards();
       }
     } catch (error) {
@@ -135,12 +151,10 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   onRoundChange(round: number) {
     this.selectedRound = round;
     
-    // Stop live updates if switching away from current round
     if (round !== this.currentRound && this.liveUpdateSubscription) {
       this.liveUpdateSubscription.unsubscribe();
     }
     
-    // Start live updates if switching to current round with live matches
     if (round === this.currentRound && this.isCurrentRoundActive) {
       this.setupLiveUpdates();
     }
@@ -174,11 +188,18 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     }
     this.error = null;
 
-    const users$ = this.databaseService.getAllUsers().pipe(
-      tap(users => console.log('Users loaded:', users))
-    );
+    if (!this.currentGroupId && this.selectedView !== 'global') {
+      this.error = 'No perteneces a ningún grupo';
+      this.loading = false;
+      return;
+    }
 
-    // Weekly Leaderboard
+    // Get group members if viewing group leaderboards
+    const users$ = this.selectedView === 'global' 
+      ? this.databaseService.getAllUsers()
+      : this.groupService.getGroupMembers(this.currentGroupId!);
+
+    // Weekly Leaderboard (Group or Global)
     this.weeklyLeaderboard$ = users$.pipe(
       switchMap(users => {
         const userPredictions$ = users.map(user => 
@@ -186,11 +207,9 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
             map(predictions => {
               let weeklyPoints = 0;
               
-              // Calculate points including live matches
               predictions.forEach(pred => {
                 const liveMatch = this.liveMatches.find(m => m.id === pred.matchId);
                 if (liveMatch && pred.homeScore !== null && pred.awayScore !== null) {
-                  // Calculate live points
                   if (pred.homeScore === liveMatch.homeScore && 
                       pred.awayScore === liveMatch.awayScore) {
                     weeklyPoints += 3;
@@ -202,7 +221,6 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
                     }
                   }
                 } else {
-                  // Add existing points for non-live matches
                   weeklyPoints += pred.points || 0;
                 }
               });
@@ -220,7 +238,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       map(entries => entries.sort((a, b) => (b.weeklyPoints || 0) - (a.weeklyPoints || 0)))
     );
 
-    // Overall Leaderboard
+    // Overall Leaderboard (Group)
     this.overallLeaderboard$ = users$.pipe(
       switchMap(users => {
         const userPoints$ = users.map(user =>
@@ -236,9 +254,34 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
     );
 
-    combineLatest([this.overallLeaderboard$, this.weeklyLeaderboard$]).subscribe({
-      next: ([overall, weekly]) => {
-        console.log('Leaderboards loaded:', { overall, weekly });
+    // Global Leaderboard
+    if (this.selectedView === 'global') {
+      this.globalLeaderboard$ = this.databaseService.getAllUsersTotalPoints().pipe(
+        switchMap(points => {
+          const userDetails$ = points.map(point =>
+            this.databaseService.getAllUsers().pipe(
+              map(users => {
+                const user = users.find(u => u.uid === point.userId);
+                return {
+                  username: user?.username || user?.email || 'Unknown User',
+                  totalPoints: point.totalPoints
+                };
+              })
+            )
+          );
+          return combineLatest(userDetails$);
+        }),
+        map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
+      );
+    }
+
+    combineLatest([
+      this.overallLeaderboard$, 
+      this.weeklyLeaderboard$,
+      this.selectedView === 'global' ? this.globalLeaderboard$ : of([])
+    ]).subscribe({
+      next: ([overall, weekly, global]) => {
+        console.log('Leaderboards loaded:', { overall, weekly, global });
         this.loading = false;
       },
       error: (err) => {

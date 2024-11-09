@@ -3,32 +3,44 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home"></ion-back-button>
     </ion-buttons>
-    <ion-title>User List</ion-title>
+    <ion-title>Participantes</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <h1>User List</h1>
-  
-  <div *ngIf="loading">
-    <ion-spinner></ion-spinner>
-    <p>Loading users... Please wait.</p>
+  <div class="user-list-container">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-container">
+      <ion-spinner></ion-spinner>
+      <p>Cargando participantes...</p>
+    </div>
+
+    <!-- Error State -->
+    <ion-text color="danger" *ngIf="error">
+      <p>{{ error }}</p>
+      <ion-button (click)="loadUsers()" size="small" fill="outline">
+        Reintentar
+      </ion-button>
+    </ion-text>
+
+    <!-- Users List -->
+    <ion-list *ngIf="!(loading || error)">
+      <ion-item *ngFor="let user of users$ | async" class="user-item">
+        <ion-label>
+          <p class="username">{{ user.firstName }} {{ user.lastName }}</p>
+          <p class="username">{{ user.username || 'Sin nombre de usuario' }}</p>
+          <p class="user-id">ID: {{ user.uid }}</p>
+          <ion-badge *ngIf="user.isAdmin" color="primary">Admin</ion-badge>
+        </ion-label>
+      </ion-item>
+
+      <!-- Empty State -->
+      <ion-item *ngIf="(users$ | async)?.length === 0" lines="none" class="empty-state">
+        <ion-label class="ion-text-center">
+          <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+          <h2>No hay participantes registrados</h2>
+        </ion-label>
+      </ion-item>
+    </ion-list>
   </div>
-
-  <ion-text color="danger" *ngIf="error">
-    <p>{{ error }}</p>
-  </ion-text>
-
-  <ion-list *ngIf="!(loading || error)">
-    <ion-item *ngFor="let user of users$ | async">
-      <ion-label>
-        <h2>{{ user.firstName }} {{ user.lastName }}</h2>
-        <p>Username: {{ user.username || 'Not set' }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
-
-  <ion-text *ngIf="!(loading || error) && (users$ | async)?.length === 0">
-    <p>No users found.</p>
-  </ion-text>
 </ion-content>
