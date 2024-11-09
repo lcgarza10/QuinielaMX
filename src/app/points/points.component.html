@@ -25,6 +25,15 @@
       (roundChange)="onRoundChange($event)">
     </app-rounds-selector>
 
+    <!-- Total Points Card - Moved below rounds selector -->
+    <div class="total-points" *ngIf="!loading && !error && matches.length > 0">
+      <ion-card>
+        <ion-card-content>
+          <h2>Total de Puntos: {{ totalPoints }}</h2>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
     <!-- Loading State -->
     <div *ngIf="loading" class="loading-container">
       <ion-spinner></ion-spinner>
@@ -86,14 +95,5 @@
     <ion-text *ngIf="!loading && !error && matches.length === 0" class="empty-container">
       <p>No hay partidos para la jornada seleccionada.</p>
     </ion-text>
-
-    <!-- Total Points -->
-    <div class="total-points" *ngIf="!loading && !error && matches.length > 0">
-      <ion-card>
-        <ion-card-content>
-          <h2>Total de Puntos: {{ totalPoints }}</h2>
-        </ion-card-content>
-      </ion-card>
-    </div>
   </div>
 </ion-content>

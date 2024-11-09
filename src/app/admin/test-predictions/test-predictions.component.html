@@ -31,6 +31,13 @@
         </ion-item>
 
         <ion-item>
+          <ion-button expand="block" (click)="recalculateRound16Points()" color="warning" [disabled]="loading">
+            <ion-icon name="calculator-outline" slot="start"></ion-icon>
+            Recalcular Puntos Jornada 16
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
           <ion-button expand="block" (click)="updateRound16Predictions()" color="warning" [disabled]="loading">
             <ion-icon name="refresh-outline" slot="start"></ion-icon>
             Actualizar Puntos Jornada 16

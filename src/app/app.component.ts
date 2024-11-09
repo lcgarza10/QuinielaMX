@@ -11,6 +11,7 @@ import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
 import { PlatformService, PlatformInfo } from './services/platform.service';
 import { AdsService } from './services/ads.service';
+import { SessionService } from './services/session.service';
 
 @Component({
   selector: 'app-root',
@@ -48,7 +49,8 @@ export class AppComponent {
     private afAuth: AngularFireAuth,
     private afFunctions: AngularFireFunctions,
     private platformService: PlatformService,
-    private adsService: AdsService
+    private adsService: AdsService,
+    private sessionService: SessionService
   ) {
     this.initializeApp();
   }
@@ -61,6 +63,7 @@ export class AppComponent {
     this.setupConnectionListener();
     this.setupAuthListener();
     this.setupPlatformListener();
+    this.sessionService.initializeSession();
     
     // Setup ads if not in development
     if (environment.production) {
@@ -106,6 +109,18 @@ export class AppComponent {
   private setupConnectionListener() {
     this.connectionService.getOnlineStatus().subscribe(isOnline => {
       console.log('Connection status:', isOnline ? 'online' : 'offline');
+    });
+
+    this.connectionService.getConnectionError().subscribe(async error => {
+      if (error === -200) {
+        const toast = await this.toastController.create({
+          message: 'Error de conexión. Intentando reconectar...',
+          duration: 3000,
+          position: 'top',
+          color: 'warning'
+        });
+        await toast.present();
+      }
     });
   }
 

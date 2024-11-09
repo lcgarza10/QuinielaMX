@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DatabaseService } from '../../services/database.service';
 import { SeasonService } from '../../services/season.service';
 import { FootballService, Match } from '../../services/football.service';
-import { ToastController, AlertController } from '@ionic/angular';
+import { ToastController, AlertController, LoadingController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
@@ -23,6 +23,12 @@ interface Prediction {
   points?: number;
 }
 
+interface WeekData {
+  totalPoints: number;
+  predictions: Prediction[];
+  lastUpdated: firebase.firestore.Timestamp;
+}
+
 @Component({
   selector: 'app-test-predictions',
   templateUrl: './test-predictions.component.html',
@@ -38,6 +44,7 @@ export class TestPredictionsComponent implements OnInit {
     private footballService: FootballService,
     private toastController: ToastController,
     private alertController: AlertController,
+    private loadingController: LoadingController,
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore
   ) {}
@@ -52,6 +59,137 @@ export class TestPredictionsComponent implements OnInit {
     } catch (error) {
       console.error('Error loading current season:', error);
     }
+  }
+
+  async recalculateRound16Points() {
+    const alert = await this.alertController.create({
+      header: 'Recalcular Puntos Jornada 16',
+      message: '¿Estás seguro de que deseas recalcular los puntos de la jornada 16 para todos los usuarios?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Recalcular',
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              message: 'Recalculando puntos...'
+            });
+            await loading.present();
+
+            try {
+              // Get round 16 matches first
+              console.log('Fetching round 16 matches...');
+              const matches = await firstValueFrom(this.footballService.getMatches(16));
+              const finishedMatches = matches.filter(m => m.status.short === 'FT');
+              console.log(`Found ${finishedMatches.length} finished matches`);
+
+              // Get all users
+              const usersSnapshot = await this.afs.collection('users').get().toPromise();
+              let updatedCount = 0;
+              let totalProcessed = 0;
+
+              if (usersSnapshot) {
+                for (const userDoc of usersSnapshot.docs) {
+                  totalProcessed++;
+                  console.log(`Processing user ${totalProcessed}/${usersSnapshot.docs.length}: ${userDoc.id}`);
+
+                  try {
+                    // Get user's round 16 predictions
+                    const predictionDoc = await this.afs.doc(`predictions/${userDoc.id}/weeks/16`).get().toPromise();
+                    
+                    if (predictionDoc?.exists) {
+                      const data = predictionDoc.data() as { predictions: Prediction[] };
+                      
+                      if (data?.predictions && Array.isArray(data.predictions)) {
+                        let weeklyPoints = 0;
+                        
+                        // Calculate points for each prediction
+                        const updatedPredictions = data.predictions.map(pred => {
+                          const match = finishedMatches.find(m => m.id === pred.matchId);
+                          let points = 0;
+
+                          if (match && pred.homeScore !== null && pred.awayScore !== null) {
+                            console.log(`Match ${match.id}: ${match.homeScore}-${match.awayScore} vs Prediction: ${pred.homeScore}-${pred.awayScore}`);
+                            
+                            if (pred.homeScore === match.homeScore && 
+                                pred.awayScore === match.awayScore) {
+                              points = 3;
+                              console.log('Exact match! 3 points');
+                            } else {
+                              const actualResult = Math.sign(match.homeScore! - match.awayScore!);
+                              const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
+                              if (actualResult === predictedResult) {
+                                points = 1;
+                                console.log('Correct result! 1 point');
+                              }
+                            }
+                          }
+
+                          weeklyPoints += points;
+                          return { ...pred, points };
+                        });
+
+                        console.log(`Total weekly points for user ${userDoc.id}: ${weeklyPoints}`);
+
+                        // Update predictions document
+                        await predictionDoc.ref.update({
+                          predictions: updatedPredictions,
+                          totalPoints: weeklyPoints,
+                          lastUpdated: firebase.firestore.Timestamp.now()
+                        });
+
+                        // Update user's total points
+                        const weeksSnapshot = await this.afs.collection(`predictions/${userDoc.id}/weeks`)
+                          .get().toPromise();
+                        
+                        let totalPoints = 0;
+                        if (weeksSnapshot) {
+                          weeksSnapshot.docs.forEach(doc => {
+                            if (doc.id === '16') {
+                              totalPoints += weeklyPoints;
+                            } else {
+                              const weekData = doc.data() as WeekData;
+                              totalPoints += weekData.totalPoints || 0;
+                            }
+                          });
+                        }
+
+                        console.log(`Updated total points for user ${userDoc.id}: ${totalPoints}`);
+
+                        await this.afs.doc(`userPoints/${userDoc.id}`).set({
+                          totalPoints,
+                          lastUpdated: firebase.firestore.Timestamp.now()
+                        }, { merge: true });
+
+                        updatedCount++;
+                      }
+                    }
+                  } catch (error) {
+                    console.error(`Error processing user ${userDoc.id}:`, error);
+                  }
+                }
+
+                await this.showToast(
+                  `Se actualizaron los puntos de ${updatedCount} usuarios de ${totalProcessed} totales`,
+                  'success'
+                );
+              }
+            } catch (error) {
+              console.error('Error recalculating points:', error);
+              await this.showToast(
+                'Error al recalcular los puntos',
+                'danger'
+              );
+            } finally {
+              await loading.dismiss();
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
 
   async updateRound16Predictions() {
@@ -124,102 +262,6 @@ export class TestPredictionsComponent implements OnInit {
         }
       ]
     });
-    await alert.present();
-  }
-
-  private calculatePoints(prediction: Prediction, match: Match): number {
-    if (!prediction || prediction.homeScore === null || prediction.awayScore === null ||
-        match.homeScore === null || match.awayScore === null) {
-      return 0;
-    }
-
-    if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
-      return 3; // Exact score
-    }
-
-    const actualResult = Math.sign(match.homeScore - match.awayScore);
-    const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
-    if (actualResult === predictedResult) {
-      return 1; // Correct winner or tie
-    }
-
-    return 0;
-  }
-
-  private generatePredictionsForMatches(matches: Match[]): { predictions: Prediction[], totalPoints: number } {
-    const predictions = matches.map(match => {
-      const prediction: Prediction = {
-        matchId: match.id,
-        homeScore: Math.floor(Math.random() * 4),
-        awayScore: Math.floor(Math.random() * 4),
-        points: 0 // Initialize points to 0
-      };
-      
-      // Calculate points if match is finished
-      if (match.status.short === 'FT') {
-        prediction.points = this.calculatePoints(prediction, match);
-      }
-
-      return prediction;
-    });
-
-    // Calculate total points for this set of predictions
-    const totalPoints = predictions.reduce((sum, pred) => sum + (pred.points || 0), 0);
-
-    return { predictions, totalPoints };
-  }
-
-  async setAdminUser() {
-    const alert = await this.alertController.create({
-      header: 'Asignar Administrador',
-      message: 'Ingresa el correo electrónico del usuario que deseas hacer administrador',
-      inputs: [
-        {
-          name: 'email',
-          type: 'email',
-          placeholder: 'Correo electrónico'
-        }
-      ],
-      buttons: [
-        {
-          text: 'Cancelar',
-          role: 'cancel'
-        },
-        {
-          text: 'Asignar',
-          handler: async (data) => {
-            if (!data.email) {
-              this.showToast('Por favor ingresa un correo electrónico', 'warning');
-              return false;
-            }
-
-            this.loading = true;
-            try {
-              const usersRef = this.afs.collection('users');
-              const snapshot = await usersRef.ref.where('email', '==', data.email).get();
-
-              if (snapshot.empty) {
-                this.showToast('Usuario no encontrado', 'warning');
-                return false;
-              }
-
-              const userDoc = snapshot.docs[0];
-              await userDoc.ref.update({ isAdmin: true });
-
-              this.showToast('Usuario actualizado como administrador', 'success');
-              return true;
-            } catch (error) {
-              console.error('Error setting admin user:', error);
-              this.showToast('Error al asignar administrador', 'danger');
-              return false;
-            } finally {
-              this.loading = false;
-            }
-          }
-        }
-      ]
-    });
-
     await alert.present();
   }
 
@@ -395,6 +437,102 @@ export class TestPredictionsComponent implements OnInit {
       ]
     });
     await alert.present();
+  }
+
+  async setAdminUser() {
+    const alert = await this.alertController.create({
+      header: 'Asignar Administrador',
+      message: 'Ingresa el correo electrónico del usuario que deseas hacer administrador',
+      inputs: [
+        {
+          name: 'email',
+          type: 'email',
+          placeholder: 'Correo electrónico'
+        }
+      ],
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Asignar',
+          handler: async (data) => {
+            if (!data.email) {
+              this.showToast('Por favor ingresa un correo electrónico', 'warning');
+              return false;
+            }
+
+            this.loading = true;
+            try {
+              const usersRef = this.afs.collection('users');
+              const snapshot = await usersRef.ref.where('email', '==', data.email).get();
+
+              if (snapshot.empty) {
+                this.showToast('Usuario no encontrado', 'warning');
+                return false;
+              }
+
+              const userDoc = snapshot.docs[0];
+              await userDoc.ref.update({ isAdmin: true });
+
+              this.showToast('Usuario actualizado como administrador', 'success');
+              return true;
+            } catch (error) {
+              console.error('Error setting admin user:', error);
+              this.showToast('Error al asignar administrador', 'danger');
+              return false;
+            } finally {
+              this.loading = false;
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private calculatePoints(prediction: Prediction, match: Match): number {
+    if (!prediction || prediction.homeScore === null || prediction.awayScore === null ||
+        match.homeScore === null || match.awayScore === null) {
+      return 0;
+    }
+
+    if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
+      return 3; // Exact score
+    }
+
+    const actualResult = Math.sign(match.homeScore - match.awayScore);
+    const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+    if (actualResult === predictedResult) {
+      return 1; // Correct winner or tie
+    }
+
+    return 0;
+  }
+
+  private generatePredictionsForMatches(matches: Match[]): { predictions: Prediction[], totalPoints: number } {
+    const predictions = matches.map(match => {
+      const prediction: Prediction = {
+        matchId: match.id,
+        homeScore: Math.floor(Math.random() * 4),
+        awayScore: Math.floor(Math.random() * 4),
+        points: 0 // Initialize points to 0
+      };
+      
+      // Calculate points if match is finished
+      if (match.status.short === 'FT') {
+        prediction.points = this.calculatePoints(prediction, match);
+      }
+
+      return prediction;
+    });
+
+    // Calculate total points for this set of predictions
+    const totalPoints = predictions.reduce((sum, pred) => sum + (pred.points || 0), 0);
+
+    return { predictions, totalPoints };
   }
 
   private async showToast(message: string, color: string) {

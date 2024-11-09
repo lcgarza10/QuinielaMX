@@ -109,6 +109,45 @@
   gap: 8px;
 }
 
+// Invite code alert styles
+:host ::ng-deep .invite-code-alert {
+  --max-width: 320px;
+
+  .invite-code {
+    text-align: center;
+    padding: 8px;
+
+    p {
+      margin-bottom: 16px;
+      color: var(--ion-color-medium);
+    }
+
+    .code-container {
+      background: rgba(var(--ion-color-primary-rgb), 0.1);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 8px 0;
+
+      .code {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--ion-color-primary);
+        letter-spacing: 2px;
+      }
+    }
+  }
+
+  .alert-button-group {
+    padding: 8px;
+
+    .alert-button {
+      &.alert-button-role-cancel {
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+}
+
 // Dark mode adjustments
 :host-context(.dark) {
   .group-item {
@@ -124,6 +163,12 @@
 
     .member-item {
       --background: rgba(var(--ion-background-color-rgb), 0.3);
+    }
+  }
+
+  :host ::ng-deep .invite-code-alert {
+    .code-container {
+      background: rgba(var(--ion-color-primary-rgb), 0.2);
     }
   }
 }

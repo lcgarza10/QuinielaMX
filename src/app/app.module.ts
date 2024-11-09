@@ -34,6 +34,7 @@ import { SeasonService } from './services/season.service';
 import { GroupService } from './services/group.service';
 import { PlatformService } from './services/platform.service';
 import { ThemeService } from './services/theme.service';
+import { SessionService } from './services/session.service';
 import { AppRoutingModule } from './app-routing.module';
 import { environment } from '../environments/environment';
 
@@ -94,6 +95,7 @@ registerLocaleData(localeEs);
     GroupService,
     PlatformService,
     ThemeService,
+    SessionService,
     ScreenTrackingService,
     UserTrackingService
   ],

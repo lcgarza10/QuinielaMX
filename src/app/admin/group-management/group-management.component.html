@@ -22,55 +22,56 @@
     <ion-card-content>
       <ion-list *ngIf="groups$ | async as groups">
         <ion-item *ngFor="let group of groups" lines="full" class="group-item">
-          <ion-label>
-            <h2>{{ group.name }}</h2>
-            <p *ngIf="group.description">{{ group.description }}</p>
-            <p>
-              <ion-badge color="medium">{{ group.memberCount || 0 }} miembros</ion-badge>
-              <ion-badge color="primary" *ngIf="group.isPrivate">Privado</ion-badge>
-            </p>
-          </ion-label>
-          <ion-buttons slot="end">
-            <ion-button (click)="showInviteCode(group)" title="Compartir código">
-              <ion-icon name="share-social-outline"></ion-icon>
-            </ion-button>
-            <ion-button (click)="toggleMembersList(group)" [color]="selectedGroup?.id === group.id && showMembersList ? 'primary' : ''" title="Ver miembros">
-              <ion-icon name="people-outline"></ion-icon>
-            </ion-button>
-          </ion-buttons>
-
-          <!-- Members List Section -->
-          <div class="members-list" *ngIf="selectedGroup?.id === group.id && showMembersList">
-            <div class="members-header">
-              <h3>Participantes - Jornada {{ currentRound }}</h3>
-              <div class="status-legend">
-                <span class="legend-item">
-                  <ion-icon name="checkmark-circle" color="success"></ion-icon> Ya subió quiniela
-                </span>
-                <span class="legend-item">
-                  <ion-icon name="alert-circle" color="warning"></ion-icon> Pendiente
-                </span>
-              </div>
+          <div class="group-content">
+            <div class="group-header">
+              <ion-label>
+                <h2>{{ group.name }}</h2>
+                <p *ngIf="group.description">{{ group.description }}</p>
+                <p>
+                  <ion-badge color="medium">{{ group.memberCount || 0 }} miembros</ion-badge>
+                  <ion-badge color="primary" *ngIf="group.isPrivate">Privado</ion-badge>
+                </p>
+              </ion-label>
+              <ion-buttons>
+                <ion-button (click)="showInviteCode(group)" title="Compartir código">
+                  <ion-icon name="share-social-outline"></ion-icon>
+                </ion-button>
+              </ion-buttons>
             </div>
 
-            <ion-list>
-              <ion-item *ngFor="let member of selectedGroupMembers | async" lines="full" class="member-item">
-                <ion-avatar slot="start">
-                  <ion-icon [name]="member.hasPredicted ? 'checkmark-circle' : 'alert-circle'" 
-                           [color]="member.hasPredicted ? 'success' : 'warning'"
-                           class="prediction-status-icon">
-                  </ion-icon>
-                </ion-avatar>
-                <ion-label>
-                  <h3>{{ member.username || member.email }}</h3>
-                  <p>{{ member.firstName }} {{ member.lastName }}</p>
-                  <ion-badge *ngIf="member.role === 'admin'" color="primary">Admin</ion-badge>
-                </ion-label>
-                <ion-note slot="end" [color]="member.hasPredicted ? 'success' : 'warning'">
-                  {{ member.hasPredicted ? 'Completado' : 'Pendiente' }}
-                </ion-note>
-              </ion-item>
-            </ion-list>
+            <!-- Members List Section - Always visible -->
+            <div class="members-list">
+              <div class="members-header">
+                <h3>Participantes - Jornada {{ currentRound }}</h3>
+                <div class="status-legend">
+                  <span class="legend-item">
+                    <ion-icon name="checkmark-circle" color="success"></ion-icon> Ya subió quiniela
+                  </span>
+                  <span class="legend-item">
+                    <ion-icon name="alert-circle" color="warning"></ion-icon> Pendiente
+                  </span>
+                </div>
+              </div>
+
+              <ion-list>
+                <ion-item *ngFor="let member of group.membersList" lines="full" class="member-item">
+                  <ion-avatar slot="start">
+                    <ion-icon [name]="member.hasPredicted ? 'checkmark-circle' : 'alert-circle'" 
+                             [color]="member.hasPredicted ? 'success' : 'warning'"
+                             class="prediction-status-icon">
+                    </ion-icon>
+                  </ion-avatar>
+                  <ion-label>
+                    <h3>{{ member.username || member.email }}</h3>
+                    <p>{{ member.firstName }} {{ member.lastName }}</p>
+                    <ion-badge *ngIf="member.role === 'admin'" color="primary">Admin</ion-badge>
+                  </ion-label>
+                  <ion-note slot="end" [color]="member.hasPredicted ? 'success' : 'warning'">
+                    {{ member.hasPredicted ? 'Completado' : 'Pendiente' }}
+                  </ion-note>
+                </ion-item>
+              </ion-list>
+            </div>
           </div>
         </ion-item>
 

@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
 import { FootballService, Match } from '../services/football.service';
-import { Observable, combineLatest, of, firstValueFrom } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { Observable, combineLatest, of, firstValueFrom, interval, Subscription } from 'rxjs';
+import { map, switchMap, tap, takeWhile } from 'rxjs/operators';
 import { SeasonService } from '../services/season.service';
 
 interface LeaderboardEntry {
@@ -18,7 +18,7 @@ interface LeaderboardEntry {
   templateUrl: './leaderboard.component.html',
   styleUrls: ['./leaderboard.component.scss']
 })
-export class LeaderboardComponent implements OnInit {
+export class LeaderboardComponent implements OnInit, OnDestroy {
   overallLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   weeklyLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   loading: boolean = true;
@@ -30,6 +30,8 @@ export class LeaderboardComponent implements OnInit {
   isCurrentRoundActive: boolean = false;
   nextRoundStartDate: Date | null = null;
   liveMatches: Match[] = [];
+  private liveUpdateSubscription?: Subscription;
+  private readonly LIVE_UPDATE_INTERVAL = 30000; // 30 seconds
 
   constructor(
     private databaseService: DatabaseService,
@@ -41,6 +43,53 @@ export class LeaderboardComponent implements OnInit {
   async ngOnInit() {
     await this.findCurrentRound();
     this.loadLeaderboards();
+    this.setupLiveUpdates();
+  }
+
+  ngOnDestroy() {
+    if (this.liveUpdateSubscription) {
+      this.liveUpdateSubscription.unsubscribe();
+    }
+  }
+
+  private setupLiveUpdates() {
+    if (this.isCurrentRoundActive && this.selectedRound === this.currentRound) {
+      this.liveUpdateSubscription = interval(this.LIVE_UPDATE_INTERVAL)
+        .pipe(
+          takeWhile(() => this.isCurrentRoundActive)
+        )
+        .subscribe(() => {
+          this.updateLiveScores();
+        });
+    }
+  }
+
+  private async updateLiveScores() {
+    try {
+      const matches = await firstValueFrom(this.footballService.getMatches(this.currentRound));
+      const hasLiveMatches = matches.some(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT'
+      );
+
+      if (hasLiveMatches) {
+        this.liveMatches = matches.filter(match => 
+          match.status.short === 'LIVE' || 
+          match.status.short === 'HT'
+        );
+        this.loadLeaderboards(true); // true indicates it's a live update
+      } else {
+        // No more live matches, stop updates
+        this.isCurrentRoundActive = false;
+        if (this.liveUpdateSubscription) {
+          this.liveUpdateSubscription.unsubscribe();
+        }
+        // Final update of the leaderboard
+        this.loadLeaderboards();
+      }
+    } catch (error) {
+      console.error('Error updating live scores:', error);
+    }
   }
 
   private async findCurrentRound() {
@@ -58,6 +107,10 @@ export class LeaderboardComponent implements OnInit {
       );
       
       this.isCurrentRoundActive = this.liveMatches.length > 0;
+
+      if (this.isCurrentRoundActive) {
+        this.setupLiveUpdates();
+      }
 
       const nextRoundMatches = await firstValueFrom(this.footballService.getMatches(currentRound + 1));
       if (nextRoundMatches.length > 0) {
@@ -81,6 +134,17 @@ export class LeaderboardComponent implements OnInit {
 
   onRoundChange(round: number) {
     this.selectedRound = round;
+    
+    // Stop live updates if switching away from current round
+    if (round !== this.currentRound && this.liveUpdateSubscription) {
+      this.liveUpdateSubscription.unsubscribe();
+    }
+    
+    // Start live updates if switching to current round with live matches
+    if (round === this.currentRound && this.isCurrentRoundActive) {
+      this.setupLiveUpdates();
+    }
+    
     this.loadLeaderboards();
   }
 
@@ -104,8 +168,10 @@ export class LeaderboardComponent implements OnInit {
     return `Jornada ${this.selectedRound}`;
   }
 
-  loadLeaderboards() {
-    this.loading = true;
+  loadLeaderboards(isLiveUpdate: boolean = false) {
+    if (!isLiveUpdate) {
+      this.loading = true;
+    }
     this.error = null;
 
     const users$ = this.databaseService.getAllUsers().pipe(
@@ -118,7 +184,29 @@ export class LeaderboardComponent implements OnInit {
         const userPredictions$ = users.map(user => 
           this.databaseService.getPredictions(user.uid, this.selectedRound.toString()).pipe(
             map(predictions => {
-              const weeklyPoints = predictions.reduce((total, pred) => total + (pred.points || 0), 0);
+              let weeklyPoints = 0;
+              
+              // Calculate points including live matches
+              predictions.forEach(pred => {
+                const liveMatch = this.liveMatches.find(m => m.id === pred.matchId);
+                if (liveMatch && pred.homeScore !== null && pred.awayScore !== null) {
+                  // Calculate live points
+                  if (pred.homeScore === liveMatch.homeScore && 
+                      pred.awayScore === liveMatch.awayScore) {
+                    weeklyPoints += 3;
+                  } else {
+                    const actualResult = Math.sign(liveMatch.homeScore! - liveMatch.awayScore!);
+                    const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
+                    if (actualResult === predictedResult) {
+                      weeklyPoints += 1;
+                    }
+                  }
+                } else {
+                  // Add existing points for non-live matches
+                  weeklyPoints += pred.points || 0;
+                }
+              });
+
               return {
                 username: user.username || user.email || 'Unknown User',
                 weeklyPoints,

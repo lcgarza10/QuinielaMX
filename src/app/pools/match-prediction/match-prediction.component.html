@@ -13,7 +13,7 @@
 
     <!-- Prediction Input/Display -->
     <div class="prediction-score" [ngClass]="getScoreClass()">
-      <div class="score-label">
+      <div class="score-label" *ngIf="canPredict || canEdit || isCompleted">
         {{ isCompleted ? 'Tu Pronóstico:' : (canEdit ? 'Aún puedes predecir:' : 'Ingresa tu Pronóstico:') }}
       </div>
       
@@ -78,8 +78,8 @@
   </div>
 
   <div class="prediction-status" *ngIf="!canPredict && !canEdit && !isCompleted">
-    <ion-text color="medium">
-      <small>Los Pronósticos están cerrados para este partido</small>
+    <ion-text color="danger">
+      <small>Los pronósticos están cerrados para este partido</small>
     </ion-text>
   </div>
 </div>

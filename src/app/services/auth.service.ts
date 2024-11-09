@@ -22,7 +22,8 @@ export class AuthService {
 
   constructor(
     private afAuth: AngularFireAuth,
-    private afs: AngularFirestore
+    private afs: AngularFirestore,
+    private sessionService: SessionService
   ) {
     this.user$ = this.afAuth.authState.pipe(
       switchMap(user => {
@@ -93,9 +94,7 @@ export class AuthService {
 
   async logout(): Promise<void> {
     try {
-      // Clear any cached data
-      localStorage.clear();
-      sessionStorage.clear();
+      this.sessionService.clearSession();
       await this.afAuth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);

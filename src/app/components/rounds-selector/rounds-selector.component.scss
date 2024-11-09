@@ -71,5 +71,21 @@
 :host-context(.dark) {
   .round-chip {
     background: rgba(var(--ion-color-light-rgb), 0.1);
+    color: var(--ion-color-light);
+
+    &.active {
+      background: var(--ion-color-primary-tint);
+      color: var(--ion-color-light);
+      box-shadow: 0 2px 12px rgba(var(--ion-color-primary-rgb), 0.4);
+    }
+
+    &.current {
+      border-color: var(--ion-color-success);
+      
+      &:not(.active) {
+        background: rgba(var(--ion-color-success-rgb), 0.15);
+        color: var(--ion-color-success-shade);
+      }
+    }
   }
 }
