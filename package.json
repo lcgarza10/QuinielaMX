@@ -1,6 +1,6 @@
 {
   "name": "liga-mx-predictions",
-  "version": "0.9.42",
+  "version": "0.9.48",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
