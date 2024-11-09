@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GroupService, Group } from '../../services/group.service';
 import { ToastController, AlertController, LoadingController } from '@ionic/angular';
-import { Observable, firstValueFrom, BehaviorSubject, combineLatest } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { Observable, firstValueFrom, BehaviorSubject, combineLatest, from } from 'rxjs';
+import { map, switchMap, tap, catchError } from 'rxjs/operators';
 import { User } from '../../services/auth.service';
 import { FootballService } from '../../services/football.service';
 import { DatabaseService } from '../../services/database.service';
@@ -28,6 +28,8 @@ export class GroupManagementComponent implements OnInit {
   loading = false;
   showCreateGroup = false;
   currentRound: number = 1;
+  private errorSubject = new BehaviorSubject<string | null>(null);
+  error$ = this.errorSubject.asObservable();
 
   constructor(
     private fb: FormBuilder,
@@ -51,10 +53,15 @@ export class GroupManagementComponent implements OnInit {
           this.loadGroupMembers(group).then(members => ({
             ...group,
             membersList: members,
-            memberCount: members.length // Update member count based on actual members
+            memberCount: members.length
           }))
         );
         return Promise.all(groupsWithMembers$);
+      }),
+      catchError(error => {
+        console.error('Error loading groups:', error);
+        this.showToast('Error loading groups', 'danger');
+        return [];
       })
     );
   }
@@ -74,27 +81,48 @@ export class GroupManagementComponent implements OnInit {
     try {
       const members = await firstValueFrom(this.groupService.getGroupMembers(group.id));
       
+      // Load predictions for all members in parallel
       const membersWithPredictions = await Promise.all(
         members.map(async member => {
-          const predictions = await firstValueFrom(
-            this.databaseService.getPredictions(member.uid, this.currentRound.toString())
-          );
-          return {
-            ...member,
-            hasPredicted: predictions.length > 0
-          };
+          try {
+            const predictions = await firstValueFrom(
+              this.databaseService.getPredictions(member.uid, this.currentRound.toString())
+            );
+
+            // Check if member has valid predictions for current round
+            const hasPredicted = predictions.some(pred => 
+              pred.matchId && 
+              pred.homeScore !== null && 
+              pred.awayScore !== null
+            );
+
+            return {
+              ...member,
+              hasPredicted
+            };
+          } catch (error) {
+            console.error(`Error loading predictions for member ${member.uid}:`, error);
+            return {
+              ...member,
+              hasPredicted: false
+            };
+          }
         })
       );
 
-      // Sort members: first by prediction status (not predicted first), then by role (admins first)
+      // Sort members: admins first, then by prediction status
       return membersWithPredictions.sort((a, b) => {
-        if (a.hasPredicted === b.hasPredicted) {
-          return b.role === 'admin' ? 1 : -1;
+        if (a.role === b.role) {
+          // If roles are the same, sort by prediction status
+          return a.hasPredicted === b.hasPredicted ? 0 : a.hasPredicted ? -1 : 1;
         }
-        return a.hasPredicted ? 1 : -1;
+        // Sort by role (admins first)
+        return a.role === 'admin' ? -1 : 1;
       });
+
     } catch (error) {
       console.error('Error loading group members:', error);
+      this.showToast('Error loading group members', 'danger');
       return [];
     }
   }
@@ -115,11 +143,11 @@ export class GroupManagementComponent implements OnInit {
       this.loading = true;
       try {
         await this.groupService.createGroup(this.groupForm.value);
-        await this.showToast('Grupo creado exitosamente', 'success');
+        await this.showToast('Group created successfully', 'success');
         this.toggleCreateGroup();
       } catch (error) {
         console.error('Error creating group:', error);
-        await this.showToast('Error al crear el grupo', 'danger');
+        await this.showToast('Error creating group', 'danger');
       } finally {
         this.loading = false;
       }
@@ -128,36 +156,36 @@ export class GroupManagementComponent implements OnInit {
 
   async joinGroup() {
     const alert = await this.alertController.create({
-      header: 'Unirse a un grupo',
-      message: 'Ingresa el código de invitación del grupo',
+      header: 'Join a Group',
+      message: 'Enter the group invitation code',
       inputs: [
         {
           name: 'inviteCode',
           type: 'text',
-          placeholder: 'Código de invitación'
+          placeholder: 'Invitation code'
         }
       ],
       buttons: [
         {
-          text: 'Cancelar',
+          text: 'Cancel',
           role: 'cancel'
         },
         {
-          text: 'Unirse',
+          text: 'Join',
           handler: async (data) => {
             if (!data.inviteCode) {
-              await this.showToast('Por favor ingresa un código de invitación', 'warning');
+              await this.showToast('Please enter an invitation code', 'warning');
               return false;
             }
 
             this.loading = true;
             try {
               await this.groupService.joinGroup(data.inviteCode);
-              await this.showToast('Te has unido al grupo exitosamente', 'success');
+              await this.showToast('Successfully joined the group', 'success');
               return true;
             } catch (error) {
               console.error('Error joining group:', error);
-              await this.showToast('Error al unirse al grupo', 'danger');
+              await this.showToast('Error joining group', 'danger');
               return false;
             } finally {
               this.loading = false;
@@ -171,25 +199,25 @@ export class GroupManagementComponent implements OnInit {
 
   async showInviteCode(group: Group) {
     const alert = await this.alertController.create({
-      header: 'Código de invitación',
-      message: 'Cargando...',
+      header: 'Invitation Code',
+      message: 'Loading...',
       buttons: [
         {
-          text: 'Copiar',
+          text: 'Copy',
           handler: () => {
             navigator.clipboard.writeText(group.inviteCode)
               .then(() => {
-                this.showToast('Código copiado al portapapeles', 'success');
+                this.showToast('Code copied to clipboard', 'success');
               })
               .catch(err => {
                 console.error('Error copying to clipboard:', err);
-                this.showToast('Error al copiar el código', 'danger');
+                this.showToast('Error copying code', 'danger');
               });
-            return false; // Keep the alert open
+            return false;
           }
         },
         {
-          text: 'Cerrar',
+          text: 'Close',
           role: 'cancel'
         }
       ],
@@ -198,12 +226,11 @@ export class GroupManagementComponent implements OnInit {
 
     await alert.present();
 
-    // Update alert message with styled content
     const messageEl = document.querySelector('.alert-message');
     if (messageEl) {
       messageEl.innerHTML = `
         <div class="invite-code">
-          <p>Comparte este código con otros usuarios para que se unan al grupo:</p>
+          <p>Share this code with other users to join the group:</p>
           <div class="code-container">
             <div class="code">${group.inviteCode}</div>
           </div>
