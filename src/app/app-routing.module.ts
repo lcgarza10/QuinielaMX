@@ -24,6 +24,7 @@ const routes: Routes = [
   { path: 'user-list', component: UserListComponent, canActivate: [AuthGuard] },
   { path: 'leaderboard', component: LeaderboardComponent, canActivate: [AuthGuard] },
   { path: 'groups', component: GroupManagementComponent, canActivate: [AuthGuard] },
+  { path: 'groups/join/:code', component: GroupManagementComponent, canActivate: [AuthGuard] },
   { 
     path: 'admin', 
     canActivate: [AuthGuard, AdminGuard],

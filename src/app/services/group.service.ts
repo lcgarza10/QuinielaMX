@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable, combineLatest, of } from 'rxjs';
-import { map, switchMap, take } from 'rxjs/operators';
+import { Observable, of, from, throwError, firstValueFrom, combineLatest } from 'rxjs';
+import { map, catchError, tap, switchMap, take } from 'rxjs/operators';
 import firebase from 'firebase/compat/app';
 import { AuthService, User } from './auth.service';
+import { Router } from '@angular/router';
 
 export interface Group {
   id?: string;
@@ -28,13 +29,16 @@ export interface GroupMember {
   providedIn: 'root'
 })
 export class GroupService {
+  private readonly APP_DOMAIN = 'https://quinielamx.netlify.app';
+
   constructor(
     private afs: AngularFirestore,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   async createGroup(groupData: Partial<Group>): Promise<string> {
-    const user = await this.authService.user$.pipe(take(1)).toPromise();
+    const user = await firstValueFrom(this.authService.user$.pipe(take(1)));
     if (!user) throw new Error('Usuario no autenticado');
 
     const inviteCode = this.generateInviteCode();
@@ -103,7 +107,7 @@ export class GroupService {
   }
 
   async joinGroup(inviteCode: string): Promise<void> {
-    const user = await this.authService.user$.pipe(take(1)).toPromise();
+    const user = await firstValueFrom(this.authService.user$.pipe(take(1)));
     if (!user) throw new Error('Usuario no autenticado');
 
     const groupsRef = this.afs.collection('groups');
@@ -170,18 +174,22 @@ export class GroupService {
       );
   }
 
-  async removeMember(groupId: string, userId: string): Promise<void> {
-    const batch = this.afs.firestore.batch();
+  async getGroupByInviteCode(inviteCode: string): Promise<Group | null> {
+    const snapshot = await this.afs.collection('groups')
+      .ref.where('inviteCode', '==', inviteCode)
+      .get();
 
-    batch.update(this.afs.doc(`groups/${groupId}`).ref, {
-      members: firebase.firestore.FieldValue.arrayRemove(userId),
-      memberCount: firebase.firestore.FieldValue.increment(-1)
-    });
+    if (snapshot.empty) return null;
 
-    batch.delete(this.afs.doc(`groups/${groupId}/members/${userId}`).ref);
-    batch.delete(this.afs.doc(`users/${userId}/groups/${groupId}`).ref);
+    const groupDoc = snapshot.docs[0];
+    return {
+      id: groupDoc.id,
+      ...groupDoc.data() as Group
+    };
+  }
 
-    await batch.commit();
+  generateInviteLink(groupId: string, inviteCode: string): string {
+    return `${this.APP_DOMAIN}/groups/join/${inviteCode}`;
   }
 
   private generateInviteCode(): string {
@@ -191,31 +199,5 @@ export class GroupService {
       code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
-  }
-
-  getGroupLeaderboard(groupId: string): Observable<any[]> {
-    return this.afs.collection<GroupMember>(`groups/${groupId}/members`)
-      .valueChanges()
-      .pipe(
-        switchMap(members => {
-          const memberScores = members.map(member =>
-            this.afs.doc<User>(`users/${member.userId}`).valueChanges()
-              .pipe(
-                switchMap(user => 
-                  this.afs.doc(`userPoints/${member.userId}`).valueChanges()
-                    .pipe(
-                      map(points => ({
-                        userId: member.userId,
-                        username: user?.username || user?.email || 'Usuario',
-                        totalPoints: (points as any)?.totalPoints || 0
-                      }))
-                    )
-                )
-              )
-          );
-          return combineLatest(memberScores);
-        }),
-        map(scores => scores.sort((a, b) => b.totalPoints - a.totalPoints))
-      );
   }
 }

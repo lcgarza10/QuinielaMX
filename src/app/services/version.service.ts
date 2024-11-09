@@ -8,7 +8,7 @@ export class VersionService {
   private readonly version: string;
 
   constructor() {
-    this.version = environment.production ? '0.9.49' : '0.9.49-dev';
+    this.version = environment.production ? '0.9.50' : '0.9.50-dev';
   }
 
   getVersion(): string {

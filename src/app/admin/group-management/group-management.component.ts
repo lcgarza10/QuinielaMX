@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GroupService, Group } from '../../services/group.service';
 import { ToastController, AlertController, LoadingController } from '@ionic/angular';
-import { Observable, firstValueFrom, BehaviorSubject, combineLatest, from } from 'rxjs';
-import { map, switchMap, tap, catchError } from 'rxjs/operators';
+import { Observable, firstValueFrom, BehaviorSubject, combineLatest } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { User } from '../../services/auth.service';
 import { FootballService } from '../../services/football.service';
 import { DatabaseService } from '../../services/database.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface GroupWithMembers extends Group {
   membersList: GroupMemberDisplay[];
@@ -38,7 +39,8 @@ export class GroupManagementComponent implements OnInit {
     private alertController: AlertController,
     private loadingController: LoadingController,
     private footballService: FootballService,
-    private databaseService: DatabaseService
+    private databaseService: DatabaseService,
+    private route: ActivatedRoute
   ) {
     this.groupForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
@@ -57,11 +59,6 @@ export class GroupManagementComponent implements OnInit {
           }))
         );
         return Promise.all(groupsWithMembers$);
-      }),
-      catchError(error => {
-        console.error('Error loading groups:', error);
-        this.showToast('Error loading groups', 'danger');
-        return [];
       })
     );
   }
@@ -69,9 +66,44 @@ export class GroupManagementComponent implements OnInit {
   async ngOnInit() {
     try {
       this.currentRound = await this.footballService.getCurrentRound();
+      
+      // Check for invite code in route params
+      this.route.queryParams.subscribe(async params => {
+        const inviteCode = params['code'];
+        if (inviteCode) {
+          await this.handleInviteCode(inviteCode);
+        }
+      });
     } catch (error) {
       console.error('Error getting current round:', error);
       this.currentRound = 1;
+    }
+  }
+
+  private async handleInviteCode(inviteCode: string) {
+    try {
+      const group = await this.groupService.getGroupByInviteCode(inviteCode);
+      if (group) {
+        const alert = await this.alertController.create({
+          header: 'Unirse al Grupo',
+          message: `¿Deseas unirte al grupo "${group.name}"?`,
+          buttons: [
+            {
+              text: 'Cancelar',
+              role: 'cancel'
+            },
+            {
+              text: 'Unirme',
+              handler: async () => {
+                await this.joinGroupWithCode(inviteCode);
+              }
+            }
+          ]
+        });
+        await alert.present();
+      }
+    } catch (error) {
+      console.error('Error handling invite code:', error);
     }
   }
 
@@ -90,7 +122,7 @@ export class GroupManagementComponent implements OnInit {
             );
 
             // Check if member has valid predictions for current round
-            const hasPredicted = predictions.some(pred => 
+            const hasPredicted = predictions.length > 0 && predictions.every(pred => 
               pred.matchId && 
               pred.homeScore !== null && 
               pred.awayScore !== null
@@ -113,8 +145,8 @@ export class GroupManagementComponent implements OnInit {
       // Sort members: admins first, then by prediction status
       return membersWithPredictions.sort((a, b) => {
         if (a.role === b.role) {
-          // If roles are the same, sort by prediction status
-          return a.hasPredicted === b.hasPredicted ? 0 : a.hasPredicted ? -1 : 1;
+          // If roles are the same, sort by prediction status (pending first)
+          return (a.hasPredicted ? 1 : 0) - (b.hasPredicted ? 1 : 0);
         }
         // Sort by role (admins first)
         return a.role === 'admin' ? -1 : 1;
@@ -122,7 +154,7 @@ export class GroupManagementComponent implements OnInit {
 
     } catch (error) {
       console.error('Error loading group members:', error);
-      this.showToast('Error loading group members', 'danger');
+      await this.showToast('Error loading group members', 'danger');
       return [];
     }
   }
@@ -177,19 +209,8 @@ export class GroupManagementComponent implements OnInit {
               await this.showToast('Please enter an invitation code', 'warning');
               return false;
             }
-
-            this.loading = true;
-            try {
-              await this.groupService.joinGroup(data.inviteCode);
-              await this.showToast('Successfully joined the group', 'success');
-              return true;
-            } catch (error) {
-              console.error('Error joining group:', error);
-              await this.showToast('Error joining group', 'danger');
-              return false;
-            } finally {
-              this.loading = false;
-            }
+            await this.joinGroupWithCode(data.inviteCode);
+            return true;
           }
         }
       ]
@@ -197,27 +218,56 @@ export class GroupManagementComponent implements OnInit {
     await alert.present();
   }
 
+  private async joinGroupWithCode(inviteCode: string) {
+    this.loading = true;
+    try {
+      await this.groupService.joinGroup(inviteCode);
+      await this.showToast('Successfully joined the group', 'success');
+    } catch (error) {
+      console.error('Error joining group:', error);
+      await this.showToast('Error joining group', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
   async showInviteCode(group: Group) {
+    const inviteLink = this.groupService.generateInviteLink(group.id!, group.inviteCode);
+    
     const alert = await this.alertController.create({
-      header: 'Invitation Code',
+      header: 'Invitar al Grupo',
       message: 'Loading...',
       buttons: [
         {
-          text: 'Copy',
+          text: 'Copiar Link',
           handler: () => {
-            navigator.clipboard.writeText(group.inviteCode)
+            navigator.clipboard.writeText(inviteLink)
               .then(() => {
-                this.showToast('Code copied to clipboard', 'success');
+                this.showToast('Link copiado al portapapeles', 'success');
               })
               .catch(err => {
                 console.error('Error copying to clipboard:', err);
-                this.showToast('Error copying code', 'danger');
+                this.showToast('Error al copiar el link', 'danger');
               });
             return false;
           }
         },
         {
-          text: 'Close',
+          text: 'Copiar Código',
+          handler: () => {
+            navigator.clipboard.writeText(group.inviteCode)
+              .then(() => {
+                this.showToast('Código copiado al portapapeles', 'success');
+              })
+              .catch(err => {
+                console.error('Error copying to clipboard:', err);
+                this.showToast('Error al copiar el código', 'danger');
+              });
+            return false;
+          }
+        },
+        {
+          text: 'Cerrar',
           role: 'cancel'
         }
       ],
@@ -230,9 +280,10 @@ export class GroupManagementComponent implements OnInit {
     if (messageEl) {
       messageEl.innerHTML = `
         <div class="invite-code">
-          <p>Share this code with other users to join the group:</p>
+          <p>Comparte este link o código para invitar a otros usuarios:</p>
           <div class="code-container">
-            <div class="code">${group.inviteCode}</div>
+            <div class="link">${inviteLink}</div>
+            <div class="code">Código: ${group.inviteCode}</div>
           </div>
         </div>
       `;

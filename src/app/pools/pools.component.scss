@@ -63,15 +63,15 @@
   width: 35%;
 
   &-logo {
-    width: 48px;
-    height: 48px;
-    margin-bottom: 8px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
     object-fit: contain;
   }
 
   &-name {
     text-align: center;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 500;
   }
 }
@@ -115,30 +115,24 @@
 }
 
 // Media queries for responsiveness
-@media (max-width: 480px) {
-  .week-header {
-    padding: 10px 12px;
-    margin-bottom: 12px;
-
-    .round-badge {
-      font-size: 1em;
-    }
-  }
-
-  .teams {
-    padding: 12px 8px;
-  }
-
+@media (min-width: 768px) {
   .team-logo {
-    width: 40px;
-    height: 40px;
+    width: 80px;
+    height: 80px;
   }
 
   .team-name {
-    font-size: 12px;
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 992px) {
+  .team-logo {
+    width: 96px;
+    height: 96px;
   }
 
-  .submit-button {
-    margin: 16px 12px;
+  .team-name {
+    font-size: 20px;
   }
 }
