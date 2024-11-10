@@ -1,33 +1,18 @@
 .matches-grid {
   width: 100%;
-  max-width: 750px;
+  max-width: 100%; /* Ajuste para pantallas pequeñas */
   margin: 10px auto 0;
-  padding: 22px;
+  padding: 12px; /* Reducir el padding en pantallas pequeñas */
   background: var(--ion-color-light);
   border-radius: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.group-info {
-  text-align: center;
-  margin: 10px 0;
-  padding: 10px;
-  background: var(--ion-color-primary);
-  border-radius: 8px;
-  color: white;
-
-  h3 {
-    margin: 0;
-    font-size: 1.4em;
-    font-weight: 500;
-  }
-}
-
 .grid-header {
   display: grid;
   grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 45px);
-  gap: 0.9px;
+  gap: 4px; /* Incrementar el espacio entre columnas */
   padding: 8px;
   background: var(--ion-color-primary);
   color: white;
@@ -39,20 +24,21 @@
   font-size: .8em;
   text-align: center;
 
+  /* Ajustes para que los logos se muestren en una fila separada */
   .matches-col {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.9px;
-    
+    gap: 2px;
+
     .team-logo {
-      width: 22px;
-      height: 22px;
+      width: 18px; /* Tamaño más pequeño para versiones móviles */
+      height: 18px;
       object-fit: contain;
     }
 
     .match-score {
-      font-size: 1.0em;
+      font-size: 0.85em;
       font-weight: 500;
       white-space: nowrap;
     }
@@ -62,145 +48,50 @@
 .grid-row {
   display: grid;
   grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 45px);
-  gap: 0.9px;
+  gap: 4px;
   padding: 8px;
   align-items: center;
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
   font-size: 0.8em;
   text-align: center;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &.current-user {
-    background: rgba(var(--ion-color-primary-rgb), 0.1);
-    font-weight: 400;
-  }
-}
-
-.pos-col {
-  text-align: center;
-  font-weight: 600;
-  font-size: 1.0em;
-}
-
-.pts-col {
-  text-align: center;
-  font-weight: 600;
-  color: var(--ion-color-primary);
-  font-size: 1.0em;
-}
-
-.user-col {
-  padding-left: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 1.0em;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  .trophy-icon {
-    color: gold;
-    font-size: 1.2em;
-  }
-}
-
-.prediction-col {
-  text-align: center;
-  padding: 2px;
-  border-radius: 4px;
-  font-weight: 500;
-  font-size: 1.0em;
-  min-width: 40px;
-  margin: 0 auto;
-  white-space: nowrap;
-
-  &.exact-match {
-    background: rgba(var(--ion-color-success-rgb), 0.1);
-    color: var(--ion-color-success);
-  }
-
-  &.partial-match {
-    background: rgba(var(--ion-color-warning-rgb), 0.1);
-    color: var(--ion-color-warning);
-  }
-
-  &.no-match {
-    background: rgba(var(--ion-color-medium-rgb), 0.05);
-    color: var(--ion-color-medium);
-  }
-}
-
-// Dark mode adjustments
-:host-context(.dark) {
-  .matches-grid {
-    background: rgba(var(--ion-color-light-rgb), 0.05);
-  }
-
-  .grid-row {
-    border-color: rgba(var(--ion-color-medium-rgb), 0.1);
-
-    &.current-user {
-      background: rgba(var(--ion-color-primary-rgb), 0.15);
-    }
-  }
-
-  .prediction-col {
-    &.exact-match {
-      background: rgba(var(--ion-color-success-rgb), 0.15);
-    }
-
-    &.partial-match {
-      background: rgba(var(--ion-color-warning-rgb), 0.15);
-    }
-
-    &.no-match {
-      background: rgba(var(--ion-color-medium-rgb), 0.1);
-    }
-  }
 }
 
 @media (max-width: 768px) {
   .matches-grid {
-    margin-top: 20px;
     padding: 6px;
-    font-size: 0.95em;
+    font-size: 0.9em;
   }
 
   .grid-header, .grid-row {
-    grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 40px);
-    gap: 0.9px;
+    grid-template-columns: 25px 30px minmax(60px, 80px) repeat(auto-fit, 40px); /* Ajuste de columnas */
+    gap: 2px; /* Menor separación entre columnas */
     padding: 4px;
   }
 
   .user-col {
-    font-size: 0.95em;
+    font-size: 0.9em;
     padding-left: 2px;
     gap: 2px;
 
     .trophy-icon {
-      font-size: 1.1em;
+      font-size: 1.0em;
     }
   }
 
   .prediction-col {
     min-width: 35px;
     padding: 1px;
-    font-size: 0.95em;
+    font-size: 0.9em;
   }
 
   .matches-col {
     .team-logo {
-      width: 20px;
-      height: 20px;
+      width: 18px; /* Ajuste para versiones móviles */
+      height: 18px;
     }
 
     .match-score {
-      font-size: 0.9em;
+      font-size: 0.8em;
     }
   }
 }
