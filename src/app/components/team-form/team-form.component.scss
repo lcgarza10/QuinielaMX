@@ -1,0 +1,43 @@
+.form-display {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.form-item {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 12px;
+    color: white;
+  }
+
+  &.win {
+    background-color: #2dd36f;
+  }
+
+  &.draw {
+    background-color: #92949c;
+  }
+
+  &.loss {
+    background-color: #eb445a;
+  }
+}
+
+@media (min-width: 768px) {
+  .form-item {
+    width: 24px;
+    height: 24px;
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+}

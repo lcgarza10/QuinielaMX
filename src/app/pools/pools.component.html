@@ -66,6 +66,10 @@
                   class="team-logo"
                 />
                 <div class="team-name">{{ match.homeTeam }}</div>
+                <div class="team-position" *ngIf="match.homeTeamPosition">
+                  {{ match.homeTeamPosition }}{{ getOrdinalSuffix(match.homeTeamPosition) }} Lugar de la Tabla
+                </div>
+                <app-team-form *ngIf="match.homeTeamForm" [form]="match.homeTeamForm"></app-team-form>
               </div>
 
               <app-match-prediction
@@ -84,6 +88,10 @@
                   class="team-logo"
                 />
                 <div class="team-name">{{ match.awayTeam }}</div>
+                <div class="team-position" *ngIf="match.awayTeamPosition">
+                  {{ match.awayTeamPosition }}{{ getOrdinalSuffix(match.awayTeamPosition) }} Lugar de la Tabla
+                </div>
+                <app-team-form *ngIf="match.awayTeamForm" [form]="match.awayTeamForm"></app-team-form>
               </div>
             </div>
             <ion-card-header align="center">

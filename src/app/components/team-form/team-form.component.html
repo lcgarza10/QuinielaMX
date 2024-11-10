@@ -1,0 +1,5 @@
+<div class="form-display">
+  <div class="form-item" *ngFor="let result of getFormArray()" [class]="getResultClass(result)">
+    <ion-icon [name]="getResultIcon(result)"></ion-icon>
+  </div>
+</div>

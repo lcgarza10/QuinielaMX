@@ -60,6 +60,10 @@ export class PoolsComponent implements OnInit {
     });
   }
 
+  getOrdinalSuffix(position: number): string {
+    return this.footballService.getOrdinalSuffix(position);
+  }
+
   private async findPendingRound() {
     this.loading = true;
     try {

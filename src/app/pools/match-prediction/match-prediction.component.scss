@@ -69,12 +69,12 @@
       ion-button {
         --padding-start: 4px;
         --padding-end: 4px;
-        height: 36px;
-        width: 36px;
+        height: 26px;
+        width: 26px;
         margin: 0;
         
         ion-icon {
-          font-size: 28px;
+          font-size: 18px;
           color: var(--ion-color-primary);
         }
 
@@ -84,18 +84,18 @@
       }
 
       .score-value {
-        font-size: 32px;
+        font-size: 22px;
         font-weight: 600;
-        min-width: 40px;
+        min-width: 30px;
         text-align: center;
         color: var(--ion-color-dark);
-        padding: 8px 0;
+        padding: 4px 0;
       }
     }
   }
 
   .score-separator {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 500;
     color: var(--ion-color-medium);
     margin: 0 8px;
@@ -125,8 +125,8 @@
     ion-button {
       --padding-start: 16px;
       --padding-end: 16px;
-      height: 40px;
-      font-size: 1.1em;
+      height: 30px;
+      font-size: 0.9em;
       --color: var(--ion-color-primary);
       font-weight: 500;
 
@@ -201,24 +201,24 @@
     .team-score {
       .score-controls {
         ion-button {
-          height: 44px;
-          width: 44px;
+          height: 30px;
+          width: 30px;
           
           ion-icon {
-            font-size: 32px;
+            font-size: 22px;
           }
         }
 
         .score-value {
-          font-size: 36px;
-          min-width: 48px;
+          font-size: 26px;
+          min-width: 34px;
         }
       }
     }
   }
 
   .score-display {
-    font-size: 1.8em;
+    font-size: 1.6em;
   }
 }
 
@@ -227,23 +227,23 @@
     .team-score {
       .score-controls {
         ion-button {
-          height: 48px;
-          width: 48px;
+          height: 34px;
+          width: 34px;
           
           ion-icon {
-            font-size: 36px;
+            font-size: 26px;
           }
         }
 
         .score-value {
-          font-size: 40px;
-          min-width: 56px;
+          font-size: 30px;
+          min-width: 38px;
         }
       }
     }
   }
 
   .score-display {
-    font-size: 2em;
+    font-size: 1.8em;
   }
 }

@@ -19,6 +19,7 @@ import { PointsComponent } from './points/points.component';
 import { UserListComponent } from './user-list/user-list.component';
 import { HeaderComponent } from './components/header/header.component';
 import { RoundsSelectorComponent } from './components/rounds-selector/rounds-selector.component';
+import { TeamFormComponent } from './components/team-form/team-form.component';
 import { TestPredictionsComponent } from './admin/test-predictions/test-predictions.component';
 import { SeasonManagementComponent } from './admin/season-management/season-management.component';
 import { GroupManagementComponent } from './admin/group-management/group-management.component';
@@ -59,6 +60,7 @@ registerLocaleData(localeEs);
     UserListComponent,
     HeaderComponent,
     RoundsSelectorComponent,
+    TeamFormComponent,
     TestPredictionsComponent,
     SeasonManagementComponent,
     GroupManagementComponent,
