@@ -13,18 +13,59 @@ import { SeasonManagementComponent } from './admin/season-management/season-mana
 import { GroupManagementComponent } from './admin/group-management/group-management.component';
 import { AuthGuard } from './services/auth.guard';
 import { AdminGuard } from './services/admin.guard';
+import { NoAuthGuard } from './services/no-auth.guard';
 
 const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: 'signup', component: SignupComponent },
-  { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
-  { path: 'scores', component: ScoresComponent, canActivate: [AuthGuard] },
-  { path: 'pools', component: PoolsComponent, canActivate: [AuthGuard] },
-  { path: 'points', component: PointsComponent, canActivate: [AuthGuard] },
-  { path: 'user-list', component: UserListComponent, canActivate: [AuthGuard] },
-  { path: 'leaderboard', component: LeaderboardComponent, canActivate: [AuthGuard] },
-  { path: 'groups', component: GroupManagementComponent, canActivate: [AuthGuard] },
-  { path: 'groups/join/:code', component: GroupManagementComponent, canActivate: [AuthGuard] },
+  { 
+    path: 'login', 
+    component: LoginComponent,
+    canActivate: [NoAuthGuard]
+  },
+  { 
+    path: 'signup', 
+    component: SignupComponent,
+    canActivate: [NoAuthGuard]
+  },
+  { 
+    path: 'home', 
+    component: HomeComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'scores', 
+    component: ScoresComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'pools', 
+    component: PoolsComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'points', 
+    component: PointsComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'user-list', 
+    component: UserListComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'leaderboard', 
+    component: LeaderboardComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'groups', 
+    component: GroupManagementComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'groups/join/:code', 
+    component: GroupManagementComponent, 
+    canActivate: [AuthGuard] 
+  },
   { 
     path: 'admin', 
     canActivate: [AuthGuard, AdminGuard],

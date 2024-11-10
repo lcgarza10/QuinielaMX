@@ -25,6 +25,7 @@ import { SeasonManagementComponent } from './admin/season-management/season-mana
 import { GroupManagementComponent } from './admin/group-management/group-management.component';
 import { MatchPredictionComponent } from './pools/match-prediction/match-prediction.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
+import { NoAuthGuard } from './services/no-auth.guard';
 
 import { FootballService } from './services/football.service';
 import { DatabaseService } from './services/database.service';
@@ -98,6 +99,7 @@ registerLocaleData(localeEs);
     PlatformService,
     ThemeService,
     SessionService,
+    NoAuthGuard,
     ScreenTrackingService,
     UserTrackingService
   ],
