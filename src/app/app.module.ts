@@ -8,6 +8,42 @@ import { registerLocaleData } from '@angular/common';
 import localeEs from '@angular/common/locales/es-MX';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { addIcons } from 'ionicons';
+import { 
+  trophy, trophyOutline,
+  football, footballOutline,
+  podium, podiumOutline,
+  people, peopleOutline,
+  calendar, calendarOutline,
+  globe, globeOutline,
+  construct, constructOutline,
+  warning, warningOutline,
+  alert, alertOutline,
+  checkmark, checkmarkOutline,
+  radio, radioOutline,
+  add, addOutline,
+  remove, removeOutline,
+  close, closeOutline,
+  create, createOutline,
+  person, personOutline,
+  mail, mailOutline,
+  lockClosed, lockClosedOutline,
+  at, atOutline,
+  logIn, logInOutline,
+  logOut, logOutOutline,
+  arrowForward, arrowForwardOutline,
+  sunny, sunnyOutline,
+  moon, moonOutline,
+  share, shareOutline,
+  shareSocial, shareSocialOutline,
+  enter, enterOutline,
+  key, keyOutline,
+  save, saveOutline,
+  refresh, refreshOutline,
+  calculator, calculatorOutline,
+  trash, trashOutline,
+  shuffle, shuffleOutline
+} from 'ionicons/icons';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
@@ -48,6 +84,43 @@ import { AngularFireAnalyticsModule, ScreenTrackingService, UserTrackingService 
 
 // Register Spanish (Mexico) locale
 registerLocaleData(localeEs);
+
+// Add all Ionic icons
+addIcons({
+  trophy, trophyOutline,
+  football, footballOutline,
+  podium, podiumOutline,
+  people, peopleOutline,
+  calendar, calendarOutline,
+  globe, globeOutline,
+  construct, constructOutline,
+  warning, warningOutline,
+  alert, alertOutline,
+  checkmark, checkmarkOutline,
+  radio, radioOutline,
+  add, addOutline,
+  remove, removeOutline,
+  close, closeOutline,
+  create, createOutline,
+  person, personOutline,
+  mail, mailOutline,
+  lockClosed, lockClosedOutline,
+  at, atOutline,
+  logIn, logInOutline,
+  logOut, logOutOutline,
+  arrowForward, arrowForwardOutline,
+  sunny, sunnyOutline,
+  moon, moonOutline,
+  share, shareOutline,
+  shareSocial, shareSocialOutline,
+  enter, enterOutline,
+  key, keyOutline,
+  save, saveOutline,
+  refresh, refreshOutline,
+  calculator, calculatorOutline,
+  trash, trashOutline,
+  shuffle, shuffleOutline
+});
 
 @NgModule({
   declarations: [

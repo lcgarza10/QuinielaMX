@@ -26,8 +26,8 @@
 
 .grid-header {
   display: grid;
-  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 35px);
-  gap: 2px;
+  grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 28px);
+  gap: 1px;
   padding: 6px;
   background: var(--ion-color-primary);
   color: white;
@@ -42,22 +42,22 @@
   .matches-col {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
 
     .team-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 1px;
 
       .team-logo {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         object-fit: contain;
       }
 
       .score {
-        font-size: 0.8em;
+        font-size: 0.75em;
         font-weight: 500;
       }
     }
@@ -66,8 +66,8 @@
 
 .grid-row {
   display: grid;
-  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 35px);
-  gap: 2px;
+  grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 28px);
+  gap: 1px;
   padding: 6px;
   align-items: center;
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
@@ -83,11 +83,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 2px;
-    border-radius: 4px;
+    gap: 1px;
+    padding: 1px;
+    border-radius: 3px;
     font-weight: 500;
-    font-size: 0.85em;
+    font-size: 0.8em;
 
     &.exact-match {
       background: rgba(var(--ion-color-success-rgb), 0.1);
@@ -105,7 +105,7 @@
     }
 
     .pred-score {
-      min-width: 16px;
+      min-width: 14px;
     }
   }
 }
@@ -174,20 +174,20 @@
   }
 
   .grid-header, .grid-row {
-    grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 30px);
+    grid-template-columns: 22px 28px minmax(65px, 85px) repeat(auto-fit, 26px);
     gap: 1px;
-    padding: 4px;
+    padding: 3px;
   }
 
   .grid-header {
     .matches-col {
       .team-container {
         .team-logo {
-          width: 14px;
-          height: 14px;
+          width: 12px;
+          height: 12px;
         }
         .score {
-          font-size: 0.75em;
+          font-size: 0.7em;
         }
       }
     }
@@ -195,21 +195,21 @@
 
   .grid-row {
     .prediction-col {
-      font-size: 0.75em;
+      font-size: 0.7em;
       padding: 1px;
       
       .pred-score {
-        min-width: 14px;
+        min-width: 12px;
       }
     }
   }
 
   .user-col {
-    font-size: 0.85em;
+    font-size: 0.8em;
     padding-left: 2px;
     
     .trophy-icon {
-      font-size: 1em;
+      font-size: 0.9em;
     }
   }
 }
