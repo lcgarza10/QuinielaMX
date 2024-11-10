@@ -36,21 +36,35 @@ export class SignupComponent implements OnInit {
   }
 
   async ngOnInit() {
-    // Get invite code from route params
-    this.route.queryParams.subscribe(async params => {
-      const code = params['code'];
-      if (code) {
-        this.inviteCode = code;
-        try {
-          const group = await this.groupService.getGroupByInviteCode(code);
-          if (group) {
-            this.groupName = group.name;
-          }
-        } catch (error) {
-          console.error('Error fetching group details:', error);
+    // Check for invite code in route params first
+    const code = this.route.snapshot.paramMap.get('code');
+    if (code) {
+      this.inviteCode = code;
+      try {
+        const group = await this.groupService.getGroupByInviteCode(code);
+        if (group) {
+          this.groupName = group.name;
         }
+      } catch (error) {
+        console.error('Error fetching group details:', error);
       }
-    });
+    } else {
+      // If no code in route params, check query params
+      this.route.queryParams.subscribe(async params => {
+        const queryCode = params['code'];
+        if (queryCode) {
+          this.inviteCode = queryCode;
+          try {
+            const group = await this.groupService.getGroupByInviteCode(queryCode);
+            if (group) {
+              this.groupName = group.name;
+            }
+          } catch (error) {
+            console.error('Error fetching group details:', error);
+          }
+        }
+      });
+    }
   }
 
   async signupWithEmail() {

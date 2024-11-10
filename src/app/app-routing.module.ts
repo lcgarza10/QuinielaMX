@@ -63,8 +63,8 @@ const routes: Routes = [
   },
   { 
     path: 'groups/join/:code', 
-    component: GroupManagementComponent, 
-    canActivate: [AuthGuard] 
+    component: SignupComponent,
+    canActivate: [NoAuthGuard]
   },
   { 
     path: 'admin', 
