@@ -117,13 +117,32 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
 
       const matches = await firstValueFrom(this.footballService.getMatches(currentRound));
       
-      this.liveMatches = matches.filter(match => 
-        match.status.short === 'LIVE' || 
-        match.status.short === 'HT'
+      // Check if all matches are finished
+      const finishedMatches = matches.filter(match => 
+        match.status.short === 'FT' || 
+        match.status.short === 'AET' || 
+        match.status.short === 'PEN'
       );
-      
-      this.isCurrentRoundActive = this.liveMatches.length > 0;
 
+      // Check if any match is live or scheduled for today
+      const now = new Date();
+      const todayMatches = matches.filter(match => {
+        const matchDate = new Date(match.date);
+        return matchDate.toDateString() === now.toDateString();
+      });
+
+      const liveMatches = matches.filter(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT' ||
+        match.status.short === '1H' ||
+        match.status.short === '2H'
+      );
+
+      this.isCurrentRoundActive = liveMatches.length > 0 || 
+                                 (todayMatches.length > 0 && finishedMatches.length < matches.length);
+      
+      this.liveMatches = liveMatches;
+      
       if (this.isCurrentRoundActive) {
         this.setupLiveUpdates();
       }
@@ -177,7 +196,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
           return 'Nueva jornada comienza hoy';
         }
       }
-      return 'Última jornada completada';
+      return 'Jornada actual';
     }
     return `Jornada ${this.selectedRound}`;
   }

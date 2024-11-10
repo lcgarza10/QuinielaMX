@@ -10,7 +10,7 @@ import { ToastController } from '@ionic/angular';
 export class ConnectionService {
   private isOnline = new BehaviorSubject<boolean>(navigator.onLine);
   private connectionError = new BehaviorSubject<number | null>(null);
-  private readonly TEST_URL = 'https://www.google.com/favicon.ico';
+  private readonly TEST_URL = 'https://api-football-v1.p.rapidapi.com/v3/timezone';
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000;
   private retryCount = 0;
@@ -59,37 +59,17 @@ export class ConnectionService {
       clearTimeout(this.retryTimer);
     }
 
-    try {
-      const timestamp = new Date().getTime();
-      const result = await this.http.get(`${this.TEST_URL}?t=${timestamp}`, {
-        observe: 'response'
-      }).pipe(
-        map(response => response.status === 200),
-        retryWhen(errors => 
-          errors.pipe(
-            delay(this.RETRY_DELAY),
-            take(this.MAX_RETRIES)
-          )
-        ),
-        catchError(error => {
-          console.error('Connection test failed:', error);
-          this.handleConnectionError(error.status || -200);
-          return of(false);
-        })
-      ).toPromise();
-
-      if (result) {
-        this.connectionError.next(null);
-        this.retryCount = 0;
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Connection test error:', error);
-      this.handleConnectionError(-200);
-      return false;
+    // Simply return true if online, false if offline
+    const isOnline = navigator.onLine;
+    this.isOnline.next(isOnline);
+    
+    if (!isOnline) {
+      this.connectionError.next(-200);
+    } else {
+      this.connectionError.next(null);
     }
+
+    return isOnline;
   }
 
   private async handleConnectionError(errorCode: number) {

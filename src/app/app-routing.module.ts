@@ -42,16 +42,6 @@ const routes: Routes = [
     canActivate: [AuthGuard] 
   },
   { 
-    path: 'points', 
-    component: PointsComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'user-list', 
-    component: UserListComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
     path: 'leaderboard', 
     component: LeaderboardComponent, 
     canActivate: [AuthGuard] 
@@ -72,7 +62,9 @@ const routes: Routes = [
     children: [
       { path: 'test-predictions', component: TestPredictionsComponent },
       { path: 'season', component: SeasonManagementComponent },
-      { path: 'groups', component: GroupManagementComponent }
+      { path: 'groups', component: GroupManagementComponent },
+      { path: 'points', component: PointsComponent },
+      { path: 'users', component: UserListComponent }
     ]
   },
   { path: '', redirectTo: '/home', pathMatch: 'full' },

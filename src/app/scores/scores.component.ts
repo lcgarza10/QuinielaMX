@@ -1,7 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { FootballService, Match } from '../services/football.service';
+import { DatabaseService } from '../services/database.service';
+import { AuthService } from '../services/auth.service';
 import { ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
+
+interface ScoreMatch extends Match {
+  prediction?: {
+    homeScore: number | null;
+    awayScore: number | null;
+    points?: number;
+    livePoints?: number;
+  };
+}
 
 @Component({
   selector: 'app-scores',
@@ -9,7 +20,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrls: ['./scores.component.scss']
 })
 export class ScoresComponent implements OnInit {
-  matches: Match[] = [];
+  matches: ScoreMatch[] = [];
   loading: boolean = true;
   error: string | null = null;
   selectedRound: number = 1;
@@ -18,14 +29,21 @@ export class ScoresComponent implements OnInit {
   isRateLimited: boolean = false;
   isLiveRound: boolean = false;
   isRoundFinished: boolean = false;
+  userId: string | null = null;
+  totalPoints: number = 0;
 
   constructor(
     private footballService: FootballService,
+    private databaseService: DatabaseService,
+    private authService: AuthService,
     private toastController: ToastController
   ) {}
 
   async ngOnInit() {
-    await this.findCurrentRound();
+    this.authService.user$.subscribe(user => {
+      this.userId = user?.uid || null;
+      this.findCurrentRound();
+    });
   }
 
   private async findCurrentRound() {
@@ -46,22 +64,67 @@ export class ScoresComponent implements OnInit {
     this.loading = true;
     this.error = null;
     this.isRateLimited = false;
+    this.totalPoints = 0;
 
     try {
-      const matches = await firstValueFrom(this.footballService.getMatches(this.selectedRound));
-      this.matches = matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const [matches, predictions] = await Promise.all([
+        firstValueFrom(this.footballService.getMatches(this.selectedRound)),
+        this.userId ? firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound.toString())) : []
+      ]);
       
-      const now = new Date();
-      
-      // Check if any match has started based on date and time
-      this.isLiveRound = matches.some(match => {
-        const matchDate = new Date(match.date);
-        return matchDate <= now || 
-               match.status.short === 'LIVE' || 
-               match.status.short === 'HT' ||
-               match.status.short === '1H' ||
-               match.status.short === '2H';
+      this.matches = this.sortMatchesByStatus(matches).map(match => {
+        const prediction = predictions.find(p => p.matchId === match.id);
+        let points = 0;
+        let livePoints = 0;
+
+        if (prediction && prediction.homeScore !== null && prediction.awayScore !== null) {
+          if (match.status.short === 'FT' && match.homeScore !== null && match.awayScore !== null) {
+            // Calculate points for finished matches
+            if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
+              points = 3;
+            } else {
+              const actualResult = Math.sign(match.homeScore - match.awayScore);
+              const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+              if (actualResult === predictedResult) {
+                points = 1;
+              }
+            }
+            this.totalPoints += points;
+          } 
+          else if ((match.status.short === 'LIVE' || match.status.short === 'HT') && 
+                   match.homeScore !== null && match.awayScore !== null) {
+            // Calculate live points for ongoing matches
+            if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
+              livePoints = 3;
+            } else {
+              const actualResult = Math.sign(match.homeScore - match.awayScore);
+              const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+              if (actualResult === predictedResult) {
+                livePoints = 1;
+              }
+            }
+            this.totalPoints += livePoints;
+          }
+        }
+
+        return {
+          ...match,
+          prediction: {
+            homeScore: prediction?.homeScore ?? null,
+            awayScore: prediction?.awayScore ?? null,
+            points,
+            livePoints
+          }
+        };
       });
+      
+      // Check if any match is live
+      this.isLiveRound = matches.some(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT' ||
+        match.status.short === '1H' ||
+        match.status.short === '2H'
+      );
 
       const completedMatches = matches.filter(match => 
         match.status.short === 'FT' || 
@@ -87,6 +150,29 @@ export class ScoresComponent implements OnInit {
     } finally {
       this.loading = false;
     }
+  }
+
+  private sortMatchesByStatus(matches: Match[]): Match[] {
+    const statusPriority: { [key: string]: number } = {
+      'LIVE': 0,
+      'HT': 1,
+      '1H': 2,
+      '2H': 3,
+      'NS': 4,
+      'FT': 5,
+      'AET': 6,
+      'PEN': 7
+    };
+
+    return [...matches].sort((a, b) => {
+      const statusA = statusPriority[a.status.short] ?? 999;
+      const statusB = statusPriority[b.status.short] ?? 999;
+
+      if (statusA === statusB) {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      return statusA - statusB;
+    });
   }
 
   onRoundChange(round: number) {
@@ -150,7 +236,6 @@ export class ScoresComponent implements OnInit {
       }
     }
     
-    // Traducir otros estados comunes
     const statusTranslations: { [key: string]: string } = {
       'PST': 'Pospuesto',
       'CANC': 'Cancelado',
@@ -168,6 +253,22 @@ export class ScoresComponent implements OnInit {
     };
 
     return statusTranslations[match.status.short] || match.status.long || 'Programado';
+  }
+
+  getPredictionClass(match: ScoreMatch): string {
+    if (!match.prediction?.homeScore || !match.prediction?.awayScore) {
+      return 'no-match';
+    }
+    
+    if (match.status.short === 'FT' && match.prediction.points) {
+      if (match.prediction.points === 3) return 'exact-match';
+      if (match.prediction.points === 1) return 'partial-match';
+    } else if ((match.status.short === 'LIVE' || match.status.short === 'HT') && match.prediction.livePoints) {
+      if (match.prediction.livePoints === 3) return 'exact-match live';
+      if (match.prediction.livePoints === 1) return 'partial-match live';
+    }
+    
+    return 'no-match';
   }
 
   private formatMatchTime(date: Date): string {

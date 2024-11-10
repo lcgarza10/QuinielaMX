@@ -24,6 +24,15 @@
     (roundChange)="onRoundChange($event)">
   </app-rounds-selector>
 
+  <!-- Total Points Card -->
+  <div class="total-points" *ngIf="!loading && !error && matches.length > 0">
+    <ion-card>
+      <ion-card-content>
+        <h2>Total de Puntos: {{ totalPoints }}</h2>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
   <div *ngIf="loading" class="loading-container">
     <ion-spinner></ion-spinner>
     <p>Cargando partidos...</p>
@@ -51,7 +60,8 @@
               <br>
               <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
             </ion-card-subtitle>
-            <ion-badge [color]="match.status.short === 'LIVE' ? 'success' :
+            <ion-badge [class.live-status]="match.status.short === 'LIVE' || match.status.short === 'HT'"
+                      [color]="match.status.short === 'LIVE' || match.status.short === 'HT' ? 'success' :
                               match.status.short === 'NS' ? 'warning' : 'medium'"
                       class="match-status">
               {{ getMatchStatus(match) }}
@@ -66,10 +76,17 @@
               </div>
 
               <div class="scores-container">
-                <div class="score-display" [class.live]="match.status.short === 'LIVE'">
-                  <span class="score">{{ match.homeScore ?? '-' }}</span>
-                  <span class="score-separator">-</span>
-                  <span class="score">{{ match.awayScore ?? '-' }}</span>
+                <!-- Actual Score -->
+                <div class="final-score">
+                  {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
+                </div>
+
+                <!-- Prediction Score -->
+                <div class="prediction-score" [ngClass]="getPredictionClass(match)" *ngIf="match.prediction">
+                  Tu Pronóstico: {{ match.prediction?.homeScore ?? '-' }} - {{ match.prediction?.awayScore ?? '-' }}
+                  <div class="points-badge" *ngIf="match.prediction?.points !== undefined || match.prediction?.livePoints !== undefined">
+                    {{ (match.status.short === 'FT' ? match.prediction?.points : match.prediction?.livePoints) ?? 0 }} pts
+                  </div>
                 </div>
               </div>
 

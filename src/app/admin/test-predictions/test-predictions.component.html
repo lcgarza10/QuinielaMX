@@ -31,6 +31,20 @@
         </ion-item>
 
         <ion-item>
+          <ion-button expand="block" routerLink="/admin/points" color="success">
+            <ion-icon name="trophy-outline" slot="start"></ion-icon>
+            Mis Puntos
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" routerLink="/admin/users" color="tertiary">
+            <ion-icon name="people-outline" slot="start"></ion-icon>
+            Participantes
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
           <ion-button expand="block" (click)="recalculateRound16Points()" color="warning" [disabled]="loading">
             <ion-icon name="calculator-outline" slot="start"></ion-icon>
             Recalcular Puntos Jornada 16

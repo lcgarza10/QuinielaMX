@@ -11,10 +11,6 @@
       <ion-icon name="create-outline" slot="start"></ion-icon>
       <ion-label>Sube tu Quiniela</ion-label>
     </ion-item>
-    <ion-item button routerLink="/points">
-      <ion-icon name="trophy-outline" slot="start"></ion-icon>
-      <ion-label>Mis puntos</ion-label>
-    </ion-item>
     <ion-item button routerLink="/leaderboard">
       <ion-icon name="podium-outline" slot="start"></ion-icon>
       <ion-label>Tabla General</ion-label>
@@ -22,10 +18,6 @@
     <ion-item button routerLink="/groups">
       <ion-icon name="people-outline" slot="start"></ion-icon>
       <ion-label>Mis Grupos</ion-label>
-    </ion-item>
-    <ion-item button routerLink="/user-list">
-      <ion-icon name="people-outline" slot="start"></ion-icon>
-      <ion-label>Participantes</ion-label>
     </ion-item>
 
     <!-- Admin Section -->
@@ -35,7 +27,17 @@
     
     <ion-item button routerLink="/admin/test-predictions" *ngIf="isAdmin">
       <ion-icon name="construct-outline" slot="start"></ion-icon>
-      <ion-label>Ajustes de Administrador</ion-label>
+      <ion-label>Panel de Administración</ion-label>
+    </ion-item>
+    
+    <ion-item button routerLink="/admin/points" *ngIf="isAdmin">
+      <ion-icon name="trophy-outline" slot="start"></ion-icon>
+      <ion-label>Mis Puntos</ion-label>
+    </ion-item>
+    
+    <ion-item button routerLink="/admin/users" *ngIf="isAdmin">
+      <ion-icon name="people-outline" slot="start"></ion-icon>
+      <ion-label>Participantes</ion-label>
     </ion-item>
   </ion-list>
 
