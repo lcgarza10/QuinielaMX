@@ -1,0 +1,14 @@
+Version: 0.9.50
+Date: $(date)
+Description: Liga MX Predictions app with working API integration and match display
+
+Changes in 0.9.50:
+- Added group invitation links with custom domain
+- Fixed group member prediction status display
+- Improved mobile layout for groups page
+- Enhanced invitation sharing UI
+
+Changes in 0.9.49:
+- Fixed points calculation in leaderboard
+- Improved weekly and overall points tracking
+- Enhanced database service reliability

@@ -1,8 +1,8 @@
 .matches-grid {
   width: 100%;
-  max-width: 800px;
-  margin: 20px auto 0;
-  padding: 12px;
+  max-width: 750px;
+  margin: 10px auto 0;
+  padding: 22px;
   background: var(--ion-color-light);
   border-radius: 8px;
   overflow-x: auto;
@@ -19,7 +19,7 @@
 
   h3 {
     margin: 0;
-    font-size: 1.3em;
+    font-size: 1.4em;
     font-weight: 500;
   }
 }
@@ -27,23 +27,23 @@
 .grid-header {
   display: grid;
   grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 45px);
-  gap: 1px;
+  gap: 0.9px;
   padding: 8px;
   background: var(--ion-color-primary);
   color: white;
   border-radius: 4px;
-  font-weight: 500;
+  font-weight: 650;
   position: sticky;
   top: 0;
   z-index: 10;
-  font-size: 1.0em;
+  font-size: .8em;
   text-align: center;
 
   .matches-col {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
+    gap: 0.9px;
     
     .team-logo {
       width: 22px;
@@ -52,8 +52,8 @@
     }
 
     .match-score {
-      font-size: 0.8em;
-      font-weight: 600;
+      font-size: 1.0em;
+      font-weight: 500;
       white-space: nowrap;
     }
   }
@@ -62,11 +62,11 @@
 .grid-row {
   display: grid;
   grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 45px);
-  gap: 1px;
+  gap: 0.9px;
   padding: 8px;
   align-items: center;
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
-  font-size: 1.0em;
+  font-size: 0.8em;
   text-align: center;
 
   &:last-child {
@@ -75,7 +75,7 @@
 
   &.current-user {
     background: rgba(var(--ion-color-primary-rgb), 0.1);
-    font-weight: 500;
+    font-weight: 400;
   }
 }
 
@@ -173,7 +173,7 @@
 
   .grid-header, .grid-row {
     grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 40px);
-    gap: 1px;
+    gap: 0.9px;
     padding: 4px;
   }
 
