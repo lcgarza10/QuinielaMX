@@ -2,7 +2,7 @@
   width: 100%;
   max-width: 100%; /* Ajuste para pantallas pequeñas */
   margin: 10px auto 0;
-  padding: 12px; /* Reducir el padding en pantallas pequeñas */
+  padding: 8px; /* Reducir el padding en pantallas pequeñas */
   background: var(--ion-color-light);
   border-radius: 8px;
   overflow-x: auto;
@@ -11,9 +11,9 @@
 
 .grid-header {
   display: grid;
-  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 45px);
-  gap: 4px; /* Incrementar el espacio entre columnas */
-  padding: 8px;
+  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 40px);
+  gap: 2px; /* Reducir el espacio entre columnas */
+  padding: 6px;
   background: var(--ion-color-primary);
   color: white;
   border-radius: 4px;
@@ -24,7 +24,6 @@
   font-size: .8em;
   text-align: center;
 
-  /* Ajustes para que los logos se muestren en una fila separada */
   .matches-col {
     display: flex;
     flex-direction: column;
@@ -32,8 +31,8 @@
     gap: 2px;
 
     .team-logo {
-      width: 18px; /* Tamaño más pequeño para versiones móviles */
-      height: 18px;
+      width: 16px; /* Reducir el tamaño del logo para más espacio */
+      height: 16px;
       object-fit: contain;
     }
 
@@ -47,13 +46,18 @@
 
 .grid-row {
   display: grid;
-  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 45px);
-  gap: 4px;
-  padding: 8px;
+  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 40px);
+  gap: 2px;
+  padding: 6px;
   align-items: center;
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
   font-size: 0.8em;
   text-align: center;
+
+  .user-col {
+    text-align: left; /* Alineación a la izquierda para el usuario */
+    padding-left: 4px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -63,14 +67,14 @@
   }
 
   .grid-header, .grid-row {
-    grid-template-columns: 25px 30px minmax(60px, 80px) repeat(auto-fit, 40px); /* Ajuste de columnas */
-    gap: 2px; /* Menor separación entre columnas */
+    grid-template-columns: 25px 30px minmax(60px, 80px) repeat(auto-fit, 35px); /* Ajuste de columnas */
+    gap: 1px; /* Menor separación entre columnas */
     padding: 4px;
   }
 
   .user-col {
     font-size: 0.9em;
-    padding-left: 2px;
+    padding-left: 4px;
     gap: 2px;
 
     .trophy-icon {
@@ -86,8 +90,8 @@
 
   .matches-col {
     .team-logo {
-      width: 18px; /* Ajuste para versiones móviles */
-      height: 18px;
+      width: 16px; /* Ajuste para versiones móviles */
+      height: 16px;
     }
 
     .match-score {
