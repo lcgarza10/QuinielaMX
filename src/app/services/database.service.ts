@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, SetOptions } from '@angular/fire/compat/firestore';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { Observable, of, from, firstValueFrom } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import firebase from 'firebase/compat/app';
-import { Observable, of, from, throwError, firstValueFrom, combineLatest } from 'rxjs';
-import { map, catchError, tap, switchMap } from 'rxjs/operators';
-import { ConnectionService } from './connection.service';
-import { FirebaseRetryService } from './firebase-retry.service';
+import { FootballService, Match } from './football.service';
 import { User } from './auth.service';
-import { FootballService } from './football.service';
 
 export interface Prediction {
   matchId: number;
@@ -21,40 +19,20 @@ export interface PredictionDocument {
   lastUpdated: firebase.firestore.Timestamp;
 }
 
-export interface WeekDocument {
-  predictions: Prediction[];
-  totalPoints: number;
-  lastUpdated: firebase.firestore.Timestamp;
-}
-
 @Injectable({
   providedIn: 'root'
 })
 export class DatabaseService {
-  private isOnline: boolean = true;
-  private readonly MAX_RETRIES = 3;
-  private readonly RETRY_DELAY = 1000;
-  private readonly serverConfig = { source: 'server' };
-
   constructor(
     private afs: AngularFirestore,
-    private connectionService: ConnectionService,
-    private firebaseRetryService: FirebaseRetryService,
     private footballService: FootballService
-  ) {
-    this.connectionService.getOnlineStatus().subscribe(status => {
-      this.isOnline = status;
-    });
-  }
+  ) {}
 
   getPredictions(userId: string, week: string): Observable<Prediction[]> {
     return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`)
       .valueChanges()
       .pipe(
-        map(doc => {
-          if (!doc) return [];
-          return doc.predictions || [];
-        }),
+        map(doc => doc?.predictions || []),
         catchError(error => {
           console.error('Error getting predictions:', error);
           return of([]);
@@ -68,101 +46,21 @@ export class DatabaseService {
     predictions: Prediction[],
     totalPoints: number
   ): Promise<void> {
-    if (!this.isOnline) {
-      console.warn('Offline: Cannot save predictions while offline');
-      throw new Error('No hay conexión a internet');
-    }
-
-    const validPredictions = predictions.filter(
-      p => p.matchId && p.homeScore !== null && p.awayScore !== null
-    );
-
-    if (validPredictions.length === 0) {
-      throw new Error('No hay predicciones válidas para guardar');
-    }
-
-    const batch = this.afs.firestore.batch();
-    const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`).ref;
-
-    try {
-      // Get current matches to calculate points
-      const matches = await firstValueFrom(this.footballService.getMatches(parseInt(week)));
-      
-      // Calculate points for each prediction
-      let weeklyPoints = 0;
-      const updatedPredictions = validPredictions.map(prediction => {
-        const match = matches.find(m => m.id === prediction.matchId);
-        let points = 0;
-
-        if (match && match.status.short === 'FT' && 
-            match.homeScore !== null && match.awayScore !== null) {
-          // Calculate points for finished matches
-          if (prediction.homeScore === match.homeScore && 
-              prediction.awayScore === match.awayScore) {
-            points = 3; // Exact match
-          } else {
-            const actualResult = Math.sign(match.homeScore - match.awayScore);
-            const predictedResult = Math.sign(prediction.homeScore! - prediction.awayScore!);
-            if (actualResult === predictedResult) {
-              points = 1; // Correct winner/draw
-            }
-          }
-        }
-
-        weeklyPoints += points;
-        return { ...prediction, points };
-      });
-
-      // Update predictions document with calculated points
-      batch.set(docRef, {
-        predictions: updatedPredictions,
-        totalPoints: weeklyPoints,
-        lastUpdated: firebase.firestore.Timestamp.now()
-      }, { merge: true });
-
-      // Update user's total points across all weeks
-      const userPointsRef = this.afs.doc(`userPoints/${userId}`).ref;
-      
-      // Get all weeks' points
-      const weeksSnapshot = await this.afs.collection(`predictions/${userId}/weeks`)
-        .get().toPromise();
-      
-      let totalUserPoints = weeklyPoints; // Start with current week's points
-      
-      if (weeksSnapshot) {
-        weeksSnapshot.docs.forEach(doc => {
-          if (doc.id !== week) { // Don't count current week twice
-            const weekData = doc.data() as WeekDocument;
-            totalUserPoints += weekData.totalPoints || 0;
-          }
-        });
-      }
-
-      // Update total user points
-      batch.set(userPointsRef, {
-        totalPoints: totalUserPoints,
-        lastUpdated: firebase.firestore.Timestamp.now()
-      }, { merge: true });
-
-      await batch.commit();
-
-      console.log(`Updated predictions for week ${week} with total points: ${weeklyPoints}`);
-      console.log(`Updated user total points: ${totalUserPoints}`);
-
-    } catch (error) {
-      console.error('Error saving predictions:', error);
-      throw new Error('Error al guardar las predicciones');
-    }
+    const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
+    await docRef.set({
+      predictions,
+      totalPoints,
+      lastUpdated: firebase.firestore.Timestamp.now()
+    }, { merge: true });
   }
 
-  getUserTotalPoints(userId: string): Observable<number> {
-    return this.afs.doc<{ totalPoints: number }>(`userPoints/${userId}`)
-      .valueChanges()
+  getAllUsers(): Observable<User[]> {
+    return this.afs.collection<User>('users')
+      .valueChanges({ idField: 'uid' })
       .pipe(
-        map(doc => doc?.totalPoints || 0),
         catchError(error => {
-          console.error('Error getting user total points:', error);
-          return of(0);
+          console.error('Error getting users:', error);
+          return of([]);
         })
       );
   }
@@ -184,26 +82,29 @@ export class DatabaseService {
       );
   }
 
-  async calculateAndUpdatePoints(userId: string, week: string): Promise<void> {
+  async updateMatchPoints(userId: string, week: string): Promise<void> {
     try {
-      const predictions = await firstValueFrom(this.getPredictions(userId, week));
-      const matches = await firstValueFrom(this.footballService.getMatches(parseInt(week)));
+      const [predictionsResult, matchesResult] = await Promise.all([
+        firstValueFrom(this.getPredictions(userId, week)),
+        firstValueFrom(this.footballService.getMatches(parseInt(week)))
+      ]);
+
+      if (!predictionsResult || !matchesResult) {
+        return;
+      }
 
       let weeklyPoints = 0;
-      const updatedPredictions = predictions.map(pred => {
-        const match = matches.find(m => m.id === pred.matchId);
-        let points = 0;
+      let updatedPredictions = false;
 
-        if (match && match.status.short === 'FT' && 
-            match.homeScore !== null && match.awayScore !== null) {
-          if (pred.homeScore === match.homeScore && pred.awayScore === match.awayScore) {
-            points = 3;
-          } else {
-            const actualResult = Math.sign(match.homeScore - match.awayScore);
-            const predictedResult = Math.sign(pred.homeScore! - pred.awayScore!);
-            if (actualResult === predictedResult) {
-              points = 1;
-            }
+      const updatedPreds = predictionsResult.map((pred: Prediction) => {
+        const match = matchesResult.find((m: Match) => m.id === pred.matchId);
+        let points = pred.points || 0;
+
+        if (match?.status.short === 'FT' && match.homeScore !== null && match.awayScore !== null) {
+          const newPoints = this.calculateMatchPoints(pred, match);
+          if (newPoints !== points) {
+            points = newPoints;
+            updatedPredictions = true;
           }
         }
 
@@ -211,54 +112,57 @@ export class DatabaseService {
         return { ...pred, points };
       });
 
-      const batch = this.afs.firestore.batch();
-      
-      // Update week document
-      const weekRef = this.afs.doc(`predictions/${userId}/weeks/${week}`).ref;
-      batch.set(weekRef, {
-        predictions: updatedPredictions,
-        totalPoints: weeklyPoints,
-        lastUpdated: firebase.firestore.Timestamp.now()
-      }, { merge: true });
-
-      // Update total points
-      const userPointsRef = this.afs.doc(`userPoints/${userId}`).ref;
-      const weeksSnapshot = await this.afs.collection(`predictions/${userId}/weeks`)
-        .get().toPromise();
-      
-      let totalPoints = 0;
-      if (weeksSnapshot) {
-        weeksSnapshot.docs.forEach(doc => {
-          if (doc.id === week) {
-            totalPoints += weeklyPoints;
-          } else {
-            const weekData = doc.data() as WeekDocument;
-            totalPoints += weekData.totalPoints || 0;
-          }
+      if (updatedPredictions) {
+        const batch = this.afs.firestore.batch();
+        
+        const weekRef = this.afs.doc(`predictions/${userId}/weeks/${week}`).ref;
+        batch.update(weekRef, {
+          predictions: updatedPreds,
+          totalPoints: weeklyPoints,
+          lastUpdated: firebase.firestore.Timestamp.now()
         });
+
+        const userPointsRef = this.afs.doc(`userPoints/${userId}`).ref;
+        const totalPoints = await this.calculateTotalPoints(userId);
+        batch.update(userPointsRef, {
+          totalPoints,
+          lastUpdated: firebase.firestore.Timestamp.now()
+        });
+
+        await batch.commit();
       }
-
-      batch.set(userPointsRef, {
-        totalPoints,
-        lastUpdated: firebase.firestore.Timestamp.now()
-      }, { merge: true });
-
-      await batch.commit();
-
     } catch (error) {
-      console.error('Error calculating and updating points:', error);
-      throw error;
+      console.error('Error updating match points:', error);
     }
   }
 
-  getAllUsers(): Observable<User[]> {
-    return this.afs.collection<User>('users')
-      .valueChanges({ idField: 'id' })
-      .pipe(
-        catchError(error => {
-          console.error('Error getting users:', error);
-          return of([]);
-        })
-      );
+  private async calculateTotalPoints(userId: string): Promise<number> {
+    const snapshot = await this.afs.collection(`predictions/${userId}/weeks`)
+      .get()
+      .toPromise();
+    
+    return snapshot?.docs.reduce((total, doc) => {
+      const data = doc.data() as PredictionDocument;
+      return total + (data.totalPoints || 0);
+    }, 0) || 0;
+  }
+
+  private calculateMatchPoints(prediction: Prediction, match: Match): number {
+    if (!prediction || prediction.homeScore === null || prediction.awayScore === null ||
+        match.homeScore === null || match.awayScore === null) {
+      return 0;
+    }
+
+    if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
+      return 3;
+    }
+
+    const actualResult = Math.sign(match.homeScore - match.awayScore);
+    const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+    if (actualResult === predictedResult) {
+      return 1;
+    }
+
+    return 0;
   }
 }

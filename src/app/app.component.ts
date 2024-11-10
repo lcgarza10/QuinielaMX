@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { AuthService } from './services/auth.service';
 import { ConnectionService } from './services/connection.service';
@@ -12,6 +12,9 @@ import { environment } from '../environments/environment';
 import { PlatformService, PlatformInfo } from './services/platform.service';
 import { AdsService } from './services/ads.service';
 import { SessionService } from './services/session.service';
+import { DatabaseService } from './services/database.service';
+import { FootballService } from './services/football.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -35,7 +38,7 @@ import { SessionService } from './services/session.service';
     }
   `]
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   platformInfo: PlatformInfo | null = null;
 
   constructor(
@@ -50,35 +53,38 @@ export class AppComponent {
     private afFunctions: AngularFireFunctions,
     private platformService: PlatformService,
     private adsService: AdsService,
-    private sessionService: SessionService
-  ) {
-    this.initializeApp();
+    private sessionService: SessionService,
+    private databaseService: DatabaseService,
+    private footballService: FootballService
+  ) {}
+
+  async ngOnInit() {
+    await this.initializeApp();
   }
 
-  async initializeApp() {
+  private async initializeApp() {
     await this.platform.ready();
     
-    // Initialize features
     this.checkForUpdates();
     this.setupConnectionListener();
     this.setupAuthListener();
     this.setupPlatformListener();
     this.sessionService.initializeSession();
     
-    // Setup ads if not in development
+    await this.updateUserPoints();
+    
     if (environment.production) {
       await this.adsService.setupAds();
       await this.adsService.showBanner();
     }
   }
 
-  private setupPlatformListener() {
-    this.platformService.getPlatformInfo().subscribe(info => {
-      this.platformInfo = info;
-      document.body.classList.toggle('mobile', info.isMobile);
-      document.body.classList.toggle('tablet', info.isTablet);
-      document.body.classList.toggle('desktop', info.isDesktop);
-    });
+  private async updateUserPoints() {
+    const user = await firstValueFrom(this.authService.user$);
+    if (user) {
+      const currentRound = await this.footballService.getCurrentRound();
+      await this.databaseService.updateMatchPoints(user.uid, currentRound.toString());
+    }
   }
 
   private checkForUpdates() {
@@ -110,28 +116,22 @@ export class AppComponent {
     this.connectionService.getOnlineStatus().subscribe(isOnline => {
       console.log('Connection status:', isOnline ? 'online' : 'offline');
     });
-
-    this.connectionService.getConnectionError().subscribe(async error => {
-      if (error === -200) {
-        const toast = await this.toastController.create({
-          message: 'Error de conexión. Intentando reconectar...',
-          duration: 3000,
-          position: 'top',
-          color: 'warning'
-        });
-        await toast.present();
-      }
-    });
   }
 
   private setupAuthListener() {
     this.authService.user$.subscribe(user => {
-      if (user) {
-        console.log('User is logged in:', user);
-      } else {
-        console.log('User is not logged in');
+      if (!user) {
         this.router.navigate(['/login']);
       }
+    });
+  }
+
+  private setupPlatformListener() {
+    this.platformService.getPlatformInfo().subscribe(info => {
+      this.platformInfo = info;
+      document.body.classList.toggle('mobile', info.isMobile);
+      document.body.classList.toggle('tablet', info.isTablet);
+      document.body.classList.toggle('desktop', info.isDesktop);
     });
   }
 }

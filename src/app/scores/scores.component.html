@@ -78,14 +78,14 @@
               <div class="scores-container">
                 <!-- Actual Score -->
                 <div class="final-score">
-                  {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
+                  {{ match.status.short === 'NS' ? '' : (match.homeScore ?? '') }} {{ match.status.short === 'NS' ? '' : '-' }} {{ match.status.short === 'NS' ? '' : (match.awayScore ?? '') }}
                 </div>
 
                 <!-- Prediction Score -->
                 <div class="prediction-score" [ngClass]="getPredictionClass(match)" *ngIf="match.prediction">
-                  Tu Pronóstico: {{ match.prediction?.homeScore ?? '-' }} - {{ match.prediction?.awayScore ?? '-' }}
+                  Tu Pronóstico: {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
                   <div class="points-badge" *ngIf="match.prediction?.points !== undefined || match.prediction?.livePoints !== undefined">
-                    {{ (match.status.short === 'FT' ? match.prediction?.points : match.prediction?.livePoints) ?? 0 }} pts
+                    {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
                   </div>
                 </div>
               </div>

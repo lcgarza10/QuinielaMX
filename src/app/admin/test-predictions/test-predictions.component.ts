@@ -61,6 +61,125 @@ export class TestPredictionsComponent implements OnInit {
     }
   }
 
+  async recalculateAllPoints() {
+    const alert = await this.alertController.create({
+      header: 'Recalcular Todos los Puntos',
+      message: '¿Estás seguro de que deseas recalcular los puntos de todas las jornadas para todos los usuarios?',
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Recalcular',
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              message: 'Recalculando puntos...'
+            });
+            await loading.present();
+
+            try {
+              // Get all users
+              const usersSnapshot = await this.afs.collection('users').get().toPromise();
+              let updatedCount = 0;
+              let totalProcessed = 0;
+
+              if (usersSnapshot) {
+                const currentRound = await this.footballService.getCurrentRound();
+                
+                for (const userDoc of usersSnapshot.docs) {
+                  totalProcessed++;
+                  console.log(`Processing user ${totalProcessed}/${usersSnapshot.docs.length}: ${userDoc.id}`);
+
+                  try {
+                    let totalUserPoints = 0;
+
+                    // Process each round up to current
+                    for (let round = 1; round <= currentRound; round++) {
+                      console.log(`Processing round ${round} for user ${userDoc.id}`);
+                      
+                      // Get matches for this round
+                      const matches = await firstValueFrom(this.footballService.getMatches(round));
+                      const finishedMatches = matches.filter(m => m.status.short === 'FT');
+                      
+                      // Get user's predictions for this round
+                      const predictionDoc = await this.afs.doc(`predictions/${userDoc.id}/weeks/${round}`).get().toPromise();
+                      
+                      if (predictionDoc?.exists) {
+                        const data = predictionDoc.data() as { predictions: Prediction[] };
+                        
+                        if (data?.predictions && Array.isArray(data.predictions)) {
+                          let weeklyPoints = 0;
+                          
+                          // Calculate points for each prediction
+                          const updatedPredictions = data.predictions.map(pred => {
+                            const match = finishedMatches.find(m => m.id === pred.matchId);
+                            let points = 0;
+
+                            if (match && pred.homeScore !== null && pred.awayScore !== null) {
+                              if (pred.homeScore === match.homeScore && 
+                                  pred.awayScore === match.awayScore) {
+                                points = 3;
+                              } else {
+                                const actualResult = Math.sign(match.homeScore! - match.awayScore!);
+                                const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
+                                if (actualResult === predictedResult) {
+                                  points = 1;
+                                }
+                              }
+                            }
+
+                            weeklyPoints += points;
+                            return { ...pred, points };
+                          });
+
+                          // Update predictions document for this round
+                          await predictionDoc.ref.update({
+                            predictions: updatedPredictions,
+                            totalPoints: weeklyPoints,
+                            lastUpdated: firebase.firestore.Timestamp.now()
+                          });
+
+                          totalUserPoints += weeklyPoints;
+                        }
+                      }
+                    }
+
+                    // Update user's total points
+                    await this.afs.doc(`userPoints/${userDoc.id}`).set({
+                      totalPoints: totalUserPoints,
+                      lastUpdated: firebase.firestore.Timestamp.now()
+                    }, { merge: true });
+
+                    console.log(`Updated total points for user ${userDoc.id}: ${totalUserPoints}`);
+                    updatedCount++;
+
+                  } catch (error) {
+                    console.error(`Error processing user ${userDoc.id}:`, error);
+                  }
+                }
+
+                await this.showToast(
+                  `Se actualizaron los puntos de ${updatedCount} usuarios de ${totalProcessed} totales`,
+                  'success'
+                );
+              }
+            } catch (error) {
+              console.error('Error recalculating points:', error);
+              await this.showToast(
+                'Error al recalcular los puntos',
+                'danger'
+              );
+            } finally {
+              await loading.dismiss();
+            }
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   async recalculateRound16Points() {
     const alert = await this.alertController.create({
       header: 'Recalcular Puntos Jornada 16',

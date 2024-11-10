@@ -45,6 +45,13 @@
         </ion-item>
 
         <ion-item>
+          <ion-button expand="block" (click)="recalculateAllPoints()" color="warning" [disabled]="loading">
+            <ion-icon name="calculator-outline" slot="start"></ion-icon>
+            Recalcular Todos los Puntos
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
           <ion-button expand="block" (click)="recalculateRound16Points()" color="warning" [disabled]="loading">
             <ion-icon name="calculator-outline" slot="start"></ion-icon>
             Recalcular Puntos Jornada 16
