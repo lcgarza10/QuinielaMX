@@ -66,7 +66,7 @@
           <div class="pts-col">{{ entry.weeklyPoints }}</div>
           <div class="user-col">
             {{ entry.username }}
-            <ion-icon name="trophy" class="trophy-icon" *ngIf="i === 0"></ion-icon>
+          <!--  <ion-icon name="trophy" class="trophy-icon" *ngIf="i === 0"></ion-icon>-->
           </div>
           <div class="prediction-col" *ngFor="let pred of entry.predictions" 
                [class.exact-match]="pred.points === 3"
