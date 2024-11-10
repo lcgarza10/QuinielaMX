@@ -1,32 +1,27 @@
 .matches-grid {
   width: 100%;
-  max-width: 800px; // Increased from 1200px
-  margin: 75px auto 0; // Reduced top margin slightly
+  max-width: 800px;
+  margin: 0 auto;
   padding: 12px;
   background: var(--ion-color-light);
   border-radius: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-    display: grid;
-  grid-template-columns: auto auto auto repeat(auto-fill, minmax(50px, 1fr));
-  gap: 8px; // Ajusta según sea necesario
 }
-
-
 
 .grid-header {
   display: grid;
-  grid-template-columns: 35px 45px minmax(100px, 140px) repeat(auto-fit, 55px); // Increased column widths
+  grid-template-columns: 35px 45px minmax(100px, 140px) repeat(auto-fit, 55px);
   gap: 4px;
   padding: 8px;
   background: var(--ion-color-primary);
-  color: white;
+  color: var(--ion-color-light);
   border-radius: 4px;
   font-weight: 500;
   position: sticky;
   top: 0;
   z-index: 10;
-  font-size: 1.0em; // Increased from 0.8em
+  font-size: 1.0em;
   text-align: center;
 
   .matches-col {
@@ -34,15 +29,16 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
+    min-width: 55px;
     
     .team-logo {
-      width: 25px; // Increased from 16px
+      width: 25px;
       height: 25px;
       object-fit: contain;
     }
 
     .match-score {
-      font-size: 1.0em; // Increased from 0.7em
+      font-size: 1.0em;
       font-weight: 600;
       white-space: nowrap;
     }
@@ -51,25 +47,29 @@
 
 .grid-row {
   display: grid;
-  grid-template-columns: 35px 45px minmax(100px, 140px) repeat(auto-fit, 55px); // Match header columns
+  grid-template-columns: 35px 45px minmax(100px, 140px) repeat(auto-fit, 55px);
   gap: 4px;
   padding: 8px;
   align-items: center;
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
-  font-size: 1.0em; // Increased from 0.8em
+  font-size: 1.0em;
   text-align: center;
+  color: var(--ion-text-color);
+  background: rgba(var(--ion-color-light-rgb), 0.05);
+  transition: background-color 0.2s ease;
 
   &:last-child {
     border-bottom: none;
   }
 
-  &.top-three {
-    background: rgba(var(--ion-color-success-rgb), 0.05);
+  &:hover {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
   }
 
   &.current-user {
-    background: rgba(var(--ion-color-primary-rgb), 0.05);
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
     font-weight: 500;
+    border-left: 3px solid var(--ion-color-primary);
   }
 
   .prediction-col {
@@ -77,79 +77,142 @@
     padding: 4px;
     border-radius: 4px;
     font-weight: 500;
-    font-size: 1.0em; // Increased from 0.75em
-    min-width: 45px; // Increased from 35px
+    font-size: 1.0em;
+    min-width: 45px;
     margin: 0 auto;
     white-space: nowrap;
 
     &.exact-match {
       background: rgba(var(--ion-color-success-rgb), 0.1);
-      color: var(--ion-color-success);
+      color: var(--ion-color-success-shade);
     }
 
     &.partial-match {
       background: rgba(var(--ion-color-warning-rgb), 0.1);
-      color: var(--ion-color-warning);
+      color: var(--ion-color-warning-shade);
     }
 
     &.no-match {
       background: rgba(var(--ion-color-medium-rgb), 0.05);
-      color: var(--ion-color-medium);
+      color: var(--ion-color-medium-shade);
     }
+  }
+}
+
+.group-info {
+  text-align: center;
+  margin: 65px auto 0;
+  padding: 8px 12px;
+  background: var(--ion-color-primary);
+  border-radius: 8px;
+  max-width: 800px;
+  box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.2);
+  
+  h3 {
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--ion-color-light);
   }
 }
 
 .pos-col {
   text-align: center;
   font-weight: 600;
-  font-size: 1.0em; // Increased from 0.8em
+  font-size: 1.0em;
 }
 
 .pts-col {
   text-align: center;
   font-weight: 600;
   color: var(--ion-color-primary);
-  font-size: 1.0em; // Increased from 0.8em
+  font-size: 1.0em;
 }
 
 .user-col {
   padding-left: 8px;
+  padding-right: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 1.0em; // Increased from 0.8em
+  font-size: 1.0em;
   text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .trophy-icon {
+    color: var(--ion-color-warning);
+    font-size: 1.2em;
+    margin-left: auto;
+  }
 }
 
 // Dark mode adjustments
 :host-context(.dark) {
   .matches-grid {
-    background: rgba(var(--ion-color-light-rgb), 0.05);
+    background: rgba(var(--ion-color-step-100-rgb), 0.5);
+  }
+
+  .group-info {
+    background: var(--ion-color-primary-shade);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    
+    h3 {
+      color: var(--ion-color-light);
+    }
+  }
+
+  .round-chip {
+    color: var(--ion-color-light) !important;
+    background: rgba(var(--ion-color-light-rgb), 0.1) !important;
+
+    &.active {
+      background: var(--ion-color-primary) !important;
+    }
   }
 
   .grid-row {
     border-color: rgba(var(--ion-color-medium-rgb), 0.1);
+    color: var(--ion-color-light);
+    background: rgba(var(--ion-color-step-150-rgb), 0.5);
 
-    &.top-three {
-      background: rgba(var(--ion-color-success-rgb), 0.1);
+    &:hover {
+      background: rgba(var(--ion-color-step-200-rgb), 0.5);
     }
 
     &.current-user {
-      background: rgba(var(--ion-color-primary-rgb), 0.1);
+      background: rgba(var(--ion-color-primary-rgb), 0.25);
+      border-left-color: var(--ion-color-primary-tint);
     }
 
     .prediction-col {
       &.exact-match {
         background: rgba(var(--ion-color-success-rgb), 0.15);
+        color: var(--ion-color-success-tint);
       }
 
       &.partial-match {
         background: rgba(var(--ion-color-warning-rgb), 0.15);
+        color: var(--ion-color-warning-tint);
       }
 
       &.no-match {
         background: rgba(var(--ion-color-medium-rgb), 0.1);
+        color: var(--ion-color-medium-tint);
       }
+    }
+  }
+
+  .pts-col {
+    color: var(--ion-color-primary-tint);
+  }
+
+  .user-col {
+    color: var(--ion-color-light);
+
+    .trophy-icon {
+      color: var(--ion-color-warning-tint);
     }
   }
 }
@@ -157,40 +220,56 @@
 // Responsive adjustments
 @media (max-width: 768px) {
   .matches-grid {
-    padding: 6px;
-    margin-top: 65px;
-    font-size: 0.95em; // Increased from 0.9em
+    margin-top: 4px;
+    font-size: 0.95em;
+  }
+
+  .group-info {
+    margin-top: 60px;
+    margin-bottom: 4px;
   }
 
   .grid-header, .grid-row {
-    grid-template-columns: 30px 35px minmax(80px, 110px) repeat(auto-fit, 45px); // Increased sizes
+    grid-template-columns: 30px 35px minmax(80px, 110px) repeat(auto-fit, 45px);
     gap: 2px;
     padding: 4px 3px;
   }
 
   .prediction-col {
-    min-width: 38px !important; // Increased from 32px
+    min-width: 38px !important;
     padding: 2px 3px !important;
   }
 
   .team-logo {
-    width: 20px !important; // Increased from 14px
+    width: 20px !important;
     height: 20px !important;
   }
 
   .match-score {
-    font-size: 0.75em !important; // Increased from 0.65em
+    font-size: 0.75em !important;
+  }
+
+  .user-col {
+    .trophy-icon {
+      font-size: 1em;
+    }
   }
 }
 
 // Tablet adjustments
 @media (min-width: 769px) and (max-width: 1024px) {
   .matches-grid {
-    margin-top: 68px;
-    max-width: 1000px; // Increased from 900px
+    margin-top: 4px;
+    max-width: 1000px;
+  }
+
+  .group-info {
+    margin-top: 60px;
+    margin-bottom: 4px;
+    max-width: 1000px;
   }
 
   .grid-header, .grid-row {
-    grid-template-columns: 32px 38px minmax(85px, 120px) repeat(auto-fit, 48px); // Increased sizes
+    grid-template-columns: 32px 38px minmax(85px, 120px) repeat(auto-fit, 48px);
   }
 }

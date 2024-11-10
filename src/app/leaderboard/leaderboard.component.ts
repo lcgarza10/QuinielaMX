@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
 import { FootballService, Match } from '../services/football.service';
-import { GroupService } from '../services/group.service';
+import { GroupService, Group } from '../services/group.service';
 import { Observable, combineLatest, of, firstValueFrom } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 
@@ -35,6 +35,7 @@ export class LeaderboardComponent implements OnInit {
   selectedView: 'weekly' | 'overall' | 'global' = 'weekly';
   weekMatches: Match[] = [];
   currentUserId: string | null = null;
+  currentGroup: Group | null = null;
 
   constructor(
     private databaseService: DatabaseService,
@@ -46,11 +47,26 @@ export class LeaderboardComponent implements OnInit {
   async ngOnInit() {
     this.authService.user$.subscribe(user => {
       this.currentUserId = user?.uid || null;
+      if (user) {
+        this.loadUserGroup();
+      }
     });
 
     await this.findCurrentRound();
     await this.loadWeekMatches();
     this.setupLeaderboards();
+  }
+
+  private async loadUserGroup() {
+    try {
+      const groups = await firstValueFrom(this.groupService.getUserGroups());
+      if (groups.length > 0) {
+        this.currentGroup = groups[0]; // Tomamos el primer grupo del usuario
+        this.setupLeaderboards(); // Recargamos los leaderboards con el grupo filtrado
+      }
+    } catch (error) {
+      console.error('Error loading user group:', error);
+    }
   }
 
   private async findCurrentRound() {
@@ -78,6 +94,9 @@ export class LeaderboardComponent implements OnInit {
   private setupLeaderboards() {
     // Weekly Leaderboard with detailed predictions
     this.weeklyLeaderboard$ = this.databaseService.getAllUsers().pipe(
+      map(users => users.filter(user => 
+        this.currentGroup ? this.currentGroup.members.includes(user.uid) : true
+      )),
       switchMap(users => {
         const userPredictions$ = users.map(user =>
           this.databaseService.getPredictions(user.uid, this.selectedRound.toString()).pipe(
@@ -86,7 +105,7 @@ export class LeaderboardComponent implements OnInit {
               return {
                 userId: user.uid,
                 username: user.username || user.email || 'Unknown User',
-                totalPoints: 0, // Will be updated with overall points
+                totalPoints: 0,
                 weeklyPoints,
                 predictions: predictions.map(pred => ({
                   matchId: pred.matchId,
@@ -103,8 +122,31 @@ export class LeaderboardComponent implements OnInit {
       map(entries => entries.sort((a, b) => (b.weeklyPoints || 0) - (a.weeklyPoints || 0)))
     );
 
-    // Overall and Global leaderboards
+    // Overall leaderboard (group filtered)
     this.overallLeaderboard$ = this.databaseService.getAllUsersTotalPoints().pipe(
+      switchMap(points => {
+        const userDetails$ = points
+          .filter(point => this.currentGroup ? this.currentGroup.members.includes(point.userId) : true)
+          .map(point =>
+            this.databaseService.getAllUsers().pipe(
+              map(users => {
+                const user = users.find(u => u.uid === point.userId);
+                return {
+                  userId: point.userId,
+                  username: user?.username || user?.email || 'Unknown User',
+                  totalPoints: point.totalPoints,
+                  weeklyPoints: 0
+                };
+              })
+            )
+          );
+        return combineLatest(userDetails$);
+      }),
+      map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
+    );
+
+    // Global leaderboard (no filter)
+    this.globalLeaderboard$ = this.databaseService.getAllUsersTotalPoints().pipe(
       switchMap(points => {
         const userDetails$ = points.map(point =>
           this.databaseService.getAllUsers().pipe(
@@ -123,8 +165,6 @@ export class LeaderboardComponent implements OnInit {
       }),
       map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
     );
-
-    this.globalLeaderboard$ = this.overallLeaderboard$;
   }
 
   async onRoundChange(round: number) {

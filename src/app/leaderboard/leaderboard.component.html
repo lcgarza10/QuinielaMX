@@ -43,11 +43,14 @@
   <!-- Weekly View -->
   <ng-container *ngIf="selectedView === 'weekly'">
     <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
+      <div class="group-info" *ngIf="currentGroup">
+        <h3>{{ currentGroup.name }}</h3>
+      </div>
       <div class="matches-grid">
         <!-- Header Row -->
         <div class="grid-header">
-          <div class="pos-col">Pos</div>
-          <div class="pos-col">Pts</div>
+          <div class="user-col">Pos</div>
+          <div class="user-col">Pts</div>
           <div class="user-col">Usuario</div>
           <div class="matches-col" *ngFor="let match of weekMatches">
             <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
@@ -58,10 +61,13 @@
 
         <!-- User Rows -->
         <div class="grid-row" *ngFor="let entry of weeklyLeaderboard; let i = index" 
-             [class.top-three]="i < 3" [class.current-user]="entry.userId === currentUserId">
+             [class.current-user]="entry.userId === currentUserId">
           <div class="pos-col">{{ i + 1 }}</div>
           <div class="pts-col">{{ entry.weeklyPoints }}</div>
-          <div class="user-col">{{ entry.username }}</div>
+          <div class="user-col">
+            {{ entry.username }}
+            <ion-icon name="trophy" class="trophy-icon" *ngIf="i === 0"></ion-icon>
+          </div>
           <div class="prediction-col" *ngFor="let pred of entry.predictions" 
                [class.exact-match]="pred.points === 3"
                [class.partial-match]="pred.points === 1"
@@ -75,17 +81,23 @@
 
   <!-- Overall View -->
   <ng-container *ngIf="selectedView === 'overall'">
+    <div class="group-info" *ngIf="currentGroup">
+      <h3>{{ currentGroup.name }}</h3>
+    </div>
     <div class="matches-grid">
       <div class="grid-header">
-        <div class="pos-col">#</div>
-        <div class="pts-col">Pts</div>
+        <div class="user-col">Pos</div>
+        <div class="user-col">Pts</div>
         <div class="user-col">Usuario</div>
       </div>
       <div class="grid-row" *ngFor="let entry of overallLeaderboard$ | async; let i = index"
-           [class.top-three]="i < 3" [class.current-user]="entry.userId === currentUserId">
+           [class.current-user]="entry.userId === currentUserId">
         <div class="pos-col">{{ i + 1 }}</div>
         <div class="pts-col">{{ entry.totalPoints }}</div>
-        <div class="user-col">{{ entry.username }}</div>
+        <div class="user-col">
+          {{ entry.username }}
+          <ion-icon name="trophy" class="trophy-icon" *ngIf="i === 0"></ion-icon>
+        </div>
       </div>
     </div>
   </ng-container>
@@ -94,15 +106,18 @@
   <ng-container *ngIf="selectedView === 'global'">
     <div class="matches-grid">
       <div class="grid-header">
-        <div class="pos-col">#</div>
-        <div class="pts-col">Pts</div>
+        <div class="user-col">Pos</div>
+        <div class="user-col">Pts</div>
         <div class="user-col">Usuario</div>
       </div>
       <div class="grid-row" *ngFor="let entry of globalLeaderboard$ | async; let i = index"
-           [class.top-three]="i < 3" [class.current-user]="entry.userId === currentUserId">
+           [class.current-user]="entry.userId === currentUserId">
         <div class="pos-col">{{ i + 1 }}</div>
         <div class="pts-col">{{ entry.totalPoints }}</div>
-        <div class="user-col">{{ entry.username }}</div>
+        <div class="user-col">
+          {{ entry.username }}
+          <ion-icon name="trophy" class="trophy-icon" *ngIf="i === 0"></ion-icon>
+        </div>
       </div>
     </div>
   </ng-container>

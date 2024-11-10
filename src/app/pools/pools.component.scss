@@ -15,6 +15,7 @@
     width: 100%;
     font-size: 1em;
     font-weight: 500;
+    color: var(--ion-text-color);
     
     .round-badge {
       font-size: 0.75em;
@@ -24,24 +25,12 @@
   }
 }
 
-.rounds-scroll {
-  margin: 0 -16px 20px;
-  padding: 0 16px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 .match-card {
   width: 100%;
   margin: 0;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ion-card-background);
 
   ion-card-header {
     position: relative;
@@ -74,6 +63,7 @@
     font-size: 12px;
     font-weight: 500;
     margin-bottom: 4px;
+    color: var(--ion-text-color);
   }
 
   &-position {
@@ -118,14 +108,30 @@
 :host-context(.dark) {
   .week-header {
     background: rgba(var(--ion-color-light-rgb), 0.1);
+    color: var(--ion-color-light);
+
+    .round-badge {
+      color: var(--ion-color-light);
+    }
   }
 
   .match-card {
-    background: rgba(var(--ion-card-background-rgb), 0.8);
+    background: rgba(var(--ion-background-color-rgb), 0.8);
   }
 
-  .team-position {
-    background: rgba(var(--ion-color-medium-rgb), 0.2);
+  .team {
+    &-name {
+      color: var(--ion-color-light);
+    }
+
+    &-position {
+      background: rgba(var(--ion-color-medium-rgb), 0.2);
+      color: var(--ion-color-medium-tint);
+    }
+  }
+
+  ion-card-subtitle {
+    color: var(--ion-color-medium-tint) !important;
   }
 }
 

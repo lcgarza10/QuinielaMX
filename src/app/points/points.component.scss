@@ -16,6 +16,7 @@
     font-size: 1.1em;
     font-weight: 500;
     padding: 0 8px;
+    color: var(--ion-text-color);
     
     .round-badge {
       font-size: 0.8em;
@@ -81,6 +82,7 @@
   margin: 0;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ion-card-background);
 
   ion-card-header {
     padding: 16px;
@@ -116,6 +118,7 @@
     text-align: center;
     font-size: 14px;
     font-weight: 500;
+    color: var(--ion-text-color);
   }
 }
 
@@ -130,6 +133,7 @@
     font-size: 1.4em;
     font-weight: bold;
     margin-bottom: 8px;
+    color: var(--ion-text-color);
   }
 
   .prediction-score {
@@ -150,18 +154,42 @@
   }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
 // Dark mode adjustments
 :host-context(.dark) {
   .round-info {
     background: rgba(var(--ion-color-light-rgb), 0.1);
+
+    .round-status {
+      color: var(--ion-color-light);
+    }
   }
 
   .match-card {
-    background: rgba(var(--ion-card-background-rgb), 0.8);
+    background: rgba(var(--ion-background-color-rgb), 0.8);
   }
+
+  .team {
+    .team-name {
+      color: var(--ion-color-light);
+    }
+  }
+
+  .scores-container {
+    .final-score {
+      color: var(--ion-color-light);
+    }
+
+    .prediction-score {
+      color: var(--ion-color-medium-tint);
+    }
+  }
+
+  ion-card-subtitle {
+    color: var(--ion-color-medium-tint) !important;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }

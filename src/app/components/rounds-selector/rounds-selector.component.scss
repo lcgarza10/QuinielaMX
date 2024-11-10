@@ -36,6 +36,7 @@
   justify-content: center;
   flex-shrink: 0;
   scroll-snap-align: center;
+  color: var(--ion-color-dark);
   
   &.active {
     background: var(--ion-color-primary);
@@ -71,11 +72,11 @@
 :host-context(.dark) {
   .round-chip {
     background: rgba(var(--ion-color-light-rgb), 0.1);
-    color: var(--ion-color-light);
+    color: var(--ion-color-light-tint);
 
     &.active {
-      background: var(--ion-color-primary-tint);
-      color: var(--ion-color-light);
+      background: var(--ion-color-primary);
+      color: var(--ion-color-primary-contrast);
       box-shadow: 0 2px 12px rgba(var(--ion-color-primary-rgb), 0.4);
     }
 
@@ -84,8 +85,12 @@
       
       &:not(.active) {
         background: rgba(var(--ion-color-success-rgb), 0.15);
-        color: var(--ion-color-success-shade);
+        color: var(--ion-color-success-tint);
       }
+    }
+
+    &:hover {
+      background: rgba(var(--ion-color-light-rgb), 0.2);
     }
   }
 }
