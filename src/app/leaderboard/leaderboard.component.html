@@ -54,7 +54,7 @@
         <div class="grid-header">
           <div class="pos-col">Pos</div>
           <div class="pos-col">Pts</div>
-          <div class="user-col">Usuario</div>
+          <div class="user-col">Participante</div>
           <div class="matches-col" *ngFor="let match of weekMatches">
             <div class="team-container">
               <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
@@ -101,7 +101,7 @@
   <!-- Overall View -->
   <ng-container *ngIf="selectedView === 'overall'">
     <div class="group-info" *ngIf="currentGroup">
-      <h3>{{ currentGroup.name }}</h3>
+      <h3>Tabla Grupo {{ currentGroup.name }}</h3>
     </div>
     <div class="matches-grid">
       <div class="grid-header">
@@ -120,6 +120,10 @@
 
   <!-- Global View -->
   <ng-container *ngIf="selectedView === 'global'">
+    <div class="group-info" *ngIf="currentGroup">
+      <h3>Tabla Mundial</h3>
+    </div>
+    
     <div class="matches-grid">
       <div class="grid-header">
         <div class="pos-col">Pos</div>

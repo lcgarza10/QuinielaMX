@@ -62,6 +62,19 @@ body {
   --font-size-base: 16px;
 }
 
+/* Dark mode overrides */
+body.dark {
+  --ion-background-color: #121212;
+  --ion-background-color-rgb: 18, 18, 18;
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255, 255, 255;
+  --ion-card-background: #1e1e1e;
+  --ion-item-background: #1e1e1e;
+  
+  background-color: var(--ion-background-color);
+  color: var(--ion-text-color);
+}
+
 /* Responsive breakpoint classes */
 @media (min-width: 576px) {
   .container {
@@ -87,81 +100,83 @@ body {
   }
 }
 
-/* Responsive utilities */
-.d-none {
-  display: none !important;
-}
-
-.d-block {
-  display: block !important;
-}
-
-@media (min-width: 576px) {
-  .d-sm-none {
-    display: none !important;
-  }
-  .d-sm-block {
-    display: block !important;
-  }
-}
-
-@media (min-width: 768px) {
-  .d-md-none {
-    display: none !important;
-  }
-  .d-md-block {
-    display: block !important;
-  }
-}
-
-@media (min-width: 992px) {
-  .d-lg-none {
-    display: none !important;
-  }
-  .d-lg-block {
-    display: block !important;
-  }
-}
-
-@media (min-width: 1200px) {
-  .d-xl-none {
-    display: none !important;
-  }
-  .d-xl-block {
-    display: block !important;
-  }
-}
-
-/* Responsive grid system */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  margin-right: -15px;
-  margin-left: -15px;
-}
-
-.col {
-  position: relative;
-  width: 100%;
-  padding-right: 15px;
-  padding-left: 15px;
-}
-
-/* Responsive spacing utilities */
-.m-0 { margin: 0 !important; }
-.p-0 { padding: 0 !important; }
-
-@media (min-width: 768px) {
-  .m-md-0 { margin: 0 !important; }
-  .p-md-0 { padding: 0 !important; }
-}
-
-/* Dark theme overrides */
-@media (prefers-color-scheme: dark) {
-  :root {
+/* Mobile Dark Mode Specific Styles */
+@media (max-width: 768px) {
+  body.dark {
     --ion-background-color: #121212;
-    --ion-background-color-rgb: 18, 18, 18;
-    --ion-text-color: #ffffff;
-    --ion-text-color-rgb: 255, 255, 255;
+    --ion-card-background: #1e1e1e;
+    --ion-item-background: #1e1e1e;
   }
+
+  .dark ion-card {
+    background: var(--ion-card-background);
+    color: var(--ion-text-color);
+  }
+
+  .dark ion-item {
+    --background: var(--ion-item-background);
+    --color: var(--ion-text-color);
+  }
+
+  .dark ion-content {
+    --background: var(--ion-background-color);
+  }
+
+  .dark ion-list {
+    background: var(--ion-background-color);
+  }
+
+  .dark .prediction-container {
+    background: var(--ion-card-background);
+  }
+
+  .dark .score-input-vertical {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .score-display {
+    color: var(--ion-text-color);
+  }
+
+  .dark .team-name {
+    color: var(--ion-text-color);
+  }
+
+  .dark .score-value {
+    color: var(--ion-text-color) !important;
+  }
+
+  .dark .quick-scores {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .matches-grid {
+    background: var(--ion-card-background);
+  }
+
+  .dark .grid-row {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .user-col {
+    color: var(--ion-text-color);
+  }
+
+  .dark .prediction-col {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--ion-text-color);
+  }
+}
+
+/* Utility classes for dark mode text contrast */
+.dark-text-primary {
+  color: var(--ion-text-color) !important;
+}
+
+.dark-bg-surface {
+  background-color: var(--ion-card-background) !important;
+}
+
+.dark-border {
+  border-color: var(--ion-border-color) !important;
 }
