@@ -77,31 +77,31 @@ export class ScoresComponent implements OnInit {
         let points = 0;
         let livePoints = 0;
 
-        if (prediction && prediction.homeScore !== null && prediction.awayScore !== null) {
-          if (match.status.short === 'FT' && match.homeScore !== null && match.awayScore !== null) {
-            // Calculate points for finished matches
-            if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
+        if (prediction && prediction.homeScore !== null && prediction.awayScore !== null &&
+            match.homeScore !== null && match.awayScore !== null) {
+          
+          const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+          const actualResult = Math.sign(match.homeScore - match.awayScore);
+          const isExactMatch = prediction.homeScore === match.homeScore && 
+                             prediction.awayScore === match.awayScore;
+          const isPartialMatch = predictedResult === actualResult;
+
+          if (match.status.short === 'FT') {
+            if (isExactMatch) {
               points = 3;
-            } else {
-              const actualResult = Math.sign(match.homeScore - match.awayScore);
-              const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
-              if (actualResult === predictedResult) {
-                points = 1;
-              }
+            } else if (isPartialMatch) {
+              points = 1;
             }
             this.totalPoints += points;
           } 
-          else if ((match.status.short === 'LIVE' || match.status.short === 'HT') && 
-                   match.homeScore !== null && match.awayScore !== null) {
-            // Calculate live points for ongoing matches
-            if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
+          else if (match.status.short === 'LIVE' || 
+                  match.status.short === 'HT' || 
+                  match.status.short === '1H' || 
+                  match.status.short === '2H') {
+            if (isExactMatch) {
               livePoints = 3;
-            } else {
-              const actualResult = Math.sign(match.homeScore - match.awayScore);
-              const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
-              if (actualResult === predictedResult) {
-                livePoints = 1;
-              }
+            } else if (isPartialMatch) {
+              livePoints = 1;
             }
             this.totalPoints += livePoints;
           }
@@ -256,16 +256,29 @@ export class ScoresComponent implements OnInit {
   }
 
   getPredictionClass(match: ScoreMatch): string {
-    if (!match.prediction?.homeScore || !match.prediction?.awayScore) {
+    if (!match.prediction?.homeScore || !match.prediction?.awayScore || 
+        match.homeScore === null || match.awayScore === null) {
       return 'no-match';
     }
-    
-    if (match.status.short === 'FT' && match.prediction.points) {
-      if (match.prediction.points === 3) return 'exact-match';
-      if (match.prediction.points === 1) return 'partial-match';
-    } else if ((match.status.short === 'LIVE' || match.status.short === 'HT') && match.prediction.livePoints) {
-      if (match.prediction.livePoints === 3) return 'exact-match live';
-      if (match.prediction.livePoints === 1) return 'partial-match live';
+
+    const predictedResult = Math.sign(match.prediction.homeScore - match.prediction.awayScore);
+    const actualResult = Math.sign(match.homeScore - match.awayScore);
+    const isExactMatch = match.prediction.homeScore === match.homeScore && 
+                        match.prediction.awayScore === match.awayScore;
+    const isPartialMatch = predictedResult === actualResult && !isExactMatch;
+    const isLive = match.status.short === 'LIVE' || 
+                  match.status.short === 'HT' || 
+                  match.status.short === '1H' || 
+                  match.status.short === '2H';
+
+    if (match.status.short === 'FT') {
+      if (isExactMatch) return 'exact-match';
+      if (isPartialMatch) return 'partial-match';
+      return 'no-match';
+    } else if (isLive) {
+      if (isExactMatch) return 'exact-match live';
+      if (isPartialMatch) return 'partial-match live';
+      return 'no-match live';
     }
     
     return 'no-match';

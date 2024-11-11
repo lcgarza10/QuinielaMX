@@ -52,6 +52,76 @@ export class DatabaseService {
       totalPoints,
       lastUpdated: firebase.firestore.Timestamp.now()
     }, { merge: true });
+
+    // Update total points in userPoints collection
+    await this.updateUserTotalPoints(userId);
+  }
+
+  private async updateUserTotalPoints(userId: string): Promise<void> {
+    try {
+      const weeksSnapshot = await this.afs.collection(`predictions/${userId}/weeks`)
+        .get()
+        .toPromise();
+      
+      let totalPoints = 0;
+      
+      if (weeksSnapshot) {
+        const currentRound = await this.footballService.getCurrentRound();
+        
+        for (const doc of weeksSnapshot.docs) {
+          const weekData = doc.data() as PredictionDocument;
+          const weekNumber = parseInt(doc.id);
+          
+          if (weekNumber <= currentRound) {
+            // Get matches for this week to calculate live points
+            const matches = await firstValueFrom(this.footballService.getMatches(weekNumber));
+            let weekPoints = 0;
+
+            weekData.predictions.forEach(pred => {
+              const match = matches.find(m => m.id === pred.matchId);
+              if (match && pred.homeScore !== null && pred.awayScore !== null &&
+                  match.homeScore !== null && match.awayScore !== null) {
+                
+                const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
+                const actualResult = Math.sign(match.homeScore - match.awayScore);
+                const isExactMatch = pred.homeScore === match.homeScore && 
+                                   pred.awayScore === match.awayScore;
+                const isPartialMatch = predictedResult === actualResult;
+
+                if (match.status.short === 'FT') {
+                  if (isExactMatch) {
+                    weekPoints += 3;
+                  } else if (isPartialMatch) {
+                    weekPoints += 1;
+                  }
+                } else if (match.status.short === 'LIVE' || 
+                          match.status.short === 'HT' || 
+                          match.status.short === '1H' || 
+                          match.status.short === '2H') {
+                  if (isExactMatch) {
+                    weekPoints += 3;
+                  } else if (isPartialMatch) {
+                    weekPoints += 1;
+                  }
+                }
+              }
+            });
+
+            totalPoints += weekPoints;
+          }
+        }
+      }
+
+      // Update user's total points
+      await this.afs.doc(`userPoints/${userId}`).set({
+        totalPoints,
+        lastUpdated: firebase.firestore.Timestamp.now()
+      }, { merge: true });
+
+    } catch (error) {
+      console.error('Error updating total points:', error);
+      throw error;
+    }
   }
 
   getAllUsers(): Observable<User[]> {
@@ -122,29 +192,12 @@ export class DatabaseService {
           lastUpdated: firebase.firestore.Timestamp.now()
         });
 
-        const userPointsRef = this.afs.doc(`userPoints/${userId}`).ref;
-        const totalPoints = await this.calculateTotalPoints(userId);
-        batch.update(userPointsRef, {
-          totalPoints,
-          lastUpdated: firebase.firestore.Timestamp.now()
-        });
-
         await batch.commit();
+        await this.updateUserTotalPoints(userId);
       }
     } catch (error) {
       console.error('Error updating match points:', error);
     }
-  }
-
-  private async calculateTotalPoints(userId: string): Promise<number> {
-    const snapshot = await this.afs.collection(`predictions/${userId}/weeks`)
-      .get()
-      .toPromise();
-    
-    return snapshot?.docs.reduce((total, doc) => {
-      const data = doc.data() as PredictionDocument;
-      return total + (data.totalPoints || 0);
-    }, 0) || 0;
   }
 
   private calculateMatchPoints(prediction: Prediction, match: Match): number {
@@ -153,13 +206,15 @@ export class DatabaseService {
       return 0;
     }
 
-    if (prediction.homeScore === match.homeScore && prediction.awayScore === match.awayScore) {
-      return 3;
-    }
-
-    const actualResult = Math.sign(match.homeScore - match.awayScore);
     const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
-    if (actualResult === predictedResult) {
+    const actualResult = Math.sign(match.homeScore - match.awayScore);
+    const isExactMatch = prediction.homeScore === match.homeScore && 
+                        prediction.awayScore === match.awayScore;
+    const isPartialMatch = predictedResult === actualResult;
+
+    if (isExactMatch) {
+      return 3;
+    } else if (isPartialMatch) {
       return 1;
     }
 

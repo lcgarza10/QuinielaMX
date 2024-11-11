@@ -11,6 +11,7 @@ interface LeaderboardEntry {
   username: string;
   totalPoints: number;
   weeklyPoints?: number;
+  livePoints?: number;
   predictions?: Array<{
     matchId: number;
     homeScore: number;
@@ -36,6 +37,7 @@ export class LeaderboardComponent implements OnInit {
   weekMatches: Match[] = [];
   currentUserId: string | null = null;
   currentGroup: Group | null = null;
+  isLiveRound: boolean = false;
 
   constructor(
     private databaseService: DatabaseService,
@@ -57,12 +59,45 @@ export class LeaderboardComponent implements OnInit {
     this.setupLeaderboards();
   }
 
+  getPrediction(predictions: any[] | undefined, match: Match) {
+    if (!predictions) return null;
+    return predictions.find(p => p.matchId === match.id);
+  }
+
+  getPredictionPoints(predictions: any[] | undefined, match: Match): number {
+    const prediction = this.getPrediction(predictions, match);
+    if (!prediction || prediction.homeScore === null || prediction.awayScore === null ||
+        match.homeScore === null || match.awayScore === null) {
+      return 0;
+    }
+
+    const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+    const actualResult = Math.sign(match.homeScore - match.awayScore);
+    const isExactMatch = prediction.homeScore === match.homeScore && 
+                        prediction.awayScore === match.awayScore;
+    const isPartialMatch = predictedResult === actualResult;
+
+    if (match.status.short === 'FT' || 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT' || 
+        match.status.short === '1H' || 
+        match.status.short === '2H') {
+      if (isExactMatch) {
+        return 3;
+      } else if (isPartialMatch) {
+        return 1;
+      }
+    }
+
+    return 0;
+  }
+
   private async loadUserGroup() {
     try {
       const groups = await firstValueFrom(this.groupService.getUserGroups());
       if (groups.length > 0) {
-        this.currentGroup = groups[0]; // Tomamos el primer grupo del usuario
-        this.setupLeaderboards(); // Recargamos los leaderboards con el grupo filtrado
+        this.currentGroup = groups[0];
+        this.setupLeaderboards();
       }
     } catch (error) {
       console.error('Error loading user group:', error);
@@ -85,6 +120,14 @@ export class LeaderboardComponent implements OnInit {
       this.weekMatches = await firstValueFrom(
         this.footballService.getMatches(this.selectedRound)
       );
+
+      // Check if any match is live
+      this.isLiveRound = this.weekMatches.some(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT' ||
+        match.status.short === '1H' ||
+        match.status.short === '2H'
+      );
     } catch (error) {
       console.error('Error loading week matches:', error);
       this.weekMatches = [];
@@ -101,12 +144,47 @@ export class LeaderboardComponent implements OnInit {
         const userPredictions$ = users.map(user =>
           this.databaseService.getPredictions(user.uid, this.selectedRound.toString()).pipe(
             map(predictions => {
-              const weeklyPoints = predictions.reduce((sum, pred) => sum + (pred.points || 0), 0);
+              let weeklyPoints = 0;
+              let livePoints = 0;
+
+              // Calculate points for each prediction
+              predictions.forEach(pred => {
+                const match = this.weekMatches.find(m => m.id === pred.matchId);
+                if (match && pred.homeScore !== null && pred.awayScore !== null &&
+                    match.homeScore !== null && match.awayScore !== null) {
+                  
+                  const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
+                  const actualResult = Math.sign(match.homeScore - match.awayScore);
+                  const isExactMatch = pred.homeScore === match.homeScore && 
+                                     pred.awayScore === match.awayScore;
+                  const isPartialMatch = predictedResult === actualResult;
+
+                  if (match.status.short === 'FT') {
+                    if (isExactMatch) {
+                      weeklyPoints += 3;
+                    } else if (isPartialMatch) {
+                      weeklyPoints += 1;
+                    }
+                  } 
+                  else if (match.status.short === 'LIVE' || 
+                          match.status.short === 'HT' || 
+                          match.status.short === '1H' || 
+                          match.status.short === '2H') {
+                    if (isExactMatch) {
+                      livePoints += 3;
+                    } else if (isPartialMatch) {
+                      livePoints += 1;
+                    }
+                  }
+                }
+              });
+
               return {
                 userId: user.uid,
                 username: user.username || user.email || 'Unknown User',
                 totalPoints: 0,
                 weeklyPoints,
+                livePoints,
                 predictions: predictions.map(pred => ({
                   matchId: pred.matchId,
                   homeScore: pred.homeScore!,
@@ -119,7 +197,11 @@ export class LeaderboardComponent implements OnInit {
         );
         return combineLatest(userPredictions$);
       }),
-      map(entries => entries.sort((a, b) => (b.weeklyPoints || 0) - (a.weeklyPoints || 0)))
+      map(entries => entries.sort((a, b) => {
+        const aPoints = (a.weeklyPoints || 0) + (a.livePoints || 0);
+        const bPoints = (b.weeklyPoints || 0) + (b.livePoints || 0);
+        return bPoints - aPoints;
+      }))
     );
 
     // Overall leaderboard (group filtered)

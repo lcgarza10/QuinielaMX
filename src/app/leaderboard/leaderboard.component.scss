@@ -51,8 +51,8 @@
       gap: 1px;
 
       .team-logo {
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         object-fit: contain;
       }
 
@@ -92,16 +92,34 @@
     &.exact-match {
       background: rgba(var(--ion-color-success-rgb), 0.1);
       color: var(--ion-color-success);
+
+      &.live {
+        animation: pulse 2s infinite;
+      }
     }
 
     &.partial-match {
       background: rgba(var(--ion-color-warning-rgb), 0.1);
       color: var(--ion-color-warning);
+
+      &.live {
+        animation: pulse 2s infinite;
+      }
     }
 
     &.no-match {
       background: rgba(var(--ion-color-medium-rgb), 0.05);
       color: var(--ion-color-medium);
+
+      &.live {
+        animation: pulse 2s infinite;
+      }
+    }
+
+    &.no-prediction {
+      background: rgba(var(--ion-color-medium-rgb), 0.05);
+      color: var(--ion-color-medium);
+      opacity: 0.5;
     }
 
     .pred-score {
@@ -116,6 +134,18 @@
 
 .pts-col {
   color: var(--ion-color-primary);
+  position: relative;
+
+  .live-points {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--ion-color-success);
+    color: white;
+    font-size: 0.7em;
+    padding: 2px 4px;
+    border-radius: 8px;
+  }
 }
 
 .user-col {
@@ -124,14 +154,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+}
 
-  .trophy-icon {
-    color: gold;
-    font-size: 1.1em;
-  }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 // Dark mode adjustments
@@ -151,14 +178,23 @@
   .prediction-col {
     &.exact-match {
       background: rgba(var(--ion-color-success-rgb), 0.15);
+      color: var(--ion-color-success-tint);
     }
 
     &.partial-match {
       background: rgba(var(--ion-color-warning-rgb), 0.15);
+      color: var(--ion-color-warning-tint);
     }
 
     &.no-match {
       background: rgba(var(--ion-color-medium-rgb), 0.1);
+      color: var(--ion-color-medium-tint);
+    }
+
+    &.no-prediction {
+      background: rgba(var(--ion-color-medium-rgb), 0.1);
+      color: var(--ion-color-medium-tint);
+      opacity: 0.5;
     }
   }
 
@@ -207,9 +243,5 @@
   .user-col {
     font-size: 0.8em;
     padding-left: 2px;
-    
-    .trophy-icon {
-      font-size: 0.9em;
-    }
   }
 }
