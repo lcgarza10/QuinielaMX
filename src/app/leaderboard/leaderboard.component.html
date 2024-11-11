@@ -1,4 +1,5 @@
 <ion-header>
+ <br>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home"></ion-back-button>
@@ -45,7 +46,7 @@
   <ng-container *ngIf="selectedView === 'weekly'">
     <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
       <div class="group-info" *ngIf="currentGroup">
-        <h3>{{ currentGroup.name }}</h3>
+        <h3>Tabla Grupo {{ currentGroup.name }}</h3>
       </div>
 
       <div class="matches-grid">
