@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "liga-mx-predictions": {
+    "quinielamx": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/liga-mx-predictions",
+            "outputPath": "dist/quinielamx",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [

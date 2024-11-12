@@ -1,6 +1,9 @@
 {
-  "appId": "com.example.ligamxpredictions",
-  "appName": "LigaMXPredictions",
+  "appId": "com.example.quinielamx",
+  "appName": "QuinielaMX",
   "webDir": "www",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
 }

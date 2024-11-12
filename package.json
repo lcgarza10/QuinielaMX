@@ -1,5 +1,5 @@
 {
-  "name": "liga-mx-predictions",
+  "name": "quinielamx",
   "version": "0.9.50",
   "scripts": {
     "ng": "ng",
@@ -13,7 +13,9 @@
     "cap:build": "npm run build:prod && npx cap sync",
     "cap:sync": "npm run build:prod && npx cap sync",
     "cap:serve": "npm run build:prod && npx cap sync && npx cap open"
-  },
+    "build:web": "ng build --prod", 
+    "build:mobile": "ng build --prod && cp -r dist/quinielamx www && npx cap copy"  
+},
   "private": true,
   "dependencies": {
     "@angular/animations": "^16.2.0",
@@ -31,7 +33,7 @@
     "@capacitor/core": "^5.7.8",
     "@capacitor/ios": "^5.5.1",
     "@ionic/angular": "^7.8.6",
-    "firebase": "^9.23.0",
+    "firebase": "^11.0.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
