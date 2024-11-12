@@ -1,8 +1,8 @@
-Version: 0.9.50
+Version: 0.9.70
 Date: $(date)
-Description: Liga MX Predictions app with working API integration and match display
+Description: QuinielaMX app with working API integration and match display
 
-Changes in 0.9.50:
+Changes in 0.9.70:
 - Added group invitation links with custom domain
 - Fixed group member prediction status display
 - Improved mobile layout for groups page
