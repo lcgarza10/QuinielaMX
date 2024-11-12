@@ -1,6 +1,6 @@
 {
   "name": "quinielamx",
-  "version": "0.9.50",
+  "version": "0.9.70",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -12,10 +12,10 @@
     "build:prod": "ng build --configuration production",
     "cap:build": "npm run build:prod && npx cap sync",
     "cap:sync": "npm run build:prod && npx cap sync",
-    "cap:serve": "npm run build:prod && npx cap sync && npx cap open"
-    "build:web": "ng build --prod", 
-    "build:mobile": "ng build --prod && cp -r dist/quinielamx www && npx cap copy"  
-},
+    "cap:serve": "npm run build:prod && npx cap sync && npx cap open",
+    "build:web": "ng build --configuration production",
+    "build:mobile": "ng build --configuration production && cp -r dist/quinielamx www && npx cap copy"
+  },
   "private": true,
   "dependencies": {
     "@angular/animations": "^16.2.0",
@@ -48,3 +48,4 @@
     "typescript": "~5.1.3"
   }
 }
+

@@ -1,0 +1,6 @@
+framework module CapacitorCommunityAdmob {
+  umbrella header "CapacitorCommunityAdmob-umbrella.h"
+
+  export *
+  module * { export * }
+}

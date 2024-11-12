@@ -1,8 +1,9 @@
-# Angular cache
-.angular/cache/
+# Ignore node_modules folder
+/node_modules/
 
-# Node modules
-node_modules/
+# Ignore .angular folder
+/.angular/
+/.angular/cache/
 
 # Build output
 dist/
@@ -23,7 +24,3 @@ xcuserdata
 
 # Cordova plugins for Capacitor
 capacitor-cordova-ios-plugins
-
-# Generated Config files
-App/App/capacitor.config.json
-App/App/config.xml
