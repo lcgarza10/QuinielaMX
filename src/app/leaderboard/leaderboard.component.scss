@@ -57,7 +57,7 @@
       }
 
       .score {
-        font-size: 1.2em;
+        font-size: 1.0em;
         font-weight: 500;
       }
     }
@@ -71,7 +71,7 @@
   padding: 6px;
   align-items: center;
   border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
-  font-size: .85em;
+  font-size: 0.85em;
   text-align: center;
 
   &.current-user {
@@ -87,7 +87,7 @@
     padding: 1px;
     border-radius: 3px;
     font-weight: 500;
-    font-size: 1.2em;
+    font-size: 1.0em;
 
     &.exact-match {
       background: rgba(var(--ion-color-success-rgb), 0.1);
