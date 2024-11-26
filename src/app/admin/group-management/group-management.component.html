@@ -45,33 +45,15 @@
                 <div class="members-list">
                   <div class="members-header">
                     <h3>Participantes - Jornada {{ currentRound }}</h3>
-                    <div class="status-legend">
-                      <span class="legend-item">
-                        <ion-icon name="checkmark-circle" color="success"></ion-icon> Ya subió quiniela
-                      </span>
-                      <span class="legend-item">
-                        <ion-icon name="alert-circle" color="warning"></ion-icon> Pendiente
-                      </span>
-                    </div>
                   </div>
 
                   <ion-list>
                     <ion-item *ngFor="let member of group.membersList" lines="full" class="member-item">
-                      <ion-avatar slot="start">
-                        <ion-icon [name]="member.hasPredicted ? 'checkmark-circle' : 'alert-circle'" 
-                                [color]="member.hasPredicted ? 'success' : 'warning'"
-                                class="prediction-status-icon">
-                        </ion-icon>
-                      </ion-avatar>
                       <ion-label>
                         <h3>{{ member.username || member.email }}</h3>
                         <p>{{ member.firstName }} {{ member.lastName }}</p>
-                        <p class="user-id">ID: {{ member.uid }}</p>
                         <ion-badge *ngIf="member.role === 'admin'" color="primary">Admin</ion-badge>
                       </ion-label>
-                      <ion-note slot="end" [color]="member.hasPredicted ? 'success' : 'warning'">
-                        {{ member.hasPredicted ? 'Completado' : 'Pendiente' }}
-                      </ion-note>
                     </ion-item>
                   </ion-list>
                 </div>

@@ -38,17 +38,6 @@
 
     p {
       margin: 4px 0;
-      
-      &.user-id {
-        font-family: monospace;
-        font-size: 12px;
-        color: var(--ion-color-medium);
-        background: rgba(var(--ion-color-medium-rgb), 0.1);
-        padding: 2px 6px;
-        border-radius: 4px;
-        display: inline-block;
-        margin: 4px 0;
-      }
     }
 
     ion-badge {
@@ -77,35 +66,9 @@
     h3 {
       font-size: 1.3em;
       font-weight: 700;
-      margin: 0 0 12px 0;
+      margin: 0;
       color: white;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-
-    .status-legend {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      font-size: 0.9em;
-      color: white;
-      margin-top: 8px;
-      font-weight: 500;
-
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 6px 12px;
-        border-radius: 20px;
-        backdrop-filter: blur(4px);
-        white-space: nowrap;
-
-        ion-icon {
-          font-size: 1.4em;
-        }
-      }
     }
   }
 
@@ -115,18 +78,6 @@
     --background: var(--ion-background-color);
     margin-bottom: 8px;
     border-radius: 8px;
-
-    ion-avatar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      min-width: 32px;
-
-      .prediction-status-icon {
-        font-size: 1.8em;
-      }
-    }
 
     ion-label {
       white-space: normal;
@@ -147,16 +98,6 @@
         margin: 2px 0;
         overflow: hidden;
         text-overflow: ellipsis;
-
-        &.user-id {
-          font-size: 0.75em;
-          background: rgba(var(--ion-color-medium-rgb), 0.1);
-          padding: 2px 6px;
-          border-radius: 4px;
-          display: inline-block;
-          margin: 4px 0;
-          word-break: break-all;
-        }
       }
 
       ion-badge {
@@ -164,15 +105,6 @@
         font-size: 0.75em;
         padding: 4px 8px;
       }
-    }
-
-    ion-note {
-      font-size: 0.8em;
-      font-weight: 500;
-      white-space: nowrap;
-      padding-left: 8px;
-      min-width: 80px;
-      text-align: center;
     }
   }
 }
@@ -184,57 +116,27 @@
   gap: 8px;
 }
 
-// Invite code alert styles
-:host ::ng-deep .invite-code-alert {
-  --max-width: 320px;
-
-  .invite-code {
-    text-align: center;
-    padding: 8px;
-
-    p {
-      margin-bottom: 16px;
-      color: var(--ion-color-medium);
-    }
-
-    .code-container {
-      background: rgba(var(--ion-color-primary-rgb), 0.1);
-      border-radius: 8px;
-      padding: 12px;
-      margin: 8px 0;
-
-      .link {
-        font-size: 14px;
-        word-break: break-all;
-        color: var(--ion-color-primary);
-        margin-bottom: 8px;
-        padding: 8px;
-        background: rgba(var(--ion-color-primary-rgb), 0.1);
-        border-radius: 4px;
-      }
-
-      .code {
-        font-size: 20px;
-        font-weight: 600;
-        color: var(--ion-color-primary);
-        letter-spacing: 2px;
-      }
-    }
+// Dark mode adjustments
+:host-context(.dark) {
+  .playoff-rounds ion-segment {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
   }
 
-  .alert-button-group {
-    padding: 8px;
+  .match-card {
+    background: rgba(var(--ion-background-color-rgb), 0.8);
+  }
 
-    .alert-button {
-      &.alert-button-role-cancel {
-        color: var(--ion-color-medium);
-      }
-    }
+  .team-name {
+    color: var(--ion-color-light);
+  }
+
+  .week-header {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
   }
 }
 
-// Mobile optimizations
-@media (max-width: 576px) {
+// Media queries for responsiveness
+@media (max-width: 768px) {
   .page-container {
     padding: 8px;
   }
@@ -268,36 +170,12 @@
 
       h3 {
         font-size: 1.1em;
-        margin-bottom: 8px;
-      }
-
-      .status-legend {
-        font-size: 0.8em;
-        gap: 8px;
-
-        .legend-item {
-          padding: 4px 8px;
-          
-          ion-icon {
-            font-size: 1.2em;
-          }
-        }
       }
     }
 
     .member-item {
       --min-height: auto;
       padding: 4px 0;
-
-      ion-avatar {
-        margin: 0 8px 0 0;
-        width: 28px;
-        height: 28px;
-
-        .prediction-status-icon {
-          font-size: 1.4em;
-        }
-      }
 
       ion-label {
         h3 {
@@ -307,11 +185,6 @@
         p {
           font-size: 0.8em;
           margin: 1px 0;
-
-          &.user-id {
-            font-size: 0.7em;
-            padding: 1px 4px;
-          }
         }
 
         ion-badge {
@@ -319,78 +192,6 @@
           padding: 2px 6px;
         }
       }
-
-      ion-note {
-        font-size: 0.75em;
-        min-width: 60px;
-        text-align: center;
-      }
     }
-  }
-
-  .invite-code-alert {
-    .code-container {
-      .link {
-        font-size: 12px;
-        padding: 6px;
-      }
-
-      .code {
-        font-size: 18px;
-      }
-    }
-  }
-}
-
-// Dark mode adjustments
-:host-context(.dark) {
-  .group-item {
-    --background: rgba(var(--ion-color-light-rgb), 0.05);
-
-    .user-id {
-      background: rgba(var(--ion-color-medium-rgb), 0.2) !important;
-    }
-  }
-
-  .members-list {
-    background: rgba(var(--ion-color-light-rgb), 0.05);
-
-    .members-header {
-      background: var(--ion-color-primary-shade);
-
-      h3 {
-        color: white;
-      }
-
-      .status-legend {
-        color: white;
-
-        .legend-item {
-          background: rgba(255, 255, 255, 0.15);
-        }
-      }
-    }
-
-    .member-item {
-      --background: rgba(var(--ion-background-color-rgb), 0.3);
-      
-      ion-label h3 {
-        color: var(--ion-color-light);
-      }
-    }
-  }
-
-  :host ::ng-deep .invite-code-alert {
-    .code-container {
-      background: rgba(var(--ion-color-primary-rgb), 0.2);
-
-      .link {
-        background: rgba(var(--ion-color-primary-rgb), 0.2);
-      }
-    }
-  }
-
-  .groups-card, .create-group-card {
-    background: rgba(var(--ion-card-background-rgb), 0.8);
   }
 }

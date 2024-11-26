@@ -44,7 +44,7 @@ export class PoolsComponent implements OnInit {
   isRateLimited: boolean = false;
   savingPredictions: boolean = false;
   isLiveRound: boolean = false;
-  selectedView: 'regular' | 'playoffs' = 'playoffs';
+  selectedView: 'regular' | 'playoffs' = 'regular';
   playoffRounds: string[] = [
     'Reclasificación',
     'Cuartos de Final',
@@ -78,6 +78,22 @@ export class PoolsComponent implements OnInit {
     this.connectionService.getOnlineStatus().subscribe(status => {
       this.isOffline = !status;
     });
+
+    await this.determineCurrentPhase();
+  }
+
+  private async findCurrentRound() {
+    this.loading = true;
+    try {
+      const currentRound = await this.footballService.getCurrentRound();
+      this.currentRound = currentRound;
+      this.selectedRound = currentRound.toString();
+      await this.loadMatches();
+    } catch (error) {
+      console.error('Error finding current round:', error);
+      this.loading = false;
+      this.error = 'Error al cargar la jornada actual';
+    }
   }
 
   async loadMatches() {
@@ -199,20 +215,6 @@ export class PoolsComponent implements OnInit {
     }
   }
 
-  private async findCurrentRound() {
-    this.loading = true;
-    try {
-      const currentRound = await this.footballService.getCurrentRound();
-      this.currentRound = currentRound;
-      this.selectedRound = currentRound.toString();
-      await this.loadMatches();
-    } catch (error) {
-      console.error('Error finding current round:', error);
-      this.loading = false;
-      this.error = 'Error al cargar la jornada actual';
-    }
-  }
-
   getWeekTitle(): string {
     if (this.hasPredictions) {
       return `Estatus de tu Quiniela para esta Jornada: `;
@@ -327,6 +329,45 @@ export class PoolsComponent implements OnInit {
       if (loading) {
         await loading.dismiss();
       }
+    }
+  }
+
+  private async determineCurrentPhase() {
+    try {
+      const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
+      
+      if (allPlayoffMatches.length > 0) {
+        const sortedMatches = [...allPlayoffMatches].sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        const now = new Date();
+        let currentPhase = null;
+
+        for (const match of sortedMatches) {
+          const matchDate = new Date(match.date);
+          const daysDiff = Math.abs(now.getTime() - matchDate.getTime()) / (1000 * 60 * 60 * 24);
+          
+          if (daysDiff <= 3 || matchDate > now) {
+            currentPhase = match.round;
+            break;
+          }
+        }
+
+        if (currentPhase) {
+          this.selectedView = 'playoffs';
+          this.selectedPlayoffRound = currentPhase;
+          await this.loadPlayoffMatches();
+          return;
+        }
+      }
+
+      this.selectedView = 'regular';
+      await this.findCurrentRound();
+    } catch (error) {
+      console.error('Error determining current phase:', error);
+      this.selectedView = 'regular';
+      await this.findCurrentRound();
     }
   }
 

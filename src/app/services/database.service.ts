@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable, of, from, firstValueFrom } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, switchMap } from 'rxjs/operators';
 import { FootballService, Match } from './football.service';
 import { User } from './auth.service';
 
@@ -28,6 +28,11 @@ export class DatabaseService {
   ) {}
 
   getPredictions(userId: string, week: string): Observable<Prediction[]> {
+    if (!userId || !week) {
+      console.warn('Missing required parameters for getPredictions');
+      return of([]);
+    }
+
     return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`)
       .valueChanges()
       .pipe(
@@ -45,6 +50,10 @@ export class DatabaseService {
     predictions: Prediction[],
     totalPoints: number
   ): Promise<void> {
+    if (!userId || !week) {
+      throw new Error('Missing required parameters for savePredictions');
+    }
+
     try {
       const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
       const data: PredictionDocument = {
@@ -61,7 +70,45 @@ export class DatabaseService {
     }
   }
 
+  getAllUsers(): Observable<User[]> {
+    return this.afs.collection<User>('users', ref => 
+      ref.where('email', '!=', '')
+    ).valueChanges({ idField: 'uid' })
+    .pipe(
+      catchError(error => {
+        if (error.code === 'permission-denied') {
+          console.warn('Permission denied accessing users collection. User may not be authenticated.');
+          return of([]);
+        }
+        console.error('Error getting users:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getAllUsersTotalPoints(): Observable<{ userId: string; totalPoints: number }[]> {
+    return this.afs.collection('userPoints')
+      .valueChanges({ idField: 'userId' })
+      .pipe(
+        map(docs => 
+          docs.map((doc: any) => ({
+            userId: doc.userId,
+            totalPoints: doc.totalPoints || 0
+          }))
+        ),
+        catchError(error => {
+          console.error('Error getting all users total points:', error);
+          return of([]);
+        })
+      );
+  }
+
   private async updateUserTotalPoints(userId: string): Promise<void> {
+    if (!userId) {
+      console.warn('Missing userId for updateUserTotalPoints');
+      return;
+    }
+
     try {
       const weeksSnapshot = await this.afs.collection(`predictions/${userId}/weeks`)
         .get()
@@ -100,15 +147,6 @@ export class DatabaseService {
                   } else if (isPartialMatch) {
                     weekPoints += 1;
                   }
-                } else if (match.status.short === 'LIVE' || 
-                          match.status.short === 'HT' || 
-                          match.status.short === '1H' || 
-                          match.status.short === '2H') {
-                  if (isExactMatch) {
-                    weekPoints += 3;
-                  } else if (isPartialMatch) {
-                    weekPoints += 1;
-                  }
                 }
               }
             });
@@ -129,35 +167,12 @@ export class DatabaseService {
     }
   }
 
-  getAllUsers(): Observable<User[]> {
-    return this.afs.collection<User>('users')
-      .valueChanges({ idField: 'uid' })
-      .pipe(
-        catchError(error => {
-          console.error('Error getting users:', error);
-          return of([]);
-        })
-      );
-  }
-
-  getAllUsersTotalPoints(): Observable<{ userId: string; totalPoints: number }[]> {
-    return this.afs.collection('userPoints')
-      .valueChanges({ idField: 'userId' })
-      .pipe(
-        map(docs => 
-          docs.map((doc: any) => ({
-            userId: doc.userId,
-            totalPoints: doc.totalPoints || 0
-          }))
-        ),
-        catchError(error => {
-          console.error('Error getting all users total points:', error);
-          return of([]);
-        })
-      );
-  }
-
   async updateMatchPoints(userId: string, week: string): Promise<void> {
+    if (!userId || !week) {
+      console.warn('Missing required parameters for updateMatchPoints');
+      return;
+    }
+
     try {
       const [predictionsResult, matchesResult] = await Promise.all([
         firstValueFrom(this.getPredictions(userId, week)),

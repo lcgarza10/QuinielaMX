@@ -38,7 +38,7 @@ export class ScoresComponent implements OnInit {
   isRoundFinished: boolean = false;
   userId: string | null = null;
   totalPoints: number = 0;
-  selectedView: 'regular' | 'playoffs' = 'regular';
+  selectedView: 'regular' | 'playoffs' = 'playoffs'; // Changed default to playoffs
   playoffRounds = [
     'Reclasificación',
     'Cuartos de Final',
@@ -56,10 +56,54 @@ export class ScoresComponent implements OnInit {
   async ngOnInit() {
     this.authService.user$.subscribe(user => {
       this.userId = user?.uid || null;
-      if (this.selectedView === 'regular') {
-        this.findCurrentRound();
-      }
     });
+    
+    // Determine current phase on initialization
+    await this.determineCurrentPhase();
+  }
+
+  private async determineCurrentPhase() {
+    try {
+      const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
+      
+      if (allPlayoffMatches.length > 0) {
+        const sortedMatches = [...allPlayoffMatches].sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        const now = new Date();
+        let currentPhase = null;
+
+        // Find the current or upcoming phase
+        for (const match of sortedMatches) {
+          const matchDate = new Date(match.date);
+          const daysDiff = Math.abs(now.getTime() - matchDate.getTime()) / (1000 * 60 * 60 * 24);
+          
+          if (daysDiff <= 3 || matchDate > now) {
+            currentPhase = match.round;
+            break;
+          }
+        }
+
+        if (currentPhase) {
+          // Set view to playoffs and load playoff matches
+          this.selectedView = 'playoffs';
+          await this.loadPlayoffMatches();
+        } else {
+          // If no current playoff phase, switch to regular season
+          this.selectedView = 'regular';
+          await this.findCurrentRound();
+        }
+      } else {
+        // If no playoff matches, default to regular season
+        this.selectedView = 'regular';
+        await this.findCurrentRound();
+      }
+    } catch (error) {
+      console.error('Error determining current phase:', error);
+      this.selectedView = 'regular';
+      await this.findCurrentRound();
+    }
   }
 
   private async findCurrentRound() {

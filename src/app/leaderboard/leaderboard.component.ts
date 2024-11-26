@@ -18,6 +18,7 @@ interface LeaderboardEntry {
     awayScore: number;
     points: number;
   }>;
+  hasPredicted?: boolean;
 }
 
 @Component({
@@ -39,6 +40,9 @@ export class LeaderboardComponent implements OnInit {
   currentUserId: string | null = null;
   currentGroup: Group | null = null;
   isLiveRound: boolean = false;
+  isAdmin: boolean = false;
+  phaseStarted: boolean = false;
+  allPredictionsSubmitted: boolean = false;
   
   rounds: string[] = [
     ...Array.from({ length: 17 }, (_, i) => (i + 1).toString()),
@@ -60,14 +64,51 @@ export class LeaderboardComponent implements OnInit {
   async ngOnInit() {
     this.authService.user$.subscribe(user => {
       this.currentUserId = user?.uid || null;
+      this.isAdmin = this.authService.isAdmin(user);
       if (user) {
         this.loadUserGroup();
       }
     });
 
     await this.findCurrentRound();
+    await this.determineCurrentPhase();
     await this.loadMatches();
     this.setupLeaderboards();
+  }
+
+  private async determineCurrentPhase() {
+    try {
+      const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
+      
+      if (allPlayoffMatches.length > 0) {
+        // Sort matches by date to find the most recent/upcoming match
+        const sortedMatches = [...allPlayoffMatches].sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        const now = new Date();
+        let currentPhase = null;
+
+        // Find the current phase based on match dates
+        for (const match of sortedMatches) {
+          const matchDate = new Date(match.date);
+          const daysDiff = Math.abs(now.getTime() - matchDate.getTime()) / (1000 * 60 * 60 * 24);
+          
+          if (daysDiff <= 3 || matchDate > now) {
+            currentPhase = match.round;
+            break;
+          }
+        }
+
+        if (currentPhase) {
+          this.selectedView = 'weekly';
+          this.selectedRound = currentPhase;
+          console.log('Auto-selected playoff phase:', currentPhase);
+        }
+      }
+    } catch (error) {
+      console.error('Error determining current phase:', error);
+    }
   }
 
   private async loadUserGroup() {
@@ -87,7 +128,9 @@ export class LeaderboardComponent implements OnInit {
     try {
       const currentRound = await this.footballService.getCurrentRound();
       this.currentRound = currentRound;
-      this.selectedRound = currentRound.toString();
+      if (!this.playoffPhases.includes(this.selectedRound)) {
+        this.selectedRound = currentRound.toString();
+      }
     } catch (error) {
       console.error('Error finding current round:', error);
       this.loading = false;
@@ -101,21 +144,37 @@ export class LeaderboardComponent implements OnInit {
 
     try {
       if (this.playoffPhases.includes(this.selectedRound)) {
-        // Load playoff matches for the selected phase
         const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
         this.playoffMatches = allPlayoffMatches.filter(match => match.round === this.selectedRound);
         this.weekMatches = this.convertPlayoffToRegularMatches(this.playoffMatches);
       } else {
-        // Load regular season matches
         this.weekMatches = await firstValueFrom(
           this.footballService.getMatches(parseInt(this.selectedRound))
         );
+      }
+
+      // Check if phase has started
+      const now = new Date();
+      const firstMatch = this.weekMatches[0];
+      if (firstMatch) {
+        const firstMatchDate = new Date(firstMatch.date);
+        this.phaseStarted = now > firstMatchDate;
       }
 
       this.isLiveRound = this.weekMatches.some(match => 
         match.status.short === 'LIVE' || 
         match.status.short === 'HT'
       );
+
+      // Check if all group members have submitted predictions
+      if (this.currentGroup) {
+        const predictions = await Promise.all(
+          this.currentGroup.members.map(memberId =>
+            firstValueFrom(this.databaseService.getPredictions(memberId, this.selectedRound))
+          )
+        );
+        this.allPredictionsSubmitted = predictions.every(p => p && p.length > 0);
+      }
 
       this.setupLeaderboards();
     } catch (error) {
@@ -129,7 +188,7 @@ export class LeaderboardComponent implements OnInit {
   private convertPlayoffToRegularMatches(playoffMatches: PlayoffMatch[]): Match[] {
     return playoffMatches.map(match => ({
       ...match,
-      weekNumber: 0 // Use 0 for playoff matches
+      weekNumber: 0
     }));
   }
 
@@ -140,6 +199,15 @@ export class LeaderboardComponent implements OnInit {
 
   onViewChange() {
     this.setupLeaderboards();
+  }
+
+  shouldShowPrediction(userId: string): boolean {
+    return (
+      this.isAdmin ||
+      userId === this.currentUserId ||
+      this.phaseStarted ||
+      this.allPredictionsSubmitted
+    );
   }
 
   getPrediction(predictions: any[] | undefined, match: Match) {
@@ -231,7 +299,8 @@ export class LeaderboardComponent implements OnInit {
                   homeScore: pred.homeScore!,
                   awayScore: pred.awayScore!,
                   points: pred.points || 0
-                }))
+                })),
+                hasPredicted: predictions.length > 0
               };
             })
           );

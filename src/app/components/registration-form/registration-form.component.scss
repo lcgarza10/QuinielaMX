@@ -1,0 +1,189 @@
+.registration-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+
+  .form-header {
+    text-align: center;
+    margin-bottom: 24px;
+
+    h1 {
+      font-size: 24px;
+      color: white;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .group-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    margin-bottom: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    .invite-message {
+      color: white;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+
+    .group-name {
+      color: white;
+      font-size: 1.4em;
+      font-weight: 700;
+      margin: 8px 0;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .invite-code {
+      color: rgba(255, 255, 255, 0.9);
+      font-family: monospace;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 8px 16px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.9em;
+    }
+  }
+
+  .registration-form {
+    width: 100%;
+    max-width: 400px;
+
+    ion-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(8px);
+      margin: 0;
+
+      ion-card-content {
+        padding: 24px;
+      }
+    }
+
+    ion-item {
+      --background: transparent;
+      --border-color: var(--ion-color-medium);
+      --border-radius: 8px;
+      --border-width: 1px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      margin-bottom: 16px;
+
+      &:last-of-type {
+        margin-bottom: 24px;
+      }
+
+      .input-icon {
+        margin-right: 8px;
+        color: var(--ion-color-medium);
+      }
+
+      &.invalid {
+        --border-color: var(--ion-color-danger);
+      }
+    }
+
+    .validation-errors {
+      margin: -8px 0 16px;
+      padding: 0 16px;
+
+      p {
+        font-size: 0.9em;
+        margin: 4px 0;
+      }
+    }
+
+    .submit-button {
+      margin-top: 16px;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+      font-weight: 600;
+      height: 48px;
+      
+      ion-icon {
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .error-message {
+    background: rgba(var(--ion-color-danger-rgb), 0.1);
+    color: var(--ion-color-danger-contrast);
+    padding: 12px;
+    border-radius: 8px;
+    margin: 16px 0;
+    text-align: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .login-prompt {
+    margin-top: 24px;
+    text-align: center;
+
+    p {
+      margin: 0;
+      color: white;
+      font-size: 0.95rem;
+    }
+
+    ion-button {
+      --color: white;
+      font-weight: 600;
+      text-decoration: none;
+      
+      ion-icon {
+        margin-left: 4px;
+      }
+    }
+  }
+}
+
+// Dark mode adjustments
+:host-context(.dark) {
+  .registration-form {
+    ion-card {
+      background: rgba(var(--ion-card-background-rgb), 0.9);
+    }
+
+    .validation-errors {
+      color: var(--ion-color-danger-tint);
+    }
+  }
+
+  .error-message {
+    background: rgba(var(--ion-color-danger-rgb), 0.15);
+  }
+}
+
+// Mobile optimizations
+@media (max-width: 480px) {
+  .registration-container {
+    padding: 16px;
+
+    .form-header h1 {
+      font-size: 22px;
+    }
+
+    .group-info {
+      padding: 16px;
+
+      .group-name {
+        font-size: 1.2em;
+      }
+
+      .invite-code {
+        font-size: 0.85em;
+        padding: 6px 12px;
+      }
+    }
+  }
+}

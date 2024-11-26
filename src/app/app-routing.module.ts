@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
+import { RegistrationFormComponent } from './components/registration-form/registration-form.component';
 import { ScoresComponent } from './scores/scores.component';
 import { PoolsComponent } from './pools/pools.component';
 import { PointsComponent } from './points/points.component';
@@ -25,6 +26,11 @@ const routes: Routes = [
   { 
     path: 'signup', 
     component: SignupComponent,
+    canActivate: [NoAuthGuard]
+  },
+  {
+    path: 'groups/join/:code',
+    component: RegistrationFormComponent,
     canActivate: [NoAuthGuard]
   },
   { 
@@ -56,11 +62,6 @@ const routes: Routes = [
     path: 'groups', 
     component: GroupManagementComponent, 
     canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'groups/join/:code', 
-    component: SignupComponent,
-    canActivate: [NoAuthGuard]
   },
   { 
     path: 'admin', 

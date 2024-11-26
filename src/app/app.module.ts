@@ -49,6 +49,7 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
+import { RegistrationFormComponent } from './components/registration-form/registration-form.component';
 import { ScoresComponent } from './scores/scores.component';
 import { PoolsComponent } from './pools/pools.component';
 import { PointsComponent } from './points/points.component';
@@ -72,6 +73,7 @@ import { ConnectionService } from './services/connection.service';
 import { FirebaseRetryService } from './services/firebase-retry.service';
 import { SeasonService } from './services/season.service';
 import { GroupService } from './services/group.service';
+import { InvitationService } from './services/invitation.service';
 import { PlatformService } from './services/platform.service';
 import { ThemeService } from './services/theme.service';
 import { SessionService } from './services/session.service';
@@ -130,6 +132,7 @@ addIcons({
     HomeComponent,
     LoginComponent,
     SignupComponent,
+    RegistrationFormComponent,
     ScoresComponent,
     PoolsComponent,
     PointsComponent,
@@ -173,6 +176,7 @@ addIcons({
     FirebaseRetryService,
     SeasonService,
     GroupService,
+    InvitationService,
     PlatformService,
     ThemeService,
     SessionService,

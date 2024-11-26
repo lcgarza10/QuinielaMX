@@ -12,8 +12,19 @@
     <div class="round-info">
       <div class="round-status">
         {{ getRoundStatus() }}
-        <ion-badge [color]="isLiveRound ? 'success' : isRoundFinished ? 'medium' : 'warning'" class="round-badge">
-          {{ isLiveRound ? 'EN VIVO' : isRoundFinished ? 'FINALIZADA' : 'PROGRAMADA' }}
+        <ion-badge
+          [color]="
+            isLiveRound ? 'success' : isRoundFinished ? 'medium' : 'warning'
+          "
+          class="round-badge"
+        >
+          {{
+            isLiveRound
+              ? 'EN VIVO'
+              : isRoundFinished
+              ? 'FINALIZADA'
+              : 'PROGRAMADA'
+          }}
         </ion-badge>
       </div>
     </div>
@@ -22,7 +33,8 @@
       [selectedRound]="selectedRound"
       [currentRound]="currentRound"
       [isLiveRound]="isLiveRound"
-      (roundChange)="onRoundChange($event)">
+      (roundChange)="onRoundChange($event)"
+    >
     </app-rounds-selector>
 
     <!-- Total Points Card -->
@@ -53,7 +65,10 @@
     <!-- Offline State -->
     <div *ngIf="isOffline" class="offline-container">
       <ion-text color="warning">
-        <p>No hay conexión a internet. Algunos datos pueden no estar actualizados.</p>
+        <p>
+          No hay conexión a internet. Algunos datos pueden no estar
+          actualizados.
+        </p>
         <ion-button (click)="retryConnection()" size="small" fill="outline">
           Reintentar Conexión
         </ion-button>
@@ -66,8 +81,9 @@
         <ion-card class="match-card">
           <ion-card-header>
             <ion-card-subtitle>
-              {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • {{ match.date | date:'h:mm a':'':'es-MX' }}
-              <br>
+              {{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} •
+              {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}
+              <br />
               <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
             </ion-card-subtitle>
           </ion-card-header>
@@ -75,7 +91,11 @@
           <ion-card-content>
             <div class="teams">
               <div class="team">
-                <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
+                <img
+                  [src]="match.homeTeamLogo"
+                  [alt]="match.homeTeam"
+                  class="team-logo"
+                />
                 <div class="team-name">{{ match.homeTeam }}</div>
               </div>
 
@@ -83,8 +103,12 @@
                 <div class="final-score">
                   {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
                 </div>
-                <div class="prediction-score" *ngIf="match.predictedHomeScore !== undefined">
-                  Pronóstico: {{ match.predictedHomeScore }} - {{ match.predictedAwayScore }}
+                <div
+                  class="prediction-score"
+                  *ngIf="match.predictedHomeScore !== undefined"
+                >
+                  Tu Pronóstico: {{ match.predictedHomeScore }} -
+                  {{ match.predictedAwayScore }}
                   <div class="points-badge" *ngIf="match.points !== undefined">
                     {{ match.points }} pts
                   </div>
@@ -92,7 +116,11 @@
               </div>
 
               <div class="team">
-                <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
+                <img
+                  [src]="match.awayTeamLogo"
+                  [alt]="match.awayTeam"
+                  class="team-logo"
+                />
                 <div class="team-name">{{ match.awayTeam }}</div>
               </div>
             </div>

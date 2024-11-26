@@ -75,18 +75,24 @@
           <div class="user-col">{{ entry.username }}</div>
           <ng-container *ngFor="let match of weekMatches">
             <div class="prediction-col" 
-                 [class.exact-match]="getPredictionPoints(entry.predictions, match) === 3"
-                 [class.partial-match]="getPredictionPoints(entry.predictions, match) === 1"
-                 [class.no-match]="getPredictionPoints(entry.predictions, match) === 0"
+                 [class.exact-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 3"
+                 [class.partial-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 1"
+                 [class.no-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 0"
                  [class.no-prediction]="!getPrediction(entry.predictions, match)"
                  [class.live]="match.status.short === 'LIVE' || match.status.short === 'HT' || match.status.short === '1H' || match.status.short === '2H'">
-              <ng-container *ngIf="getPrediction(entry.predictions, match) as pred">
-                <div class="pred-score">{{ pred.homeScore }}</div>
-                <div class="pred-score">{{ pred.awayScore }}</div>
+              <ng-container *ngIf="shouldShowPrediction(entry.userId)">
+                <ng-container *ngIf="getPrediction(entry.predictions, match) as pred">
+                  <div class="pred-score">{{ pred.homeScore }}</div>
+                  <div class="pred-score">{{ pred.awayScore }}</div>
+                </ng-container>
+                <ng-container *ngIf="!getPrediction(entry.predictions, match)">
+                  <div class="pred-score">-</div>
+                  <div class="pred-score">-</div>
+                </ng-container>
               </ng-container>
-              <ng-container *ngIf="!getPrediction(entry.predictions, match)">
-                <div class="pred-score">-</div>
-                <div class="pred-score">-</div>
+              <ng-container *ngIf="!shouldShowPrediction(entry.userId)">
+                <div class="pred-score" *ngIf="entry.hasPredicted">?</div>
+                <div class="pred-score" *ngIf="!entry.hasPredicted">-</div>
               </ng-container>
             </div>
           </ng-container>

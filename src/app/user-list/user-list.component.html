@@ -31,9 +31,17 @@
         <ion-label>
           <h2>{{ user.firstName }} {{ user.lastName }}</h2>
           <p class="username">@{{ user.username || 'sin_usuario' }}</p>
-          <p class="user-id">ID: {{ user.uid }}</p>
           <ion-badge color="primary" *ngIf="user.isAdmin">Admin</ion-badge>
         </ion-label>
+        
+        <ion-buttons slot="end">
+          <ion-button (click)="showUserGroups(user)" color="primary">
+            <ion-icon name="people-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+          <ion-button (click)="confirmDeleteUser(user)" color="danger" *ngIf="!user.isAdmin">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-buttons>
       </ion-item>
 
       <!-- Empty State -->
