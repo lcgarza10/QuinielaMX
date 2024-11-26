@@ -1,3 +1,46 @@
+.playoff-rounds {
+  margin: 16px 0;
+  
+  ion-segment {
+    background: var(--ion-color-light);
+    border-radius: 8px;
+    padding: 4px;
+  }
+}
+
+.playoff-matches {
+  margin-top: 16px;
+}
+
+.match-info {
+  margin-top: 16px;
+  text-align: center;
+  position: relative;
+}
+
+.match-leg {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  
+  ion-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+  }
+}
+
+.no-matches {
+  text-align: center;
+  padding: 32px;
+  
+  h2 {
+    color: var(--ion-color-medium);
+    font-size: 1.2em;
+    font-weight: 500;
+  }
+}
+
 .week-header {
   display: flex;
   align-items: center;
@@ -65,16 +108,6 @@
     margin-bottom: 4px;
     color: var(--ion-text-color);
   }
-
-  &-position {
-    text-align: center;
-    font-size: 10px;
-    color: var(--ion-color-medium);
-    background: rgba(var(--ion-color-medium-rgb), 0.1);
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-top: 2px;
-  }
 }
 
 .loading-container {
@@ -106,32 +139,20 @@
 
 // Dark mode adjustments
 :host-context(.dark) {
-  .week-header {
+  .playoff-rounds ion-segment {
     background: rgba(var(--ion-color-light-rgb), 0.1);
-    color: var(--ion-color-light);
-
-    .round-badge {
-      color: var(--ion-color-light);
-    }
   }
 
   .match-card {
     background: rgba(var(--ion-background-color-rgb), 0.8);
   }
 
-  .team {
-    &-name {
-      color: var(--ion-color-light);
-    }
-
-    &-position {
-      background: rgba(var(--ion-color-medium-rgb), 0.2);
-      color: var(--ion-color-medium-tint);
-    }
+  .team-name {
+    color: var(--ion-color-light);
   }
 
-  ion-card-subtitle {
-    color: var(--ion-color-medium-tint) !important;
+  .week-header {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
   }
 }
 
@@ -152,10 +173,6 @@
     &-name {
       font-size: 16px;
     }
-
-    &-position {
-      font-size: 12px;
-    }
   }
 
   .submit-button {
@@ -163,22 +180,5 @@
     --padding-top: 16px;
     --padding-bottom: 16px;
     font-size: 1em;
-  }
-}
-
-@media (min-width: 992px) {
-  .team {
-    &-logo {
-      width: 54px;
-      height: 54px;
-    }
-
-    &-name {
-      font-size: 18px;
-    }
-
-    &-position {
-      font-size: 14px;
-    }
   }
 }

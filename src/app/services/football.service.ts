@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, shareReplay } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
 export interface Venue {
@@ -14,6 +14,7 @@ export interface Status {
   long: string;
   short: string;
   elapsed?: number | null;
+  extra?: number | null;
 }
 
 export interface Team {
@@ -46,8 +47,9 @@ export interface Match {
   awayTeamForm?: string;
 }
 
-export interface PlayoffMatch extends Match {
-  leg?: number;
+export interface PlayoffMatch extends Omit<Match, 'round'> {
+  round: 'Reclasificación' | 'Cuartos de Final' | 'Semifinal' | 'Final';
+  leg?: 1 | 2;
   prediction?: {
     homeScore: number | null;
     awayScore: number | null;
@@ -87,12 +89,13 @@ export class FootballService {
   private readonly LIGA_MX_ID = '262';
   private readonly CURRENT_SEASON = '2024';
   private readonly TIMEZONE = 'America/Mexico_City';
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly CACHE_DURATION = 30 * 1000; // 30 seconds cache
   
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000;
 
   private readonly matchesCache = new Map<number, { timestamp: number; matches: Match[] }>();
+  private readonly playoffMatchesCache = new Map<string, { timestamp: number; matches: PlayoffMatch[] }>();
   private currentRoundSubject = new BehaviorSubject<number>(1);
   private currentRoundPromise: Promise<number> | null = null;
 
@@ -163,67 +166,142 @@ export class FootballService {
         catchError(error => {
           console.error('Error fetching matches:', error);
           return of([]);
-        })
+        }),
+        shareReplay(1)
       );
   }
 
   getPlayoffMatches(): Observable<PlayoffMatch[]> {
+    const cacheKey = 'playoffs';
+    const cachedMatches = this.getCachedPlayoffMatches(cacheKey);
+    if (cachedMatches) {
+      return of(cachedMatches);
+    }
+
     const headers = new HttpHeaders({
       'x-apisports-key': this.API_KEY
     });
 
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const isApertura = currentMonth >= 7;
+    const seasonYear = isApertura ? currentYear : currentYear;
+
+    let startDate: string;
+    let endDate: string;
+
+    if (isApertura) {
+      // Apertura playoff dates (November-December)
+      startDate = `${seasonYear}-11-20`;
+      endDate = `${seasonYear}-12-15`;
+    } else {
+      // Clausura playoff dates (May)
+      startDate = `${seasonYear}-05-08`;
+      endDate = `${seasonYear}-05-29`;
+    }
+
     const params = new HttpParams()
       .set('league', this.LIGA_MX_ID)
       .set('season', this.CURRENT_SEASON)
-      .set('from', '2024-11-20')
-      .set('to', '2024-12-15')
-      .set('timezone', this.TIMEZONE);
+      .set('from', startDate)
+      .set('to', endDate)
+      .set('timezone', this.TIMEZONE)
+      .set('status', 'NS-1H-HT-2H-FT');
+
+    console.log('Fetching playoff matches with params:', {
+      startDate,
+      endDate,
+      isApertura,
+      seasonYear
+    });
 
     return this.http.get<ApiResponse>(`${this.API_URL}/fixtures`, { headers, params })
       .pipe(
         map(response => {
-          if (!response?.response) return [];
-          
-          return response.response.map(fixture => {
-            let round = 'Regular';
-            let leg: number | undefined;
+          if (!response?.response) {
+            console.log('No playoff matches found in response');
+            return [];
+          }
 
+          console.log('Found playoff matches:', response.response.length);
+          
+          const matches: PlayoffMatch[] = [];
+
+          for (const fixture of response.response) {
             const matchDate = new Date(fixture.fixture.date);
-            
-            if (matchDate >= new Date('2024-11-20') && matchDate <= new Date('2024-11-24')) {
-              round = 'Reclasificación';
-            } else if (matchDate >= new Date('2024-11-27') && matchDate <= new Date('2024-12-01')) {
-              round = 'Cuartos de Final';
-              leg = matchDate <= new Date('2024-11-28') ? 1 : 2;
-            } else if (matchDate >= new Date('2024-12-04') && matchDate <= new Date('2024-12-08')) {
-              round = 'Semifinal';
-              leg = matchDate <= new Date('2024-12-05') ? 1 : 2;
-            } else if (matchDate >= new Date('2024-12-12') && matchDate <= new Date('2024-12-15')) {
-              round = 'Final';
-              leg = matchDate <= new Date('2024-12-12') ? 1 : 2;
+            let round: PlayoffMatch['round'] | undefined;
+            let leg: 1 | 2 | undefined;
+
+            if (isApertura) {
+              // Apertura playoff rounds
+              if (matchDate >= new Date(`${seasonYear}-11-20`) && matchDate <= new Date(`${seasonYear}-11-24`)) {
+                round = 'Reclasificación';
+              } else if (matchDate >= new Date(`${seasonYear}-11-27`) && matchDate <= new Date(`${seasonYear}-12-03`)) {
+                round = 'Cuartos de Final';
+                leg = matchDate <= new Date(`${seasonYear}-11-30`) ? 1 : 2;
+              } else if (matchDate >= new Date(`${seasonYear}-12-04`) && matchDate <= new Date(`${seasonYear}-12-10`)) {
+                round = 'Semifinal';
+                leg = matchDate <= new Date(`${seasonYear}-12-07`) ? 1 : 2;
+              } else if (matchDate >= new Date(`${seasonYear}-12-11`) && matchDate <= new Date(`${seasonYear}-12-15`)) {
+                round = 'Final';
+                leg = matchDate <= new Date(`${seasonYear}-12-13`) ? 1 : 2;
+              }
+            } else {
+              // Clausura playoff rounds
+              if (matchDate >= new Date(`${seasonYear}-05-08`) && matchDate <= new Date(`${seasonYear}-05-12`)) {
+                round = 'Reclasificación';
+              } else if (matchDate >= new Date(`${seasonYear}-05-15`) && matchDate <= new Date(`${seasonYear}-05-21`)) {
+                round = 'Cuartos de Final';
+                leg = matchDate <= new Date(`${seasonYear}-05-18`) ? 1 : 2;
+              } else if (matchDate >= new Date(`${seasonYear}-05-22`) && matchDate <= new Date(`${seasonYear}-05-26`)) {
+                round = 'Semifinal';
+                leg = matchDate <= new Date(`${seasonYear}-05-24`) ? 1 : 2;
+              } else if (matchDate >= new Date(`${seasonYear}-05-27`) && matchDate <= new Date(`${seasonYear}-05-29`)) {
+                round = 'Final';
+                leg = matchDate <= new Date(`${seasonYear}-05-28`) ? 1 : 2;
+              }
             }
 
-            return {
-              id: fixture.fixture.id,
-              date: fixture.fixture.date,
-              homeTeam: fixture.teams.home.name,
-              awayTeam: fixture.teams.away.name,
-              homeTeamLogo: fixture.teams.home.logo,
-              awayTeamLogo: fixture.teams.away.logo,
-              homeScore: fixture.goals.home,
-              awayScore: fixture.goals.away,
-              status: fixture.fixture.status,
-              venue: fixture.fixture.venue,
-              round,
-              leg,
-              weekNumber: 0
-            };
-          });
+            if (round) {
+              console.log('Adding playoff match:', {
+                id: fixture.fixture.id,
+                date: fixture.fixture.date,
+                round,
+                leg,
+                homeTeam: fixture.teams.home.name,
+                awayTeam: fixture.teams.away.name
+              });
+
+              const match: PlayoffMatch = {
+                id: fixture.fixture.id,
+                date: fixture.fixture.date,
+                homeTeam: fixture.teams.home.name,
+                awayTeam: fixture.teams.away.name,
+                homeTeamLogo: fixture.teams.home.logo,
+                awayTeamLogo: fixture.teams.away.logo,
+                homeScore: fixture.goals.home,
+                awayScore: fixture.goals.away,
+                status: fixture.fixture.status,
+                venue: fixture.fixture.venue,
+                round,
+                leg,
+                weekNumber: 0
+              };
+
+              matches.push(match);
+            }
+          }
+
+          const sortedMatches = matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          this.setCachedPlayoffMatches(cacheKey, sortedMatches);
+          return sortedMatches;
         }),
         catchError(error => {
           console.error('Error fetching playoff matches:', error);
           return of([]);
-        })
+        }),
+        shareReplay(1)
       );
   }
 
@@ -269,8 +347,28 @@ export class FootballService {
     return cached.matches;
   }
 
+  private getCachedPlayoffMatches(key: string): PlayoffMatch[] | null {
+    const cached = this.playoffMatchesCache.get(key);
+    if (!cached) return null;
+
+    const now = Date.now();
+    if (now - cached.timestamp > this.CACHE_DURATION) {
+      this.playoffMatchesCache.delete(key);
+      return null;
+    }
+
+    return cached.matches;
+  }
+
   private setCachedMatches(round: number, matches: Match[]) {
     this.matchesCache.set(round, {
+      timestamp: Date.now(),
+      matches
+    });
+  }
+
+  private setCachedPlayoffMatches(key: string, matches: PlayoffMatch[]) {
+    this.playoffMatchesCache.set(key, {
       timestamp: Date.now(),
       matches
     });
@@ -293,7 +391,6 @@ export class FootballService {
   }
 
   getPlayoffRounds(): Observable<number[]> {
-    // Replace with actual API call logic
-    return of([18, 19, 20]); // Example playoff rounds
+    return of([18, 19, 20]);
   }
 }

@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable, of, from, firstValueFrom } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import firebase from 'firebase/compat/app';
 import { FootballService, Match } from './football.service';
 import { User } from './auth.service';
 
@@ -16,7 +15,7 @@ export interface Prediction {
 export interface PredictionDocument {
   predictions: Prediction[];
   totalPoints: number;
-  lastUpdated: firebase.firestore.Timestamp;
+  lastUpdated: Date;
 }
 
 @Injectable({
@@ -46,15 +45,20 @@ export class DatabaseService {
     predictions: Prediction[],
     totalPoints: number
   ): Promise<void> {
-    const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
-    await docRef.set({
-      predictions,
-      totalPoints,
-      lastUpdated: firebase.firestore.Timestamp.now()
-    }, { merge: true });
+    try {
+      const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
+      const data: PredictionDocument = {
+        predictions,
+        totalPoints,
+        lastUpdated: new Date()
+      };
 
-    // Update total points in userPoints collection
-    await this.updateUserTotalPoints(userId);
+      await docRef.set(data, { merge: true });
+      await this.updateUserTotalPoints(userId);
+    } catch (error) {
+      console.error('Error saving predictions:', error);
+      throw error;
+    }
   }
 
   private async updateUserTotalPoints(userId: string): Promise<void> {
@@ -72,9 +76,11 @@ export class DatabaseService {
           const weekData = doc.data() as PredictionDocument;
           const weekNumber = parseInt(doc.id);
           
-          if (weekNumber <= currentRound) {
-            // Get matches for this week to calculate live points
-            const matches = await firstValueFrom(this.footballService.getMatches(weekNumber));
+          if (weekNumber <= currentRound || doc.id === 'playoffs') {
+            const matches = doc.id === 'playoffs' 
+              ? await firstValueFrom(this.footballService.getPlayoffMatches())
+              : await firstValueFrom(this.footballService.getMatches(weekNumber));
+
             let weekPoints = 0;
 
             weekData.predictions.forEach(pred => {
@@ -112,10 +118,9 @@ export class DatabaseService {
         }
       }
 
-      // Update user's total points
       await this.afs.doc(`userPoints/${userId}`).set({
         totalPoints,
-        lastUpdated: firebase.firestore.Timestamp.now()
+        lastUpdated: new Date()
       }, { merge: true });
 
     } catch (error) {
@@ -156,7 +161,9 @@ export class DatabaseService {
     try {
       const [predictionsResult, matchesResult] = await Promise.all([
         firstValueFrom(this.getPredictions(userId, week)),
-        firstValueFrom(this.footballService.getMatches(parseInt(week)))
+        week === 'playoffs' 
+          ? firstValueFrom(this.footballService.getPlayoffMatches())
+          : firstValueFrom(this.footballService.getMatches(parseInt(week)))
       ]);
 
       if (!predictionsResult || !matchesResult) {
@@ -189,7 +196,7 @@ export class DatabaseService {
         batch.update(weekRef, {
           predictions: updatedPreds,
           totalPoints: weeklyPoints,
-          lastUpdated: firebase.firestore.Timestamp.now()
+          lastUpdated: new Date()
         });
 
         await batch.commit();

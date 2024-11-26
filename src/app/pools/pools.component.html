@@ -5,52 +5,36 @@
     </ion-buttons>
     <ion-title>Sube tu Quiniela</ion-title>
   </ion-toolbar>
-</ion-header>
 
-<ion-content class="ion-padding">
-  <div class="week-header">
-    <div class="round-badge">
-      {{ getWeekTitle() }}
-      <ion-badge
-        [color]="hasPredictions ? 'success' : 'warning'"
-        class="round-badge"
-      >
-        {{ hasPredictions ? 'COMPLETADA' : 'PENDIENTE' }}
-      </ion-badge>
-    </div>
-  </div>
+  <ion-toolbar color="primary">
+    <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange()" mode="ios">
+      <ion-segment-button value="regular">
+        <ion-label>Regular</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="playoffs">
+        <ion-label>Liguilla</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 
-  <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange($event)">
-    <ion-segment-button value="regular">
-      <ion-label>Regular</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="playoffs">
-      <ion-label>Playoffs</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-
-  <div *ngIf="selectedView === 'regular'">
+  <ion-toolbar *ngIf="selectedView === 'regular'" color="light">
     <app-rounds-selector
       [selectedRound]="selectedRound"
       [currentRound]="currentRound"
       [isLiveRound]="isLiveRound"
       (roundChange)="onRoundChange($event)">
     </app-rounds-selector>
-  </div>
+  </ion-toolbar>
+</ion-header>
 
-  <div *ngIf="selectedView === 'playoffs'">
-    <ion-segment [(ngModel)]="selectedPlayoffRound" (ionChange)="loadPlayoffMatches()">
-      <ion-segment-button *ngFor="let round of playoffRounds" [value]="round">
-        <ion-label>{{ round }}</ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </div>
-
+<ion-content class="ion-padding">
+  <!-- Loading State -->
   <div *ngIf="loading" class="loading-container">
     <ion-spinner></ion-spinner>
     <p>Cargando partidos...</p>
   </div>
 
+  <!-- Error States -->
   <ion-text color="warning" *ngIf="isRateLimited" class="rate-limit-warning">
     <ion-icon name="warning-outline"></ion-icon>
     <p>{{ error }}</p>
@@ -63,31 +47,28 @@
     </ion-button>
   </ion-text>
 
-  <ion-text color="warning" *ngIf="isOffline">
-    <p>
-      No hay conexión a internet. Algunos datos pueden no estar actualizados.
-    </p>
-    <ion-button (click)="loadMatches()" size="small" fill="outline">
-      Reintentar Conexión
-    </ion-button>
-  </ion-text>
+  <!-- Regular Season View -->
+  <div *ngIf="selectedView === 'regular' && !loading && !error">
+    <div class="week-header">
+      <div class="round-status">
+        {{ getWeekTitle() }}
+        <ion-badge
+          [color]="hasPredictions ? 'success' : 'warning'"
+          class="round-badge"
+        >
+          {{ hasPredictions ? 'COMPLETADA' : 'PENDIENTE' }}
+        </ion-badge>
+      </div>
+    </div>
 
-  <div class="matches-container" *ngIf="!loading && !error">
     <ion-list>
       <ion-item *ngFor="let match of matches">
         <ion-card class="match-card">
           <ion-card-content>
             <div class="teams">
               <div class="team">
-                <img
-                  [src]="match.homeTeamLogo"
-                  [alt]="match.homeTeam"
-                  class="team-logo"
-                />
+                <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
                 <div class="team-name">{{ match.homeTeam }}</div>
-                <div class="team-position" *ngIf="match.homeTeamPosition">
-                  {{ match.homeTeamPosition }}{{ getOrdinalSuffix(match.homeTeamPosition) }} Lugar de la Tabla
-                </div>
                 <app-team-form *ngIf="match.homeTeamForm" [form]="match.homeTeamForm"></app-team-form>
               </div>
 
@@ -96,28 +77,21 @@
                 [prediction]="match.prediction"
                 [canPredict]="match.canPredict"
                 [isCompleted]="hasPredictions"
-                (predictionChange)="onPredictionChange(match, $event)"
-              >
+                (predictionChange)="onPredictionChange(match, $event)">
               </app-match-prediction>
 
               <div class="team">
-                <img
-                  [src]="match.awayTeamLogo"
-                  [alt]="match.awayTeam"
-                  class="team-logo"
-                />
+                <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
                 <div class="team-name">{{ match.awayTeam }}</div>
-                <div class="team-position" *ngIf="match.awayTeamPosition">
-                  {{ match.awayTeamPosition }}{{ getOrdinalSuffix(match.awayTeamPosition) }} Lugar de la Tabla
-                </div>
                 <app-team-form *ngIf="match.awayTeamForm" [form]="match.awayTeamForm"></app-team-form>
               </div>
             </div>
-            <ion-card-header align="center">
+
+            <ion-card-header>
               <ion-card-subtitle>
-                {{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} •
-                {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}
-                <br />
+                {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • 
+                {{ match.date | date:'h:mm a':'':'es-MX' }}
+                <br>
                 <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
               </ion-card-subtitle>
             </ion-card-header>
@@ -125,33 +99,76 @@
         </ion-card>
       </ion-item>
     </ion-list>
-
-    <ion-button
-      expand="block"
-      (click)="submitPredictions()"
-      [disabled]="isSubmitDisabled()"
-      class="submit-button"
-      *ngIf="!hasPredictions"
-    >
-      Guardar Predicciones
-    </ion-button>
   </div>
 
-  <app-match-list
-    *ngIf="selectedView === 'regular'"
-    [matches]="matches"
-    [isCompleted]="!isLiveRound"
-    [weeklyPoints]="weeklyPoints"
-    [weekLabel]="selectedRound.toString()"
-    (submitPredictions)="submitPredictions()"
-  ></app-match-list>
+  <!-- Playoff View -->
+  <div *ngIf="selectedView === 'playoffs' && !loading && !error">
+    <div class="playoff-rounds">
+      <ion-segment [(ngModel)]="selectedPlayoffRound" (ionChange)="loadPlayoffMatches()">
+        <ion-segment-button *ngFor="let round of playoffRounds" [value]="round">
+          <ion-label>{{ round }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
 
-  <app-match-list
-    *ngIf="selectedView === 'playoffs'"
-    [matches]="playoffMatches"
-    [isCompleted]="!isLiveRound"
-    [weeklyPoints]="weeklyPoints"
-    [weekLabel]="'Playoffs'"
-    (submitPredictions)="submitPredictions()"
-  ></app-match-list>
+    <div class="playoff-matches">
+      <ion-list>
+        <ion-item *ngFor="let match of playoffMatches">
+          <ion-card class="match-card">
+            <ion-card-content>
+              <div class="teams">
+                <div class="team">
+                  <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
+                  <div class="team-name">{{ match.homeTeam }}</div>
+                </div>
+
+                <app-match-prediction
+                  [match]="match"
+                  [prediction]="match.prediction"
+                  [canPredict]="match.canPredict"
+                  [isCompleted]="hasPredictions"
+                  (predictionChange)="onPredictionChange(match, $event)">
+                </app-match-prediction>
+
+                <div class="team">
+                  <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
+                  <div class="team-name">{{ match.awayTeam }}</div>
+                </div>
+              </div>
+
+              <div class="match-info">
+                <ion-card-subtitle>
+                  {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • 
+                  {{ match.date | date:'h:mm a':'':'es-MX' }}
+                  <br>
+                  <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
+                </ion-card-subtitle>
+                <div class="match-leg" *ngIf="match.leg">
+                  <ion-badge color="primary">
+                    {{ match.leg === 1 ? 'IDA' : 'VUELTA' }}
+                  </ion-badge>
+                </div>
+              </div>
+            </ion-card-content>
+          </ion-card>
+        </ion-item>
+      </ion-list>
+
+      <div class="no-matches" *ngIf="playoffMatches.length === 0">
+        <ion-text color="medium">
+          <h2>No hay partidos programados para esta fase</h2>
+        </ion-text>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submit Button -->
+  <ion-button
+    *ngIf="!hasPredictions && (matches.length > 0 || playoffMatches.length > 0)"
+    expand="block"
+    (click)="submitPredictions()"
+    [disabled]="isSubmitDisabled()"
+    class="submit-button">
+    Guardar Predicciones
+  </ion-button>
 </ion-content>

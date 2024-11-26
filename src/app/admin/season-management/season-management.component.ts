@@ -24,9 +24,9 @@ export class SeasonManagementComponent implements OnInit {
   ) {
     // Initialize with Clausura 2024 as default
     this.seasonForm = this.fb.group({
-      name: ['Clausura 2024', [Validators.required]],
-      startDate: ['2024-01-12', [Validators.required]], // Clausura 2024 start
-      endDate: ['2024-05-26', [Validators.required]], // Clausura 2024 end
+      name: ['Apertura 2024', [Validators.required]],
+      startDate: ['2024-07-01', [Validators.required]], // Apertura 2024 start
+      endDate: ['2024-12-16', [Validators.required]], // Apertura 2024 end
       isActive: [true]
     });
   }
