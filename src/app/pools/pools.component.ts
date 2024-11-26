@@ -33,7 +33,7 @@ export class PoolsComponent implements OnInit {
   savingPredictions: boolean = false;
   isLiveRound: boolean = false;
   playoffMatches: MatchWithPrediction[] = [];
-  selectedView: 'regular' | 'playoffs' = 'regular';
+  selectedView: 'regular' | 'playoffs' = 'playoffs';
 
   constructor(
     private footballService: FootballService,
@@ -50,7 +50,11 @@ export class PoolsComponent implements OnInit {
     this.authService.user$.subscribe(user => {
       this.userId = user ? user.uid : null;
       if (this.userId) {
-        this.findPendingRound();
+        if (this.selectedView === 'playoffs') {
+          this.loadPlayoffMatches();
+        } else {
+          this.findPendingRound();
+        }
       } else {
         this.error = 'Usuario no autenticado';
         this.loading = false;
