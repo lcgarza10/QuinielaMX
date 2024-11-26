@@ -34,6 +34,8 @@ export class PoolsComponent implements OnInit {
   isLiveRound: boolean = false;
   playoffMatches: MatchWithPrediction[] = [];
   selectedView: 'regular' | 'playoffs' = 'playoffs';
+  playoffRounds: number[] = [];
+  selectedPlayoffRound: number = 1;
 
   constructor(
     private footballService: FootballService,
@@ -51,7 +53,7 @@ export class PoolsComponent implements OnInit {
       this.userId = user ? user.uid : null;
       if (this.userId) {
         if (this.selectedView === 'playoffs') {
-          this.loadPlayoffMatches();
+          this.loadPlayoffRounds();
         } else {
           this.findPendingRound();
         }
@@ -376,6 +378,24 @@ export class PoolsComponent implements OnInit {
         console.error('Error loading playoff matches:', error);
         this.loading = false;
         this.error = 'Error al cargar los partidos de playoff';
+      }
+    }
+  }
+
+  async loadPlayoffRounds() {
+    this.loading = true;
+    this.error = null;
+
+    if (this.userId) {
+      try {
+        const playoffRounds = await firstValueFrom(this.footballService.getPlayoffRounds());
+        this.playoffRounds = playoffRounds;
+        this.selectedPlayoffRound = playoffRounds[0]; // Default to the first round
+        await this.loadPlayoffMatches();
+      } catch (error) {
+        console.error('Error loading playoff rounds:', error);
+        this.loading = false;
+        this.error = 'Error al cargar las fases de playoff';
       }
     }
   }

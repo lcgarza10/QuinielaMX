@@ -144,4 +144,10 @@
     [weekLabel]="'Playoffs'"
     (submitPredictions)="submitPredictions()"
   ></app-match-list>
+
+  <ion-segment [(ngModel)]="selectedPlayoffRound" (ionChange)="loadPlayoffMatches()">
+    <ion-segment-button *ngFor="let round of playoffRounds" [value]="round">
+      {{ round }}
+    </ion-segment-button>
+  </ion-segment>
 </ion-content>
