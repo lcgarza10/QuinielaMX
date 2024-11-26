@@ -292,8 +292,8 @@ export class FootballService {
     return 'to';
   }
 
-  async getPlayoffRounds(): Promise<number[]> {
-    // Fetch playoff rounds from the API
-    // Example: return [18, 19, 20]; // Assuming these are the playoff round numbers
+  getPlayoffRounds(): Observable<number[]> {
+    // Replace with actual API call logic
+    return of([18, 19, 20]); // Example playoff rounds
   }
 }
