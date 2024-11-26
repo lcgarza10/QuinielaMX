@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FootballService, Match } from '../services/football.service';
+import { FootballService, Match, PlayoffMatch } from '../services/football.service';
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
 import { ToastController } from '@ionic/angular';
@@ -21,6 +21,7 @@ interface ScoreMatch extends Match {
 })
 export class ScoresComponent implements OnInit {
   matches: ScoreMatch[] = [];
+  playoffMatches: PlayoffMatch[] = [];
   loading: boolean = true;
   error: string | null = null;
   selectedRound: number = 1;
@@ -31,6 +32,13 @@ export class ScoresComponent implements OnInit {
   isRoundFinished: boolean = false;
   userId: string | null = null;
   totalPoints: number = 0;
+  selectedView: 'regular' | 'playoffs' = 'regular';
+  playoffRounds = [
+    'Reclasificación',
+    'Cuartos de Final',
+    'Semifinal',
+    'Final'
+  ];
 
   constructor(
     private footballService: FootballService,
@@ -44,6 +52,7 @@ export class ScoresComponent implements OnInit {
       this.userId = user?.uid || null;
       this.findCurrentRound();
     });
+    await this.loadPlayoffMatches();
   }
 
   private async findCurrentRound() {
@@ -118,7 +127,6 @@ export class ScoresComponent implements OnInit {
         };
       });
       
-      // Check if any match is live
       this.isLiveRound = matches.some(match => 
         match.status.short === 'LIVE' || 
         match.status.short === 'HT' ||
@@ -152,6 +160,53 @@ export class ScoresComponent implements OnInit {
     }
   }
 
+  async loadPlayoffMatches() {
+    try {
+      const matches = await firstValueFrom(this.footballService.getPlayoffMatches());
+      if (this.userId) {
+        const predictions = await firstValueFrom(
+          this.databaseService.getPredictions(this.userId, 'playoffs')
+        );
+        
+        this.playoffMatches = matches.map(match => {
+          const prediction = predictions.find(p => p.matchId === match.id);
+          let points = 0;
+
+          if (prediction && prediction.homeScore !== null && prediction.awayScore !== null &&
+              match.homeScore !== null && match.awayScore !== null) {
+            
+            const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+            const actualResult = Math.sign(match.homeScore - match.awayScore);
+            const isExactMatch = prediction.homeScore === match.homeScore && 
+                               prediction.awayScore === match.awayScore;
+            const isPartialMatch = predictedResult === actualResult;
+
+            if (match.status.short === 'FT') {
+              if (isExactMatch) {
+                points = 3;
+              } else if (isPartialMatch) {
+                points = 1;
+              }
+            }
+          }
+
+          return {
+            ...match,
+            prediction: {
+              homeScore: prediction?.homeScore ?? null,
+              awayScore: prediction?.awayScore ?? null,
+              points
+            }
+          };
+        });
+      } else {
+        this.playoffMatches = matches;
+      }
+    } catch (error) {
+      console.error('Error loading playoff matches:', error);
+    }
+  }
+
   private sortMatchesByStatus(matches: Match[]): Match[] {
     const statusPriority: { [key: string]: number } = {
       'LIVE': 0,
@@ -178,6 +233,14 @@ export class ScoresComponent implements OnInit {
   onRoundChange(round: number) {
     this.selectedRound = round;
     this.loadMatches();
+  }
+
+  onViewChange() {
+    if (this.selectedView === 'playoffs') {
+      this.loadPlayoffMatches();
+    } else {
+      this.loadMatches();
+    }
   }
 
   getRoundStatus(): string {
@@ -255,7 +318,7 @@ export class ScoresComponent implements OnInit {
     return statusTranslations[match.status.short] || match.status.long || 'Programado';
   }
 
-  getPredictionClass(match: ScoreMatch): string {
+  getPredictionClass(match: ScoreMatch | PlayoffMatch): string {
     if (!match.prediction?.homeScore || !match.prediction?.awayScore || 
         match.homeScore === null || match.awayScore === null) {
       return 'no-match';

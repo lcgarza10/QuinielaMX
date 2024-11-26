@@ -59,9 +59,11 @@ import { TeamFormComponent } from './components/team-form/team-form.component';
 import { TestPredictionsComponent } from './admin/test-predictions/test-predictions.component';
 import { SeasonManagementComponent } from './admin/season-management/season-management.component';
 import { GroupManagementComponent } from './admin/group-management/group-management.component';
+import { PlayoffManagementComponent } from './admin/playoff-management/playoff-management.component';
 import { MatchPredictionComponent } from './pools/match-prediction/match-prediction.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { NoAuthGuard } from './services/no-auth.guard';
+import { PlayoffRoundPipe } from './pipes/playoff-round.pipe';
 
 import { FootballService } from './services/football.service';
 import { DatabaseService } from './services/database.service';
@@ -138,8 +140,10 @@ addIcons({
     TestPredictionsComponent,
     SeasonManagementComponent,
     GroupManagementComponent,
+    PlayoffManagementComponent,
     MatchPredictionComponent,
-    LeaderboardComponent
+    LeaderboardComponent,
+    PlayoffRoundPipe
   ],
   imports: [
     BrowserModule,

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams, HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { Observable, throwError, of, BehaviorSubject, forkJoin } from 'rxjs';
-import { map, catchError, timeout, retryWhen, delay, take, tap } from 'rxjs/operators';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, of, BehaviorSubject } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 
 export interface Venue {
@@ -46,24 +46,13 @@ export interface Match {
   awayTeamForm?: string;
 }
 
-export interface Standing {
-  rank: number;
-  team: Team;
-  points: number;
-  goalsDiff: number;
-  group: string;
-  form: string;
-  status: string;
-  description: string;
-  all: {
-    played: number;
-    win: number;
-    draw: number;
-    lose: number;
-    goals: {
-      for: number;
-      against: number;
-    };
+export interface PlayoffMatch extends Match {
+  leg?: number;
+  prediction?: {
+    homeScore: number | null;
+    awayScore: number | null;
+    points?: number;
+    livePoints?: number;
   };
 }
 
@@ -84,21 +73,8 @@ interface FixtureResponse {
   };
 }
 
-interface StandingsResponse {
-  response: [{
-    league: {
-      standings: Standing[][];
-    };
-  }];
-}
-
 interface ApiResponse {
   response: FixtureResponse[];
-}
-
-interface MatchCache {
-  timestamp: number;
-  matches: Match[];
 }
 
 @Injectable({
@@ -116,8 +92,7 @@ export class FootballService {
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000;
 
-  private readonly matchesCache = new Map<number, MatchCache>();
-  private readonly standingsCache = new Map<string, Standing[]>();
+  private readonly matchesCache = new Map<number, { timestamp: number; matches: Match[] }>();
   private currentRoundSubject = new BehaviorSubject<number>(1);
   private currentRoundPromise: Promise<number> | null = null;
 
@@ -146,12 +121,10 @@ export class FootballService {
     return this.currentRoundSubject.value;
   }
 
-  getStandings(): Observable<Standing[]> {
-    const cacheKey = `${this.LIGA_MX_ID}-${this.CURRENT_SEASON}`;
-    const cachedStandings = this.standingsCache.get(cacheKey);
-    
-    if (cachedStandings) {
-      return of(cachedStandings);
+  getMatches(round: number): Observable<Match[]> {
+    const cachedMatches = this.getCachedMatches(round);
+    if (cachedMatches) {
+      return of(cachedMatches);
     }
 
     const headers = new HttpHeaders({
@@ -160,20 +133,95 @@ export class FootballService {
 
     const params = new HttpParams()
       .set('league', this.LIGA_MX_ID)
-      .set('season', this.CURRENT_SEASON);
+      .set('season', this.CURRENT_SEASON)
+      .set('round', this.getRoundString(round))
+      .set('timezone', this.TIMEZONE);
 
-    return this.http.get<StandingsResponse>(`${this.API_URL}/standings`, { headers, params })
+    return this.http.get<ApiResponse>(`${this.API_URL}/fixtures`, { headers, params })
       .pipe(
         map(response => {
-          if (!response?.response?.[0]?.league?.standings?.[0]) {
-            return [];
-          }
-          const standings = response.response[0].league.standings[0];
-          this.standingsCache.set(cacheKey, standings);
-          return standings;
+          if (!response?.response) return [];
+          
+          const matches = response.response.map(fixture => ({
+            id: fixture.fixture.id,
+            date: fixture.fixture.date,
+            homeTeam: fixture.teams.home.name,
+            awayTeam: fixture.teams.away.name,
+            homeTeamLogo: fixture.teams.home.logo,
+            awayTeamLogo: fixture.teams.away.logo,
+            homeScore: fixture.goals.home,
+            awayScore: fixture.goals.away,
+            status: fixture.fixture.status,
+            venue: fixture.fixture.venue,
+            round: fixture.league.round,
+            weekNumber: this.extractWeekNumber(fixture.league.round)
+          }));
+
+          this.setCachedMatches(round, matches);
+          return matches;
         }),
         catchError(error => {
-          console.error('Error fetching standings:', error);
+          console.error('Error fetching matches:', error);
+          return of([]);
+        })
+      );
+  }
+
+  getPlayoffMatches(): Observable<PlayoffMatch[]> {
+    const headers = new HttpHeaders({
+      'x-apisports-key': this.API_KEY
+    });
+
+    const params = new HttpParams()
+      .set('league', this.LIGA_MX_ID)
+      .set('season', this.CURRENT_SEASON)
+      .set('from', '2024-11-20')
+      .set('to', '2024-12-15')
+      .set('timezone', this.TIMEZONE);
+
+    return this.http.get<ApiResponse>(`${this.API_URL}/fixtures`, { headers, params })
+      .pipe(
+        map(response => {
+          if (!response?.response) return [];
+          
+          return response.response.map(fixture => {
+            let round = 'Regular';
+            let leg: number | undefined;
+
+            const matchDate = new Date(fixture.fixture.date);
+            
+            if (matchDate >= new Date('2024-11-20') && matchDate <= new Date('2024-11-24')) {
+              round = 'Reclasificación';
+            } else if (matchDate >= new Date('2024-11-27') && matchDate <= new Date('2024-12-01')) {
+              round = 'Cuartos de Final';
+              leg = matchDate <= new Date('2024-11-28') ? 1 : 2;
+            } else if (matchDate >= new Date('2024-12-04') && matchDate <= new Date('2024-12-08')) {
+              round = 'Semifinal';
+              leg = matchDate <= new Date('2024-12-05') ? 1 : 2;
+            } else if (matchDate >= new Date('2024-12-12') && matchDate <= new Date('2024-12-15')) {
+              round = 'Final';
+              leg = matchDate <= new Date('2024-12-12') ? 1 : 2;
+            }
+
+            return {
+              id: fixture.fixture.id,
+              date: fixture.fixture.date,
+              homeTeam: fixture.teams.home.name,
+              awayTeam: fixture.teams.away.name,
+              homeTeamLogo: fixture.teams.home.logo,
+              awayTeamLogo: fixture.teams.away.logo,
+              homeScore: fixture.goals.home,
+              awayScore: fixture.goals.away,
+              status: fixture.fixture.status,
+              venue: fixture.fixture.venue,
+              round,
+              leg,
+              weekNumber: 0
+            };
+          });
+        }),
+        catchError(error => {
+          console.error('Error fetching playoff matches:', error);
           return of([]);
         })
       );
@@ -208,15 +256,6 @@ export class FootballService {
     }
   }
 
-  private getRoundString(round: number): string {
-    return `Apertura - ${round}`;
-  }
-
-  private extractWeekNumber(round: string): number {
-    const match = round.match(/\d+$/);
-    return match ? parseInt(match[0], 10) : 1;
-  }
-
   private getCachedMatches(round: number): Match[] | null {
     const cached = this.matchesCache.get(round);
     if (!cached) return null;
@@ -237,77 +276,13 @@ export class FootballService {
     });
   }
 
-  getMatches(round: number): Observable<Match[]> {
-    const cachedMatches = this.getCachedMatches(round);
-    if (cachedMatches) {
-      return of(cachedMatches);
-    }
+  private getRoundString(round: number): string {
+    return `Apertura - ${round}`;
+  }
 
-    const headers = new HttpHeaders({
-      'x-apisports-key': this.API_KEY
-    });
-
-    const params = new HttpParams()
-      .set('league', this.LIGA_MX_ID)
-      .set('season', this.CURRENT_SEASON)
-      .set('round', this.getRoundString(round))
-      .set('timezone', this.TIMEZONE);
-
-    return forkJoin([
-      this.http.get<ApiResponse>(`${this.API_URL}/fixtures`, { headers, params }),
-      this.getStandings()
-    ]).pipe(
-      map(([fixturesResponse, standings]) => {
-        if (!fixturesResponse?.response) {
-          console.warn('Empty or invalid API response');
-          return [];
-        }
-        
-        const matches = fixturesResponse.response.map((fixture: FixtureResponse) => {
-          const homeTeamStanding = standings.find(s => s.team.id === fixture.teams.home.id);
-          const awayTeamStanding = standings.find(s => s.team.id === fixture.teams.away.id);
-
-          return {
-            id: fixture.fixture.id,
-            date: fixture.fixture.date,
-            homeTeam: fixture.teams.home.name,
-            awayTeam: fixture.teams.away.name,
-            homeTeamLogo: fixture.teams.home.logo,
-            awayTeamLogo: fixture.teams.away.logo,
-            homeScore: fixture.goals.home,
-            awayScore: fixture.goals.away,
-            status: fixture.fixture.status,
-            venue: fixture.fixture.venue,
-            round: fixture.league.round,
-            weekNumber: this.extractWeekNumber(fixture.league.round),
-            homeTeamPosition: homeTeamStanding?.rank,
-            awayTeamPosition: awayTeamStanding?.rank,
-            homeTeamForm: homeTeamStanding?.form,
-            awayTeamForm: awayTeamStanding?.form
-          };
-        });
-
-        this.setCachedMatches(round, matches);
-        return matches;
-      }),
-      catchError(error => {
-        if (error instanceof HttpErrorResponse) {
-          console.error('API request failed:', error.message);
-          if (error.status === 0) {
-            console.error('Network error - check internet connection');
-          }
-        } else {
-          console.error('Unexpected error:', error);
-        }
-        return of([]);
-      }),
-      retryWhen(errors => 
-        errors.pipe(
-          delay(this.RETRY_DELAY),
-          take(this.MAX_RETRIES)
-        )
-      )
-    );
+  private extractWeekNumber(round: string): number {
+    const match = round.match(/\d+$/);
+    return match ? parseInt(match[0], 10) : 1;
   }
 
   getOrdinalSuffix(position: number): string {

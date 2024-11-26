@@ -9,6 +9,35 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.playoff-round-card {
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  ion-card-header {
+    background: var(--ion-color-primary);
+    color: white;
+    border-radius: 12px 12px 0 0;
+
+    ion-card-title {
+      font-size: 1.2em;
+      font-weight: 600;
+    }
+  }
+}
+
+.leg-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--ion-color-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
 .total-points {
   margin: 20px 0;
   
@@ -36,6 +65,7 @@
   margin: 0;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--ion-card-background);
 
   ion-card-header {
     position: relative;
@@ -204,5 +234,9 @@
       border-color: var(--ion-color-danger);
       color: var(--ion-color-danger-tint);
     }
+  }
+
+  .playoff-round-card {
+    background: rgba(var(--ion-card-background-rgb), 0.8);
   }
 }

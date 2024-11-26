@@ -11,6 +11,7 @@ import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { TestPredictionsComponent } from './admin/test-predictions/test-predictions.component';
 import { SeasonManagementComponent } from './admin/season-management/season-management.component';
 import { GroupManagementComponent } from './admin/group-management/group-management.component';
+import { PlayoffManagementComponent } from './admin/playoff-management/playoff-management.component';
 import { AuthGuard } from './services/auth.guard';
 import { AdminGuard } from './services/admin.guard';
 import { NoAuthGuard } from './services/no-auth.guard';
@@ -39,6 +40,11 @@ const routes: Routes = [
   { 
     path: 'pools', 
     component: PoolsComponent, 
+    canActivate: [AuthGuard] 
+  },
+  { 
+    path: 'playoffs', 
+    component: PlayoffManagementComponent, 
     canActivate: [AuthGuard] 
   },
   { 

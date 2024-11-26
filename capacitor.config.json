@@ -1,9 +1,15 @@
 {
-  "appId": "com.example.quinielamx",
+  "appId": "com.macintech.quinielamx",  
   "appName": "QuinielaMX",
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https"
+  },
+  "ios": {
+    "bundleId": "com.macintech.quinielamx"  
+  },
+  "android": {
+    "package": "com.macintech.quinielamx"  
   }
 }

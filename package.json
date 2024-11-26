@@ -1,6 +1,6 @@
 {
   "name": "quinielamx",
-  "version": "0.9.70",
+  "version": "0.9.80c",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -48,4 +48,3 @@
     "typescript": "~5.1.3"
   }
 }
-
