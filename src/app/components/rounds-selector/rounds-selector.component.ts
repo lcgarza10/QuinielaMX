@@ -9,11 +9,11 @@ export class RoundsSelectorComponent implements OnInit, AfterViewInit, OnChanges
   @ViewChild('roundsContainer') roundsContainer!: ElementRef;
   @ViewChild('selectedRoundElement') selectedRoundElement!: ElementRef;
   
-  @Input() selectedRound: number = 1;
+  @Input() selectedRound: string = '1';
   @Input() currentRound: number = 1;
   @Input() isLiveRound: boolean = false;
-  @Input() rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
-  @Output() roundChange = new EventEmitter<number>();
+  @Input() rounds: string[] = [];
+  @Output() roundChange = new EventEmitter<string>();
 
   private scrollTimeout: any;
 
@@ -31,17 +31,22 @@ export class RoundsSelectorComponent implements OnInit, AfterViewInit, OnChanges
     }
   }
 
-  onRoundChange(round: number) {
+  onRoundChange(round: string) {
     this.roundChange.emit(round);
   }
 
-  getRoundLabel(round: number): string {
-    switch (round) {
-      case 18: return '4tos';
-      case 19: return 'Semis';
-      case 20: return 'Final';
-      default: return `J${round}`;
+  getRoundLabel(round: string): string {
+    if (isNaN(Number(round))) {
+      // It's a playoff phase
+      switch (round) {
+        case 'Reclasificación': return 'Reclas';
+        case 'Cuartos de Final': return '4tos';
+        case 'Semifinal': return 'Semis';
+        case 'Final': return 'Final';
+        default: return round;
+      }
     }
+    return `J${round}`;
   }
 
   private scheduleScroll() {
@@ -59,7 +64,7 @@ export class RoundsSelectorComponent implements OnInit, AfterViewInit, OnChanges
     if (!this.roundsContainer?.nativeElement) return;
 
     const container = this.roundsContainer.nativeElement;
-    const selectedChip = container.querySelector(`.round-chip:nth-child(${this.selectedRound})`);
+    const selectedChip = container.querySelector(`.round-chip[data-round="${this.selectedRound}"]`);
     
     if (selectedChip) {
       const containerWidth = container.offsetWidth;

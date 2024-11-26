@@ -20,9 +20,15 @@ export class PointsComponent implements OnInit {
   matches: PointsMatch[] = [];
   loading: boolean = true;
   error: string | null = null;
-  selectedRound: number = 1;
+  selectedRound: string = '1';
   currentRound: number = 1;
-  rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
+  rounds: string[] = [
+    ...Array.from({ length: 17 }, (_, i) => (i + 1).toString()),
+    'Reclasificación',
+    'Cuartos de Final',
+    'Semifinal',
+    'Final'
+  ];
   userId: string | null = null;
   isOffline: boolean = false;
   totalPoints: number = 0;
@@ -54,7 +60,7 @@ export class PointsComponent implements OnInit {
     try {
       const currentRound = await this.footballService.getCurrentRound();
       this.currentRound = currentRound;
-      this.selectedRound = currentRound;
+      this.selectedRound = currentRound.toString();
       await this.loadMatches();
     } catch (error) {
       console.error('Error finding current round:', error);
@@ -63,7 +69,7 @@ export class PointsComponent implements OnInit {
     }
   }
 
-  onRoundChange(round: number) {
+  onRoundChange(round: string) {
     this.selectedRound = round;
     this.loadMatches();
   }
@@ -74,8 +80,8 @@ export class PointsComponent implements OnInit {
 
     if (this.userId) {
       try {
-        const matches = await firstValueFrom(this.footballService.getMatches(this.selectedRound));
-        const predictions = await firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound.toString()));
+        const matches = await firstValueFrom(this.footballService.getMatches(parseInt(this.selectedRound)));
+        const predictions = await firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound));
         
         this.isLiveRound = matches.some(match => 
           match.status.short === 'LIVE' || 

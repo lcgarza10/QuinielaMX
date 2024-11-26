@@ -24,15 +24,21 @@ export class ScoresComponent implements OnInit {
   playoffMatches: PlayoffMatch[] = [];
   loading: boolean = true;
   error: string | null = null;
-  selectedRound: number = 1;
+  selectedRound: string = '1';
   currentRound: number = 1;
-  rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
+  rounds: string[] = [
+    ...Array.from({ length: 17 }, (_, i) => (i + 1).toString()),
+    'Reclasificación',
+    'Cuartos de Final',
+    'Semifinal',
+    'Final'
+  ];
   isRateLimited: boolean = false;
   isLiveRound: boolean = false;
   isRoundFinished: boolean = false;
   userId: string | null = null;
   totalPoints: number = 0;
-  selectedView: 'regular' | 'playoffs' = 'playoffs'; // Changed default to 'playoffs'
+  selectedView: 'regular' | 'playoffs' = 'regular';
   playoffRounds = [
     'Reclasificación',
     'Cuartos de Final',
@@ -54,7 +60,6 @@ export class ScoresComponent implements OnInit {
         this.findCurrentRound();
       }
     });
-    await this.loadPlayoffMatches();
   }
 
   private async findCurrentRound() {
@@ -62,7 +67,7 @@ export class ScoresComponent implements OnInit {
     try {
       const currentRound = await this.footballService.getCurrentRound();
       this.currentRound = currentRound;
-      this.selectedRound = currentRound;
+      this.selectedRound = currentRound.toString();
       await this.loadMatches();
     } catch (error) {
       console.error('Error finding current round:', error);
@@ -79,8 +84,8 @@ export class ScoresComponent implements OnInit {
 
     try {
       const [matches, predictions] = await Promise.all([
-        firstValueFrom(this.footballService.getMatches(this.selectedRound)),
-        this.userId ? firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound.toString())) : []
+        firstValueFrom(this.footballService.getMatches(parseInt(this.selectedRound))),
+        this.userId ? firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound)) : []
       ]);
       
       this.matches = this.sortMatchesByStatus(matches).map(match => {
@@ -162,6 +167,19 @@ export class ScoresComponent implements OnInit {
     }
   }
 
+  onRoundChange(round: string) {
+    this.selectedRound = round;
+    this.loadMatches();
+  }
+
+  onViewChange() {
+    if (this.selectedView === 'regular') {
+      this.findCurrentRound();
+    } else {
+      this.loadPlayoffMatches();
+    }
+  }
+
   async loadPlayoffMatches() {
     try {
       const matches = await firstValueFrom(this.footballService.getPlayoffMatches());
@@ -230,19 +248,6 @@ export class ScoresComponent implements OnInit {
       }
       return statusA - statusB;
     });
-  }
-
-  onRoundChange(round: number) {
-    this.selectedRound = round;
-    this.loadMatches();
-  }
-
-  onViewChange() {
-    if (this.selectedView === 'regular') {
-      this.findCurrentRound();
-    } else {
-      this.loadPlayoffMatches();
-    }
   }
 
   getRoundStatus(): string {
@@ -320,7 +325,7 @@ export class ScoresComponent implements OnInit {
     return statusTranslations[match.status.short] || match.status.long || 'Programado';
   }
 
-  getPredictionClass(match: ScoreMatch | PlayoffMatch): string {
+  getPredictionClass(match: ScoreMatch): string {
     if (!match.prediction?.homeScore || !match.prediction?.awayScore || 
         match.homeScore === null || match.awayScore === null) {
       return 'no-match';

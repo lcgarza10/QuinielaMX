@@ -4,12 +4,13 @@
       *ngFor="let round of rounds" 
       class="round-chip" 
       [class.active]="selectedRound === round"
-      [class.current]="round === currentRound"
+      [class.current]="round === currentRound.toString()"
+      [attr.data-round]="round"
       (click)="onRoundChange(round)"
       #selectedRoundElement>
       {{ getRoundLabel(round) }}
       <ion-icon 
-        *ngIf="round === currentRound" 
+        *ngIf="round === currentRound.toString()" 
         name="radio" 
         class="live-indicator"
         [class.pulse]="isLiveRound">

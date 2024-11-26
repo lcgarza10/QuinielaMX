@@ -1,62 +1,36 @@
-.week-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  padding: 12px;
-  background: var(--ion-color-light);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 .playoff-round-card {
-  margin-bottom: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 16px 0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
 
   ion-card-header {
     background: var(--ion-color-primary);
-    color: white;
-    border-radius: 12px 12px 0 0;
-
+    padding: 16px;
+    
     ion-card-title {
+      color: white;
       font-size: 1.2em;
       font-weight: 600;
+      margin: 0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
   }
-}
 
-.leg-indicator {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: var(--ion-color-primary);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.8em;
-  font-weight: 500;
-}
+  ion-card-content {
+    padding: 0;
+  }
 
-.total-points {
-  margin: 20px 0;
-  
-  ion-card {
-    margin: 0;
-    border-radius: 12px;
-    background: var(--ion-color-primary);
-    
-    ion-card-content {
-      padding: 20px;
-      text-align: center;
-      
-      h2 {
-        color: white;
-        font-size: 1.4em;
-        font-weight: 600;
-        margin: 0;
-      }
-    }
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  ion-item {
+    --padding-start: 0;
+    --padding-end: 0;
+    --inner-padding-end: 0;
+    margin: 8px;
   }
 }
 
@@ -64,36 +38,43 @@
   width: 100%;
   margin: 0;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background: var(--ion-card-background);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
   ion-card-header {
     position: relative;
-    padding-bottom: 8px;
+    padding: 16px;
+    border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
+    background: transparent; // Remove blue background
+
+    ion-card-subtitle {
+      font-size: 0.9em;
+      color: var(--ion-color-dark);
+      margin: 0;
+      padding-right: 80px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      small {
+        color: var(--ion-color-medium);
+      }
+    }
   }
-}
 
-.match-status {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.8em;
-  font-weight: 500;
-  text-align: center;
+  .match-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 500;
 
-  &.live-status {
-    background: var(--ion-color-success);
-    animation: pulse 2s infinite;
+    &.live-status {
+      animation: pulse 2s infinite;
+    }
   }
-}
-
-.match-date {
-  text-align: center;
-  font-size: 0.9em;
-  color: var(--ion-color-medium);
-  margin-top: 24px;
 }
 
 .teams {
@@ -101,6 +82,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
+  gap: 12px;
 }
 
 .team {
@@ -118,8 +100,9 @@
 
   &-name {
     text-align: center;
-    font-size: 14px;
+    font-size: 0.9em;
     font-weight: 500;
+    color: var(--ion-text-color);
   }
 }
 
@@ -128,14 +111,17 @@
   flex-direction: column;
   align-items: center;
   width: 30%;
-  gap: 12px;
+  position: relative;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(var(--ion-color-light-rgb), 0.5);
 }
 
 .final-score {
   font-size: 1.4em;
-  font-weight: bold;
+  font-weight: 600;
   margin-bottom: 8px;
-  color: var(--ion-color-dark);
+  color: var(--ion-text-color);
 
   &.live {
     color: var(--ion-color-success);
@@ -143,43 +129,30 @@
 }
 
 .prediction-score {
-  font-size: 0.9em;
-  padding: 8px;
-  border-radius: 8px;
+  font-size: 0.85em;
+  padding: 6px 12px;
+  border-radius: 16px;
   text-align: center;
   position: relative;
   width: 100%;
   background: rgba(var(--ion-color-medium-rgb), 0.1);
-  border: 1px solid transparent;
 
   &.exact-match {
     background: rgba(var(--ion-color-success-rgb), 0.1);
-    border-color: var(--ion-color-success);
     color: var(--ion-color-success);
-
-    &.live {
-      animation: pulse 2s infinite;
-    }
+    border: 1px solid var(--ion-color-success);
   }
 
   &.partial-match {
     background: rgba(var(--ion-color-warning-rgb), 0.1);
-    border-color: var(--ion-color-warning);
     color: var(--ion-color-warning);
-
-    &.live {
-      animation: pulse 2s infinite;
-    }
+    border: 1px solid var(--ion-color-warning);
   }
 
   &.no-match {
     background: rgba(var(--ion-color-danger-rgb), 0.1);
-    border-color: var(--ion-color-danger);
     color: var(--ion-color-danger);
-
-    &.live {
-      animation: pulse 2s infinite;
-    }
+    border: 1px solid var(--ion-color-danger);
   }
 
   .points-badge {
@@ -188,26 +161,54 @@
     right: -10px;
     background: var(--ion-color-primary);
     color: white;
-    padding: 4px 8px;
+    padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.8em;
     font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+.leg-indicator {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 500;
+  background: var(--ion-color-primary);
+  color: white;
+  margin-left: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 // Dark mode adjustments
 :host-context(.dark) {
-  .week-header {
-    background: rgba(var(--ion-color-light-rgb), 0.1);
+  .playoff-round-card {
+    background: rgba(var(--ion-card-background-rgb), 0.8);
+    
+    ion-card-header {
+      background: var(--ion-color-primary-shade);
+    }
   }
 
   .match-card {
-    background: rgba(var(--ion-card-background-rgb), 0.8);
+    background: rgba(var(--ion-background-color-rgb), 0.8);
+
+    ion-card-header {
+      border-bottom-color: rgba(var(--ion-color-light-rgb), 0.1);
+
+      ion-card-subtitle {
+        color: var(--ion-color-light);
+      }
+    }
+  }
+
+  .scores-container {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
+
+  .team-name {
+    color: var(--ion-color-light);
   }
 
   .final-score {
@@ -235,8 +236,65 @@
       color: var(--ion-color-danger-tint);
     }
   }
+}
 
+// Mobile optimizations
+@media (max-width: 768px) {
   .playoff-round-card {
-    background: rgba(var(--ion-card-background-rgb), 0.8);
+    margin: 12px 8px;
+    
+    ion-card-header {
+      padding: 12px;
+      
+      ion-card-title {
+        font-size: 1.1em;
+      }
+    }
+  }
+
+  .match-card {
+    ion-card-header {
+      padding: 12px;
+      
+      ion-card-subtitle {
+        font-size: 0.8em;
+        padding-right: 70px;
+      }
+    }
+  }
+
+  .teams {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .team {
+    &-logo {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 6px;
+    }
+
+    &-name {
+      font-size: 0.8em;
+    }
+  }
+
+  .scores-container {
+    padding: 6px;
+  }
+
+  .final-score {
+    font-size: 1.2em;
+  }
+
+  .prediction-score {
+    font-size: 0.8em;
+    padding: 4px 8px;
+  }
+
+  .leg-indicator {
+    padding: 2px 8px;
+    font-size: 0.7em;
   }
 }

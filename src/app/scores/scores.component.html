@@ -78,7 +78,7 @@
                   </div>
 
                   <div class="prediction-score" [ngClass]="getPredictionClass(match)" *ngIf="match.prediction">
-                    Tu Pronóstico {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
+                    Pronóstico {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
                     <div class="points-badge" *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE' || match.status.short === 'HT'">
                       {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
                     </div>
@@ -136,7 +136,7 @@
                       </div>
 
                       <div class="prediction-score" [ngClass]="getPredictionClass(match)" *ngIf="match.prediction">
-                        Tu Pronóstico {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
+                        Pronóstico {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
                         <div class="points-badge" *ngIf="match.status.short === 'FT'">
                           {{ match.prediction.points ?? 0 }} pts
                         </div>

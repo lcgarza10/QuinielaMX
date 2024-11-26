@@ -29,23 +29,26 @@ export class LeaderboardComponent implements OnInit {
   weeklyLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   overallLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   globalLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
-  playoffLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   loading: boolean = true;
   error: string | null = null;
-  selectedRound: number = 1;
+  selectedRound: string = '1';
   currentRound: number = 1;
-  selectedView: 'weekly' | 'overall' | 'global' | 'playoff' = 'weekly';
+  selectedView: 'weekly' | 'overall' | 'global' = 'weekly';
   weekMatches: Match[] = [];
   playoffMatches: PlayoffMatch[] = [];
   currentUserId: string | null = null;
   currentGroup: Group | null = null;
   isLiveRound: boolean = false;
-  playoffRounds = [
+  
+  rounds: string[] = [
+    ...Array.from({ length: 17 }, (_, i) => (i + 1).toString()),
     'Reclasificación',
     'Cuartos de Final',
     'Semifinal',
     'Final'
   ];
+
+  playoffPhases = ['Reclasificación', 'Cuartos de Final', 'Semifinal', 'Final'];
 
   constructor(
     private databaseService: DatabaseService,
@@ -63,8 +66,79 @@ export class LeaderboardComponent implements OnInit {
     });
 
     await this.findCurrentRound();
-    await this.loadWeekMatches();
-    await this.loadPlayoffMatches();
+    await this.loadMatches();
+    this.setupLeaderboards();
+  }
+
+  private async loadUserGroup() {
+    try {
+      const groups = await firstValueFrom(this.groupService.getUserGroups());
+      if (groups.length > 0) {
+        this.currentGroup = groups[0];
+        this.setupLeaderboards();
+      }
+    } catch (error) {
+      console.error('Error loading user group:', error);
+    }
+  }
+
+  private async findCurrentRound() {
+    this.loading = true;
+    try {
+      const currentRound = await this.footballService.getCurrentRound();
+      this.currentRound = currentRound;
+      this.selectedRound = currentRound.toString();
+    } catch (error) {
+      console.error('Error finding current round:', error);
+      this.loading = false;
+      this.error = 'Error al cargar la jornada actual';
+    }
+  }
+
+  async loadMatches() {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      if (this.playoffPhases.includes(this.selectedRound)) {
+        // Load playoff matches for the selected phase
+        const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
+        this.playoffMatches = allPlayoffMatches.filter(match => match.round === this.selectedRound);
+        this.weekMatches = this.convertPlayoffToRegularMatches(this.playoffMatches);
+      } else {
+        // Load regular season matches
+        this.weekMatches = await firstValueFrom(
+          this.footballService.getMatches(parseInt(this.selectedRound))
+        );
+      }
+
+      this.isLiveRound = this.weekMatches.some(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT'
+      );
+
+      this.setupLeaderboards();
+    } catch (error) {
+      console.error('Error loading matches:', error);
+      this.error = 'Error al cargar los partidos';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  private convertPlayoffToRegularMatches(playoffMatches: PlayoffMatch[]): Match[] {
+    return playoffMatches.map(match => ({
+      ...match,
+      weekNumber: 0 // Use 0 for playoff matches
+    }));
+  }
+
+  onRoundChange(round: string) {
+    this.selectedRound = round;
+    this.loadMatches();
+  }
+
+  onViewChange() {
     this.setupLeaderboards();
   }
 
@@ -101,56 +175,6 @@ export class LeaderboardComponent implements OnInit {
     return 0;
   }
 
-  private async loadUserGroup() {
-    try {
-      const groups = await firstValueFrom(this.groupService.getUserGroups());
-      if (groups.length > 0) {
-        this.currentGroup = groups[0];
-        this.setupLeaderboards();
-      }
-    } catch (error) {
-      console.error('Error loading user group:', error);
-    }
-  }
-
-  private async findCurrentRound() {
-    try {
-      this.currentRound = await this.footballService.getCurrentRound();
-      this.selectedRound = this.currentRound;
-    } catch (error) {
-      console.error('Error finding current round:', error);
-      this.currentRound = 1;
-      this.selectedRound = 1;
-    }
-  }
-
-  private async loadWeekMatches() {
-    try {
-      this.weekMatches = await firstValueFrom(
-        this.footballService.getMatches(this.selectedRound)
-      );
-
-      this.isLiveRound = this.weekMatches.some(match => 
-        match.status.short === 'LIVE' || 
-        match.status.short === 'HT' ||
-        match.status.short === '1H' ||
-        match.status.short === '2H'
-      );
-    } catch (error) {
-      console.error('Error loading week matches:', error);
-      this.weekMatches = [];
-    }
-  }
-
-  private async loadPlayoffMatches() {
-    try {
-      this.playoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
-    } catch (error) {
-      console.error('Error loading playoff matches:', error);
-      this.playoffMatches = [];
-    }
-  }
-
   private setupLeaderboards() {
     // Weekly Leaderboard with detailed predictions
     this.weeklyLeaderboard$ = this.databaseService.getAllUsers().pipe(
@@ -158,8 +182,9 @@ export class LeaderboardComponent implements OnInit {
         this.currentGroup ? this.currentGroup.members.includes(user.uid) : true
       )),
       switchMap(users => {
-        const userPredictions$ = users.map(user =>
-          this.databaseService.getPredictions(user.uid, this.selectedRound.toString()).pipe(
+        const userPredictions$ = users.map(user => {
+          const weekId = this.playoffPhases.includes(this.selectedRound) ? 'playoffs' : this.selectedRound;
+          return this.databaseService.getPredictions(user.uid, weekId).pipe(
             map(predictions => {
               let weeklyPoints = 0;
               let livePoints = 0;
@@ -209,8 +234,8 @@ export class LeaderboardComponent implements OnInit {
                 }))
               };
             })
-          )
-        );
+          );
+        });
         return combineLatest(userPredictions$);
       }),
       map(entries => entries.sort((a, b) => {
@@ -220,7 +245,7 @@ export class LeaderboardComponent implements OnInit {
       }))
     );
 
-    // Overall leaderboard (group filtered)
+    // Overall leaderboard
     this.overallLeaderboard$ = this.databaseService.getAllUsersTotalPoints().pipe(
       switchMap(points => {
         const userDetails$ = points
@@ -243,7 +268,7 @@ export class LeaderboardComponent implements OnInit {
       map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
     );
 
-    // Global leaderboard (no filter)
+    // Global leaderboard
     this.globalLeaderboard$ = this.databaseService.getAllUsersTotalPoints().pipe(
       switchMap(points => {
         const userDetails$ = points.map(point =>
@@ -263,64 +288,5 @@ export class LeaderboardComponent implements OnInit {
       }),
       map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
     );
-
-    // Playoff leaderboard
-    this.playoffLeaderboard$ = this.databaseService.getAllUsers().pipe(
-      map(users => users.filter(user => 
-        this.currentGroup ? this.currentGroup.members.includes(user.uid) : true
-      )),
-      switchMap(users => {
-        const userPredictions$ = users.map(user =>
-          this.databaseService.getPredictions(user.uid, 'playoffs').pipe(
-            map(predictions => {
-              let playoffPoints = 0;
-
-              predictions.forEach(pred => {
-                const match = this.playoffMatches.find(m => m.id === pred.matchId);
-                if (match && pred.homeScore !== null && pred.awayScore !== null &&
-                    match.homeScore !== null && match.awayScore !== null &&
-                    match.status.short === 'FT') {
-                  
-                  if (pred.homeScore === match.homeScore && 
-                      pred.awayScore === match.awayScore) {
-                    playoffPoints += 3;
-                  } else {
-                    const actualResult = Math.sign(match.homeScore - match.awayScore);
-                    const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
-                    if (actualResult === predictedResult) {
-                      playoffPoints += 1;
-                    }
-                  }
-                }
-              });
-
-              return {
-                userId: user.uid,
-                username: user.username || user.email || 'Unknown User',
-                totalPoints: playoffPoints,
-                predictions: predictions.map(pred => ({
-                  matchId: pred.matchId,
-                  homeScore: pred.homeScore!,
-                  awayScore: pred.awayScore!,
-                  points: pred.points || 0
-                }))
-              };
-            })
-          )
-        );
-        return combineLatest(userPredictions$);
-      }),
-      map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
-    );
-  }
-
-  async onRoundChange(round: number) {
-    this.selectedRound = round;
-    await this.loadWeekMatches();
-    this.setupLeaderboards();
-  }
-
-  onViewChange() {
-    this.setupLeaderboards();
   }
 }
