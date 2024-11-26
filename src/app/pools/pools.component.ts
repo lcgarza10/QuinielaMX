@@ -117,6 +117,15 @@ export class PoolsComponent implements OnInit {
     this.loadMatches();
   }
 
+  onViewChange(view: 'regular' | 'playoffs') {
+    this.selectedView = view;
+    if (view === 'playoffs') {
+      this.loadPlayoffMatches();
+    } else {
+      this.loadMatches();
+    }
+  }
+
   private canPredictMatch(match: Match): boolean {
     const now = new Date();
     const matchDate = new Date(match.date);
@@ -335,6 +344,9 @@ export class PoolsComponent implements OnInit {
           firstValueFrom(this.footballService.getPlayoffMatches()),
           firstValueFrom(this.databaseService.getPredictions(this.userId, 'playoffs'))
         ]);
+
+        console.log('Playoff Matches:', matches); // Debugging
+        console.log('Playoff Predictions:', predictions); // Debugging
 
         this.playoffMatches = matches.map(match => {
           const prediction = predictions.find(p => p.matchId === match.id);
