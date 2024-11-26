@@ -41,7 +41,23 @@
   background: var(--ion-card-background);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
+ ion-card-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.match-date {
+  text-align: center;
+}
+
+.match-status {
+  margin-top: 10px; /* Optional: Adjust spacing between elements */
+}
+  
   ion-card-header {
+    text-align: center;
     position: relative;
     padding: 16px;
     border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);

@@ -3,7 +3,7 @@ import { FootballService, Match, PlayoffMatch } from '../services/football.servi
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
 import { ToastController, LoadingController, AlertController } from '@ionic/angular';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, BehaviorSubject } from 'rxjs';
 import { ConnectionService } from '../services/connection.service';
 import { PredictionData } from './match-prediction/match-prediction.component';
 import { AdsService } from '../services/ads.service';
@@ -26,7 +26,7 @@ interface PlayoffMatchWithPrediction extends PlayoffMatch {
 export class PoolsComponent implements OnInit {
   matches: MatchWithPrediction[] = [];
   playoffMatches: PlayoffMatchWithPrediction[] = [];
-  loading: boolean = true;
+  loading = true;
   error: string | null = null;
   selectedRound: string = '1';
   currentRound: number = 1;
@@ -44,14 +44,15 @@ export class PoolsComponent implements OnInit {
   isRateLimited: boolean = false;
   savingPredictions: boolean = false;
   isLiveRound: boolean = false;
-  selectedView: 'regular' | 'playoffs' = 'regular';
+  selectedView: 'regular' | 'playoffs' = 'playoffs';
   playoffRounds: string[] = [
     'Reclasificación',
     'Cuartos de Final',
     'Semifinal',
     'Final'
   ];
-  selectedPlayoffRound: string = 'Reclasificación';
+  selectedPlayoffRound: string = 'Cuartos de Final';
+  private dataLoaded = new BehaviorSubject<boolean>(false);
 
   constructor(
     private footballService: FootballService,
@@ -65,21 +66,60 @@ export class PoolsComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    this.authService.user$.subscribe(user => {
+    // Initialize auth subscription first
+    this.authService.user$.subscribe(async user => {
       this.userId = user?.uid || null;
-      if (this.userId) {
-        this.findCurrentRound();
-      } else {
-        this.error = 'Usuario no autenticado';
-        this.loading = false;
+      if (this.userId && !this.dataLoaded.value) {
+        await this.determineCurrentPhase();
+        this.dataLoaded.next(true);
       }
     });
 
     this.connectionService.getOnlineStatus().subscribe(status => {
       this.isOffline = !status;
     });
+  }
 
-    await this.determineCurrentPhase();
+  private async determineCurrentPhase() {
+    try {
+      const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
+      
+      if (allPlayoffMatches.length > 0) {
+        const sortedMatches = [...allPlayoffMatches].sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        const now = new Date();
+        let currentPhase = null;
+
+        // Find the current or upcoming phase
+        for (const match of sortedMatches) {
+          const matchDate = new Date(match.date);
+          const daysDiff = Math.abs(now.getTime() - matchDate.getTime()) / (1000 * 60 * 60 * 24);
+          
+          if (daysDiff <= 3 || matchDate > now) {
+            currentPhase = match.round;
+            break;
+          }
+        }
+
+        if (currentPhase) {
+          this.selectedView = 'playoffs';
+          this.selectedPlayoffRound = currentPhase;
+          await this.loadPlayoffMatches();
+        } else {
+          this.selectedView = 'regular';
+          await this.findCurrentRound();
+        }
+      } else {
+        this.selectedView = 'regular';
+        await this.findCurrentRound();
+      }
+    } catch (error) {
+      console.error('Error determining current phase:', error);
+      this.selectedView = 'regular';
+      await this.findCurrentRound();
+    }
   }
 
   private async findCurrentRound() {
@@ -97,108 +137,113 @@ export class PoolsComponent implements OnInit {
   }
 
   async loadMatches() {
+    if (!this.userId) {
+      this.error = 'Usuario no autenticado';
+      this.loading = false;
+      return;
+    }
+
     this.loading = true;
     this.error = null;
     this.isRateLimited = false;
 
-    if (this.userId) {
-      try {
-        const [matches, predictions] = await Promise.all([
-          firstValueFrom(this.footballService.getMatches(parseInt(this.selectedRound))),
-          firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound))
-        ]);
+    try {
+      const [matches, predictions] = await Promise.all([
+        firstValueFrom(this.footballService.getMatches(parseInt(this.selectedRound))),
+        firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound))
+      ]);
 
-        const validPredictions = predictions.filter(p => 
-          p.matchId && (p.homeScore !== null && p.awayScore !== null)
-        );
-        this.hasPredictions = validPredictions.length > 0;
+      const validPredictions = predictions.filter(p => 
+        p.matchId && (p.homeScore !== null && p.awayScore !== null)
+      );
+      this.hasPredictions = validPredictions.length > 0;
 
-        this.isLiveRound = matches.some(match => 
-          match.status.short === 'LIVE' || 
-          match.status.short === 'HT'
-        );
+      this.isLiveRound = matches.some(match => 
+        match.status.short === 'LIVE' || 
+        match.status.short === 'HT'
+      );
 
-        this.matches = matches.map(match => {
-          const prediction = predictions.find(p => p.matchId === match.id);
-          const canPredict = this.canPredictMatch(match);
-          
-          return {
-            ...match,
-            prediction: {
-              homeScore: prediction?.homeScore ?? null,
-              awayScore: prediction?.awayScore ?? null
-            },
-            canPredict
-          };
-        });
+      this.matches = matches.map(match => {
+        const prediction = predictions.find(p => p.matchId === match.id);
+        const canPredict = this.canPredictMatch(match);
+        
+        return {
+          ...match,
+          prediction: {
+            homeScore: prediction?.homeScore ?? null,
+            awayScore: prediction?.awayScore ?? null
+          },
+          canPredict
+        };
+      });
 
-        this.loading = false;
-        this.isOffline = false;
+      this.loading = false;
+      this.isOffline = false;
 
-        if (this.matches.length === 0) {
-          this.error = 'No hay partidos programados para esta jornada.';
-        }
-      } catch (error: any) {
-        console.error('Error loading matches:', error);
-        if (error.error?.code === 2100) {
-          this.isRateLimited = true;
-          this.error = 'Se ha alcanzado el límite de la API. Los datos mostrados pueden no estar actualizados.';
-          await this.showToast('Límite de API alcanzado. Se muestran datos en caché.', 'warning');
-        } else {
-          this.error = 'Error al cargar los partidos. Por favor intente nuevamente.';
-          this.isOffline = true;
-        }
-        this.loading = false;
+      if (this.matches.length === 0) {
+        this.error = 'No hay partidos programados para esta jornada.';
       }
-    } else {
-      this.error = 'Usuario no autenticado';
+    } catch (error: any) {
+      console.error('Error loading matches:', error);
+      if (error.error?.code === 2100) {
+        this.isRateLimited = true;
+        this.error = 'Se ha alcanzado el límite de la API. Los datos mostrados pueden no estar actualizados.';
+        await this.showToast('Límite de API alcanzado. Se muestran datos en caché.', 'warning');
+      } else {
+        this.error = 'Error al cargar los partidos. Por favor intente nuevamente.';
+        this.isOffline = true;
+      }
       this.loading = false;
     }
   }
 
   async loadPlayoffMatches() {
+    if (!this.userId) {
+      this.error = 'Usuario no autenticado';
+      this.loading = false;
+      return;
+    }
+
     this.loading = true;
     this.error = null;
 
-    if (this.userId) {
-      try {
-        const [matches, predictions] = await Promise.all([
-          firstValueFrom(this.footballService.getPlayoffMatches()),
-          firstValueFrom(this.databaseService.getPredictions(this.userId, 'playoffs'))
-        ]);
+    try {
+      const [matches, predictions] = await Promise.all([
+        firstValueFrom(this.footballService.getPlayoffMatches()),
+        firstValueFrom(this.databaseService.getPredictions(this.userId, 'playoffs'))
+      ]);
 
-        const filteredMatches = matches.filter(match => match.round === this.selectedPlayoffRound);
+      const filteredMatches = matches.filter(match => match.round === this.selectedPlayoffRound);
 
-        this.playoffMatches = filteredMatches.map(match => {
-          const prediction = predictions.find(p => p.matchId === match.id);
-          const canPredict = this.canPredictMatch(match);
+      this.playoffMatches = filteredMatches.map(match => {
+        const prediction = predictions.find(p => p.matchId === match.id);
+        const canPredict = this.canPredictMatch(match);
 
-          return {
-            ...match,
-            prediction: {
-              homeScore: prediction?.homeScore ?? null,
-              awayScore: prediction?.awayScore ?? null
-            },
-            canPredict
-          };
-        });
+        return {
+          ...match,
+          prediction: {
+            homeScore: prediction?.homeScore ?? null,
+            awayScore: prediction?.awayScore ?? null
+          },
+          canPredict
+        };
+      });
 
-        this.hasPredictions = predictions.some(p => 
-          this.playoffMatches.some(m => m.id === p.matchId)
-        );
+      this.hasPredictions = predictions.some(p => 
+        this.playoffMatches.some(m => m.id === p.matchId)
+      );
 
-        this.loading = false;
-        this.isOffline = false;
+      this.loading = false;
+      this.isOffline = false;
 
-        if (this.playoffMatches.length === 0) {
-          this.error = 'No hay partidos de playoff programados para esta fase.';
-        }
-      } catch (error) {
-        console.error('Error loading playoff matches:', error);
-        this.loading = false;
-        this.error = 'Error al cargar los partidos de playoff';
-        await this.showToast('Error al cargar los partidos de playoff', 'danger');
+      if (this.playoffMatches.length === 0) {
+        this.error = 'No hay partidos de playoff programados para esta fase.';
       }
+    } catch (error) {
+      console.error('Error loading playoff matches:', error);
+      this.loading = false;
+      this.error = 'Error al cargar los partidos de playoff';
+      await this.showToast('Error al cargar los partidos de playoff', 'danger');
     }
   }
 
@@ -329,45 +374,6 @@ export class PoolsComponent implements OnInit {
       if (loading) {
         await loading.dismiss();
       }
-    }
-  }
-
-  private async determineCurrentPhase() {
-    try {
-      const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
-      
-      if (allPlayoffMatches.length > 0) {
-        const sortedMatches = [...allPlayoffMatches].sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
-
-        const now = new Date();
-        let currentPhase = null;
-
-        for (const match of sortedMatches) {
-          const matchDate = new Date(match.date);
-          const daysDiff = Math.abs(now.getTime() - matchDate.getTime()) / (1000 * 60 * 60 * 24);
-          
-          if (daysDiff <= 3 || matchDate > now) {
-            currentPhase = match.round;
-            break;
-          }
-        }
-
-        if (currentPhase) {
-          this.selectedView = 'playoffs';
-          this.selectedPlayoffRound = currentPhase;
-          await this.loadPlayoffMatches();
-          return;
-        }
-      }
-
-      this.selectedView = 'regular';
-      await this.findCurrentRound();
-    } catch (error) {
-      console.error('Error determining current phase:', error);
-      this.selectedView = 'regular';
-      await this.findCurrentRound();
     }
   }
 

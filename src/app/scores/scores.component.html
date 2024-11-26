@@ -222,8 +222,8 @@
                         [ngClass]="getPredictionClass(match)"
                         *ngIf="match.prediction"
                       >
-                        Pronóstico {{ match.prediction.homeScore ?? '-' }} -
-                        {{ match.prediction.awayScore ?? '-' }}
+                        Tu Pronóstico:
+                        {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
                         <div
                           class="points-badge"
                           *ngIf="match.status.short === 'FT'"

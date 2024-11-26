@@ -23,19 +23,30 @@
       <ion-card-content>
         <ng-container *ngIf="groups$ | async as groups">
           <ion-list>
-            <ion-item *ngFor="let group of groups" lines="full" class="group-item">
+            <ion-item
+              *ngFor="let group of groups"
+              lines="full"
+              class="group-item"
+            >
               <div class="group-content">
                 <div class="group-header">
                   <ion-label>
                     <h2>{{ group.name }}</h2>
                     <p *ngIf="group.description">{{ group.description }}</p>
                     <p>
-                      <ion-badge color="medium">{{ group.memberCount || 0 }} miembros</ion-badge>
-                      <ion-badge color="primary" *ngIf="group.isPrivate">Privado</ion-badge>
+                      <ion-badge color="medium"
+                        >{{ group.memberCount || 0 }} miembros</ion-badge
+                      >
+                      <ion-badge color="primary" *ngIf="group.isPrivate"
+                        >Privado</ion-badge
+                      >
                     </p>
                   </ion-label>
                   <ion-buttons>
-                    <ion-button (click)="showInviteCode(group)" title="Compartir código">
+                    <ion-button
+                      (click)="showInviteCode(group)"
+                      title="Compartir código"
+                    >
                       <ion-icon name="share-social-outline"></ion-icon>
                     </ion-button>
                   </ion-buttons>
@@ -44,15 +55,23 @@
                 <!-- Members List Section -->
                 <div class="members-list">
                   <div class="members-header">
-                    <h3>Participantes - Jornada {{ currentRound }}</h3>
+                    <h3>Participantes</h3>
                   </div>
 
                   <ion-list>
-                    <ion-item *ngFor="let member of group.membersList" lines="full" class="member-item">
+                    <ion-item
+                      *ngFor="let member of group.membersList"
+                      lines="full"
+                      class="member-item"
+                    >
                       <ion-label>
                         <h3>{{ member.username || member.email }}</h3>
                         <p>{{ member.firstName }} {{ member.lastName }}</p>
-                        <ion-badge *ngIf="member.role === 'admin'" color="primary">Admin</ion-badge>
+                        <ion-badge
+                          *ngIf="member.role === 'admin'"
+                          color="primary"
+                          >Admin</ion-badge
+                        >
                       </ion-label>
                     </ion-item>
                   </ion-list>
@@ -67,7 +86,12 @@
             </ion-item>
           </ion-list>
 
-          <ion-button expand="block" (click)="joinGroup()" color="secondary" class="ion-margin-top">
+          <ion-button
+            expand="block"
+            (click)="joinGroup()"
+            color="secondary"
+            class="ion-margin-top"
+          >
             <ion-icon name="enter-outline" slot="start"></ion-icon>
             Unirse a un Grupo
           </ion-button>
@@ -99,12 +123,21 @@
           </ion-item>
 
           <div class="button-container">
-            <ion-button expand="block" type="submit" [disabled]="!groupForm.valid || loading">
+            <ion-button
+              expand="block"
+              type="submit"
+              [disabled]="!groupForm.valid || loading"
+            >
               <ion-icon name="add-circle-outline" slot="start"></ion-icon>
               Crear Grupo
             </ion-button>
 
-            <ion-button expand="block" fill="outline" (click)="toggleCreateGroup()" color="medium">
+            <ion-button
+              expand="block"
+              fill="outline"
+              (click)="toggleCreateGroup()"
+              color="medium"
+            >
               <ion-icon name="close-circle-outline" slot="start"></ion-icon>
               Cancelar
             </ion-button>
