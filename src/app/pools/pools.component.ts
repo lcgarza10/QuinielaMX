@@ -128,7 +128,8 @@ export class PoolsComponent implements OnInit {
     this.loadMatches();
   }
 
-  onViewChange(view: 'regular' | 'playoffs') {
+  onViewChange(event: any) {
+    const view = event.detail.value as 'regular' | 'playoffs';
     this.selectedView = view;
     if (view === 'playoffs') {
       this.loadPlayoffMatches();

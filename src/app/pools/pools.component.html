@@ -20,7 +20,7 @@
     </div>
   </div>
 
-  <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange($event.detail.value)">
+  <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange($event)">
     <ion-segment-button value="regular">
       <ion-label>Regular</ion-label>
     </ion-segment-button>
