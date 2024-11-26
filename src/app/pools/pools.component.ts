@@ -33,6 +33,7 @@ export class PoolsComponent implements OnInit {
   savingPredictions: boolean = false;
   isLiveRound: boolean = false;
   playoffMatches: MatchWithPrediction[] = [];
+  selectedView: 'regular' | 'playoffs' = 'regular';
 
   constructor(
     private footballService: FootballService,
