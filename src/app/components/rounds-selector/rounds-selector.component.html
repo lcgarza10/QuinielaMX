@@ -7,7 +7,7 @@
       [class.current]="round === currentRound"
       (click)="onRoundChange(round)"
       #selectedRoundElement>
-      J{{ round }}
+      {{ getRoundLabel(round) }}
       <ion-icon 
         *ngIf="round === currentRound" 
         name="radio" 

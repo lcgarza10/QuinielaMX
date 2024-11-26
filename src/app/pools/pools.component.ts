@@ -24,7 +24,7 @@ export class PoolsComponent implements OnInit {
   error: string | null = null;
   selectedRound: number = 1;
   currentRound: number = 1;
-  rounds: number[] = Array.from({ length: 17 }, (_, i) => i + 1);
+  rounds: number[] = Array.from({ length: 20 }, (_, i) => i + 1);
   userId: string | null = null;
   isOffline: boolean = false;
   hasPredictions: boolean = false;

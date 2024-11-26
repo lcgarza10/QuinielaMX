@@ -18,12 +18,10 @@ export class RoundsSelectorComponent implements OnInit, AfterViewInit, OnChanges
   private scrollTimeout: any;
 
   ngOnInit() {
-    // Initial scroll attempt
     this.scheduleScroll();
   }
 
   ngAfterViewInit() {
-    // Second scroll attempt after view init
     this.scheduleScroll();
   }
 
@@ -37,17 +35,22 @@ export class RoundsSelectorComponent implements OnInit, AfterViewInit, OnChanges
     this.roundChange.emit(round);
   }
 
+  getRoundLabel(round: number): string {
+    switch (round) {
+      case 18: return '4tos';
+      case 19: return 'Semis';
+      case 20: return 'Final';
+      default: return `J${round}`;
+    }
+  }
+
   private scheduleScroll() {
-    // Clear any existing timeout
     if (this.scrollTimeout) {
       clearTimeout(this.scrollTimeout);
     }
 
-    // Schedule multiple scroll attempts
     this.scrollTimeout = setTimeout(() => {
       this.scrollToSelectedRound();
-      
-      // Additional attempts with increasing delays
       setTimeout(() => this.scrollToSelectedRound(), 100);
       setTimeout(() => this.scrollToSelectedRound(), 300);
       setTimeout(() => this.scrollToSelectedRound(), 500);
@@ -65,7 +68,6 @@ export class RoundsSelectorComponent implements OnInit, AfterViewInit, OnChanges
       const chipLeft = selectedChip.offsetLeft;
       const chipWidth = selectedChip.offsetWidth;
       
-      // Center the selected round in the container
       const scrollPosition = Math.max(0, chipLeft - (containerWidth / 2) + (chipWidth / 2));
       
       container.scrollTo({
