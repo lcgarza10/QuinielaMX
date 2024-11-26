@@ -388,7 +388,7 @@ export class PoolsComponent implements OnInit {
 
     if (this.userId) {
       try {
-        const playoffRounds = await firstValueFrom(this.footballService.getPlayoffRounds());
+        const playoffRounds = await firstValueFrom(this.footballService.getPlayoffRounds()) as number[];
         this.playoffRounds = playoffRounds;
         this.selectedPlayoffRound = playoffRounds[0]; // Default to the first round
         await this.loadPlayoffMatches();

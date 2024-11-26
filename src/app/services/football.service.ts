@@ -291,4 +291,9 @@ export class FootballService {
     if (position === 3) return 'er';
     return 'to';
   }
+
+  async getPlayoffRounds(): Promise<number[]> {
+    // Fetch playoff rounds from the API
+    // Example: return [18, 19, 20]; // Assuming these are the playoff round numbers
+  }
 }

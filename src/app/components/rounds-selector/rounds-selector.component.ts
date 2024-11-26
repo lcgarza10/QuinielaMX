@@ -52,8 +52,6 @@ export class RoundsSelectorComponent implements OnInit, AfterViewInit, OnChanges
     this.scrollTimeout = setTimeout(() => {
       this.scrollToSelectedRound();
       setTimeout(() => this.scrollToSelectedRound(), 100);
-      setTimeout(() => this.scrollToSelectedRound(), 300);
-      setTimeout(() => this.scrollToSelectedRound(), 500);
     }, 0);
   }
 
