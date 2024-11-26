@@ -32,6 +32,7 @@ export class PoolsComponent implements OnInit {
   isRateLimited: boolean = false;
   savingPredictions: boolean = false;
   isLiveRound: boolean = false;
+  playoffMatches: MatchWithPrediction[] = [];
 
   constructor(
     private footballService: FootballService,
@@ -319,5 +320,46 @@ export class PoolsComponent implements OnInit {
       ]
     });
     await toast.present();
+  }
+
+  async loadPlayoffMatches() {
+    this.loading = true;
+    this.error = null;
+    this.weeklyPoints = 0;
+    this.isRateLimited = false;
+
+    if (this.userId) {
+      try {
+        const [matches, predictions] = await Promise.all([
+          firstValueFrom(this.footballService.getPlayoffMatches()),
+          firstValueFrom(this.databaseService.getPredictions(this.userId, 'playoffs'))
+        ]);
+
+        this.playoffMatches = matches.map(match => {
+          const prediction = predictions.find(p => p.matchId === match.id);
+          const canPredict = this.canPredictMatch(match);
+
+          return {
+            ...match,
+            prediction: {
+              homeScore: prediction?.homeScore ?? null,
+              awayScore: prediction?.awayScore ?? null
+            },
+            canPredict
+          };
+        });
+
+        this.loading = false;
+        this.isOffline = false;
+
+        if (this.playoffMatches.length === 0) {
+          this.error = 'No hay partidos de playoff programados.';
+        }
+      } catch (error) {
+        console.error('Error loading playoff matches:', error);
+        this.loading = false;
+        this.error = 'Error al cargar los partidos de playoff';
+      }
+    }
   }
 }

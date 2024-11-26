@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
 import { AuthService } from '../services/auth.service';
-import { FootballService, Match } from '../services/football.service';
+import { FootballService, Match, PlayoffMatch } from '../services/football.service';
 import { GroupService, Group } from '../services/group.service';
 import { Observable, combineLatest, of, firstValueFrom } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
@@ -29,15 +29,23 @@ export class LeaderboardComponent implements OnInit {
   weeklyLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   overallLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   globalLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
+  playoffLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   loading: boolean = true;
   error: string | null = null;
   selectedRound: number = 1;
   currentRound: number = 1;
-  selectedView: 'weekly' | 'overall' | 'global' = 'weekly';
+  selectedView: 'weekly' | 'overall' | 'global' | 'playoff' = 'weekly';
   weekMatches: Match[] = [];
+  playoffMatches: PlayoffMatch[] = [];
   currentUserId: string | null = null;
   currentGroup: Group | null = null;
   isLiveRound: boolean = false;
+  playoffRounds = [
+    'Reclasificación',
+    'Cuartos de Final',
+    'Semifinal',
+    'Final'
+  ];
 
   constructor(
     private databaseService: DatabaseService,
@@ -56,6 +64,7 @@ export class LeaderboardComponent implements OnInit {
 
     await this.findCurrentRound();
     await this.loadWeekMatches();
+    await this.loadPlayoffMatches();
     this.setupLeaderboards();
   }
 
@@ -121,7 +130,6 @@ export class LeaderboardComponent implements OnInit {
         this.footballService.getMatches(this.selectedRound)
       );
 
-      // Check if any match is live
       this.isLiveRound = this.weekMatches.some(match => 
         match.status.short === 'LIVE' || 
         match.status.short === 'HT' ||
@@ -131,6 +139,15 @@ export class LeaderboardComponent implements OnInit {
     } catch (error) {
       console.error('Error loading week matches:', error);
       this.weekMatches = [];
+    }
+  }
+
+  private async loadPlayoffMatches() {
+    try {
+      this.playoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
+    } catch (error) {
+      console.error('Error loading playoff matches:', error);
+      this.playoffMatches = [];
     }
   }
 
@@ -147,7 +164,6 @@ export class LeaderboardComponent implements OnInit {
               let weeklyPoints = 0;
               let livePoints = 0;
 
-              // Calculate points for each prediction
               predictions.forEach(pred => {
                 const match = this.weekMatches.find(m => m.id === pred.matchId);
                 if (match && pred.homeScore !== null && pred.awayScore !== null &&
@@ -244,6 +260,55 @@ export class LeaderboardComponent implements OnInit {
           )
         );
         return combineLatest(userDetails$);
+      }),
+      map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
+    );
+
+    // Playoff leaderboard
+    this.playoffLeaderboard$ = this.databaseService.getAllUsers().pipe(
+      map(users => users.filter(user => 
+        this.currentGroup ? this.currentGroup.members.includes(user.uid) : true
+      )),
+      switchMap(users => {
+        const userPredictions$ = users.map(user =>
+          this.databaseService.getPredictions(user.uid, 'playoffs').pipe(
+            map(predictions => {
+              let playoffPoints = 0;
+
+              predictions.forEach(pred => {
+                const match = this.playoffMatches.find(m => m.id === pred.matchId);
+                if (match && pred.homeScore !== null && pred.awayScore !== null &&
+                    match.homeScore !== null && match.awayScore !== null &&
+                    match.status.short === 'FT') {
+                  
+                  if (pred.homeScore === match.homeScore && 
+                      pred.awayScore === match.awayScore) {
+                    playoffPoints += 3;
+                  } else {
+                    const actualResult = Math.sign(match.homeScore - match.awayScore);
+                    const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
+                    if (actualResult === predictedResult) {
+                      playoffPoints += 1;
+                    }
+                  }
+                }
+              });
+
+              return {
+                userId: user.uid,
+                username: user.username || user.email || 'Unknown User',
+                totalPoints: playoffPoints,
+                predictions: predictions.map(pred => ({
+                  matchId: pred.matchId,
+                  homeScore: pred.homeScore!,
+                  awayScore: pred.awayScore!,
+                  points: pred.points || 0
+                }))
+              };
+            })
+          )
+        );
+        return combineLatest(userPredictions$);
       }),
       map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
     );

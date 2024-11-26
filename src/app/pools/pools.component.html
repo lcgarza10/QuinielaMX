@@ -117,4 +117,31 @@
       Guardar Predicciones
     </ion-button>
   </div>
+
+  <ion-segment [(ngModel)]="selectedView">
+    <ion-segment-button value="regular">
+      Regular
+    </ion-segment-button>
+    <ion-segment-button value="playoffs">
+      Playoffs
+    </ion-segment-button>
+  </ion-segment>
+
+  <app-match-list
+    *ngIf="selectedView === 'regular'"
+    [matches]="matches"
+    [isCompleted]="!isLiveRound"
+    [weeklyPoints]="weeklyPoints"
+    [weekLabel]="selectedRound.toString()"
+    (submitPredictions)="submitPredictions()"
+  ></app-match-list>
+
+  <app-match-list
+    *ngIf="selectedView === 'playoffs'"
+    [matches]="playoffMatches"
+    [isCompleted]="!isLiveRound"
+    [weeklyPoints]="weeklyPoints"
+    [weekLabel]="'Playoffs'"
+    (submitPredictions)="submitPredictions()"
+  ></app-match-list>
 </ion-content>

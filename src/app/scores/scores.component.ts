@@ -32,7 +32,7 @@ export class ScoresComponent implements OnInit {
   isRoundFinished: boolean = false;
   userId: string | null = null;
   totalPoints: number = 0;
-  selectedView: 'regular' | 'playoffs' = 'regular';
+  selectedView: 'regular' | 'playoffs' = 'playoffs'; // Changed default to 'playoffs'
   playoffRounds = [
     'Reclasificación',
     'Cuartos de Final',
@@ -50,7 +50,9 @@ export class ScoresComponent implements OnInit {
   async ngOnInit() {
     this.authService.user$.subscribe(user => {
       this.userId = user?.uid || null;
-      this.findCurrentRound();
+      if (this.selectedView === 'regular') {
+        this.findCurrentRound();
+      }
     });
     await this.loadPlayoffMatches();
   }
@@ -236,10 +238,10 @@ export class ScoresComponent implements OnInit {
   }
 
   onViewChange() {
-    if (this.selectedView === 'playoffs') {
-      this.loadPlayoffMatches();
+    if (this.selectedView === 'regular') {
+      this.findCurrentRound();
     } else {
-      this.loadMatches();
+      this.loadPlayoffMatches();
     }
   }
 

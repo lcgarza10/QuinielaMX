@@ -62,6 +62,15 @@
       }
     }
   }
+
+  .playoff-round-header {
+    grid-column: span 2;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+  }
 }
 
 .grid-row {
@@ -126,6 +135,14 @@
       min-width: 14px;
     }
   }
+}
+
+.playoff-predictions {
+  display: flex;
+  gap: 4px;
+  padding: 2px;
+  background: rgba(var(--ion-color-light-rgb), 0.05);
+  border-radius: 4px;
 }
 
 .pos-col, .pts-col {
@@ -201,6 +218,10 @@
   .user-col {
     color: var(--ion-color-light);
   }
+
+  .playoff-predictions {
+    background: rgba(var(--ion-color-light-rgb), 0.1);
+  }
 }
 
 @media (max-width: 768px) {
@@ -213,6 +234,11 @@
     grid-template-columns: 22px 28px minmax(65px, 85px) repeat(auto-fit, 26px);
     gap: 1px;
     padding: 3px;
+
+    .playoff-round-header {
+      font-size: 0.7em;
+      padding: 2px;
+    }
   }
 
   .grid-header {
@@ -243,5 +269,10 @@
   .user-col {
     font-size: 0.8em;
     padding-left: 2px;
+  }
+
+  .playoff-predictions {
+    gap: 2px;
+    padding: 1px;
   }
 }

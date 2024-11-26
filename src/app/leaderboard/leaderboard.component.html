@@ -1,5 +1,4 @@
 <ion-header>
- <br>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home"></ion-back-button>
@@ -19,6 +18,12 @@
         <ion-label>
           <ion-icon name="trophy-outline"></ion-icon>
           Temporada
+        </ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="playoff">
+        <ion-label>
+          <ion-icon name="football-outline"></ion-icon>
+          Liguilla
         </ion-label>
       </ion-segment-button>
       <ion-segment-button value="global">
@@ -41,7 +46,6 @@
 </ion-header>
 
 <ion-content>
-
 <!-- Weekly View -->
   <ng-container *ngIf="selectedView === 'weekly'">
     <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
@@ -67,13 +71,11 @@
           </div>
         </div>
 
-   
         <div class="grid-row" *ngFor="let entry of weeklyLeaderboard; let i = index" 
              [class.current-user]="entry.userId === currentUserId">
           <div class="pos-col">{{ i + 1 }}</div>
           <div class="pos-col">
             {{ (entry.weeklyPoints || 0) + (entry.livePoints || 0) }}
-            
           </div>
           <div class="user-col">{{ entry.username }}</div>
           <ng-container *ngFor="let match of weekMatches">
@@ -118,9 +120,52 @@
     </div>
   </ng-container>
 
+  <!-- Playoff View -->
+  <ng-container *ngIf="selectedView === 'playoff'">
+    <div class="group-info" *ngIf="currentGroup">
+      <h3>Tabla de Liguilla - {{ currentGroup.name }}</h3>
+    </div>
+    <div class="matches-grid">
+      <div class="grid-header">
+        <div class="pos-col">Pos</div>
+        <div class="pos-col">Pts</div>
+        <div class="user-col">Usuario</div>
+        <ng-container *ngFor="let round of playoffRounds">
+          <div class="playoff-round-header">{{ round }}</div>
+        </ng-container>
+      </div>
+      <div class="grid-row" *ngFor="let entry of playoffLeaderboard$ | async; let i = index"
+           [class.current-user]="entry.userId === currentUserId">
+        <div class="pos-col">{{ i + 1 }}</div>
+        <div class="pos-col">{{ entry.totalPoints }}</div>
+        <div class="user-col">{{ entry.username }}</div>
+        <ng-container *ngFor="let round of playoffRounds">
+          <div class="playoff-predictions">
+            <ng-container *ngFor="let match of playoffMatches | filterByRound:round">
+              <div class="prediction-col" 
+                   [class.exact-match]="getPredictionPoints(entry.predictions, match) === 3"
+                   [class.partial-match]="getPredictionPoints(entry.predictions, match) === 1"
+                   [class.no-match]="getPredictionPoints(entry.predictions, match) === 0"
+                   [class.no-prediction]="!getPrediction(entry.predictions, match)">
+                <ng-container *ngIf="getPrediction(entry.predictions, match) as pred">
+                  <div class="pred-score">{{ pred.homeScore }}</div>
+                  <div class="pred-score">{{ pred.awayScore }}</div>
+                </ng-container>
+                <ng-container *ngIf="!getPrediction(entry.predictions, match)">
+                  <div class="pred-score">-</div>
+                  <div class="pred-score">-</div>
+                </ng-container>
+              </div>
+            </ng-container>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </ng-container>
+
   <!-- Global View -->
   <ng-container *ngIf="selectedView === 'global'">
-    <div class="group-info" *ngIf="currentGroup">
+    <div class="group-info">
       <h3>Tabla Mundial</h3>
     </div>
     
@@ -138,3 +183,4 @@
       </div>
     </div>
   </ng-container>
+</ion-content>
