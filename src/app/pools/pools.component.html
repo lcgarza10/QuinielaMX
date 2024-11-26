@@ -20,12 +20,31 @@
     </div>
   </div>
 
-  <app-rounds-selector
-    [selectedRound]="selectedRound"
-    [currentRound]="currentRound"
-    [isLiveRound]="isLiveRound"
-    (roundChange)="onRoundChange($event)">
-  </app-rounds-selector>
+  <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange($event.detail.value)">
+    <ion-segment-button value="regular">
+      <ion-label>Regular</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="playoffs">
+      <ion-label>Playoffs</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div *ngIf="selectedView === 'regular'">
+    <app-rounds-selector
+      [selectedRound]="selectedRound"
+      [currentRound]="currentRound"
+      [isLiveRound]="isLiveRound"
+      (roundChange)="onRoundChange($event)">
+    </app-rounds-selector>
+  </div>
+
+  <div *ngIf="selectedView === 'playoffs'">
+    <ion-segment [(ngModel)]="selectedPlayoffRound" (ionChange)="loadPlayoffMatches()">
+      <ion-segment-button *ngFor="let round of playoffRounds" [value]="round">
+        <ion-label>{{ round }}</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
 
   <div *ngIf="loading" class="loading-container">
     <ion-spinner></ion-spinner>
@@ -118,15 +137,6 @@
     </ion-button>
   </div>
 
-  <ion-segment [(ngModel)]="selectedView">
-    <ion-segment-button value="regular">
-      Regular
-    </ion-segment-button>
-    <ion-segment-button value="playoffs">
-      Playoffs
-    </ion-segment-button>
-  </ion-segment>
-
   <app-match-list
     *ngIf="selectedView === 'regular'"
     [matches]="matches"
@@ -144,10 +154,4 @@
     [weekLabel]="'Playoffs'"
     (submitPredictions)="submitPredictions()"
   ></app-match-list>
-
-  <ion-segment [(ngModel)]="selectedPlayoffRound" (ionChange)="loadPlayoffMatches()">
-    <ion-segment-button *ngFor="let round of playoffRounds" [value]="round">
-      {{ round }}
-    </ion-segment-button>
-  </ion-segment>
 </ion-content>
