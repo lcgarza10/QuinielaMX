@@ -225,6 +225,7 @@ export class ScoresComponent implements OnInit {
   }
 
   async loadPlayoffMatches() {
+    this.loading = true;
     try {
       const matches = await firstValueFrom(this.footballService.getPlayoffMatches());
       if (this.userId) {
@@ -235,6 +236,7 @@ export class ScoresComponent implements OnInit {
         this.playoffMatches = matches.map(match => {
           const prediction = predictions.find(p => p.matchId === match.id);
           let points = 0;
+          let livePoints = 0;
 
           if (prediction && prediction.homeScore !== null && prediction.awayScore !== null &&
               match.homeScore !== null && match.awayScore !== null) {
@@ -243,23 +245,36 @@ export class ScoresComponent implements OnInit {
             const actualResult = Math.sign(match.homeScore - match.awayScore);
             const isExactMatch = prediction.homeScore === match.homeScore && 
                                prediction.awayScore === match.awayScore;
-            const isPartialMatch = predictedResult === actualResult;
+            const isPartialMatch = predictedResult === actualResult && !isExactMatch;
 
             if (match.status.short === 'FT') {
-              if (isExactMatch) {
-                points = 3;
-              } else if (isPartialMatch) {
-                points = 1;
-              }
+              points = isExactMatch ? 3 : (isPartialMatch ? 1 : 0);
+              this.totalPoints += points;
+            } 
+            else if (match.status.short === 'LIVE' || 
+                    match.status.short === 'HT' || 
+                    match.status.short === '1H' || 
+                    match.status.short === '2H') {
+              livePoints = isExactMatch ? 3 : (isPartialMatch ? 1 : 0);
+              this.totalPoints += livePoints;
             }
           }
 
+          // Maintain the PlayoffMatch type while adding prediction
           return {
             ...match,
-            prediction: {
-              homeScore: prediction?.homeScore ?? null,
-              awayScore: prediction?.awayScore ?? null,
-              points
+            prediction: prediction ? {
+              homeScore: prediction.homeScore,
+              awayScore: prediction.awayScore,
+              points: points,
+              livePoints: livePoints
+            } : undefined
+          } as PlayoffMatch & { 
+            prediction?: {
+              homeScore: number | null;
+              awayScore: number | null;
+              points: number;
+              livePoints: number;
             }
           };
         });
@@ -268,6 +283,9 @@ export class ScoresComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error loading playoff matches:', error);
+      this.error = 'Error al cargar los partidos de liguilla';
+    } finally {
+      this.loading = false;
     }
   }
 
@@ -280,7 +298,18 @@ export class ScoresComponent implements OnInit {
       'NS': 4,
       'FT': 5,
       'AET': 6,
-      'PEN': 7
+      'PEN': 7,
+      'PST': 8,
+      'CANC': 9,
+      'ABD': 10,
+      'INT': 11,
+      'SUSP': 12,
+      'TBD': 13,
+      'AWD': 14,
+      'WO': 15,
+      'BREAK': 16,
+      'ET': 17,
+      'P': 18
     };
 
     return [...matches].sort((a, b) => {
@@ -288,6 +317,15 @@ export class ScoresComponent implements OnInit {
       const statusB = statusPriority[b.status.short] ?? 999;
 
       if (statusA === statusB) {
+        // For NS (not started) matches, sort by date
+        if (a.status.short === 'NS' && b.status.short === 'NS') {
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        }
+        // For FT (finished) matches, sort by most recent first
+        if (a.status.short === 'FT' && b.status.short === 'FT') {
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        }
+        // For all other cases, sort by date ascending
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
       return statusA - statusB;
@@ -369,32 +407,64 @@ export class ScoresComponent implements OnInit {
     return statusTranslations[match.status.short] || match.status.long || 'Programado';
   }
 
-  getPredictionClass(match: ScoreMatch): string {
+  getPredictionClass(match: ScoreMatch | PlayoffMatch): string {
+    console.log('Match:', {
+      teams: `${match.homeTeam} vs ${match.awayTeam}`,
+      status: match.status.short,
+      prediction: match.prediction,
+      actualScore: `${match.homeScore}-${match.awayScore}`,
+      predictionScore: match.prediction ? `${match.prediction.homeScore}-${match.prediction.awayScore}` : 'none',
+      points: match.prediction?.points,
+      livePoints: match.prediction?.livePoints
+    });
+
     if (!match.prediction?.homeScore || !match.prediction?.awayScore || 
         match.homeScore === null || match.awayScore === null) {
       return 'no-match';
     }
 
+    // Convert points to numbers to ensure consistent comparison
+    const points = Number(match.prediction.points);
+    const livePoints = Number(match.prediction.livePoints);
+
+    console.log('Points after conversion:', { points, livePoints });
+
+    // Check points first
+    if (points === 3 || livePoints === 3) {
+      console.log('Exact match detected:', points || livePoints);
+      return match.status.short === 'FT' ? 'exact-match' : 'exact-match live';
+    }
+    if (points === 1 || livePoints === 1) {
+      console.log('Partial match detected:', points || livePoints);
+      return match.status.short === 'FT' ? 'partial-match' : 'partial-match live';
+    }
+
+    // If no points are set, calculate based on scores
     const predictedResult = Math.sign(match.prediction.homeScore - match.prediction.awayScore);
     const actualResult = Math.sign(match.homeScore - match.awayScore);
     const isExactMatch = match.prediction.homeScore === match.homeScore && 
                         match.prediction.awayScore === match.awayScore;
     const isPartialMatch = predictedResult === actualResult && !isExactMatch;
-    const isLive = match.status.short === 'LIVE' || 
-                  match.status.short === 'HT' || 
-                  match.status.short === '1H' || 
-                  match.status.short === '2H';
+
+    console.log('Score comparison:', {
+      predictedResult,
+      actualResult,
+      isExactMatch,
+      isPartialMatch
+    });
 
     if (match.status.short === 'FT') {
       if (isExactMatch) return 'exact-match';
       if (isPartialMatch) return 'partial-match';
-      return 'no-match';
-    } else if (isLive) {
+    } else if (match.status.short === 'LIVE' || 
+              match.status.short === 'HT' || 
+              match.status.short === '1H' || 
+              match.status.short === '2H') {
       if (isExactMatch) return 'exact-match live';
       if (isPartialMatch) return 'partial-match live';
-      return 'no-match live';
     }
-    
+
+    console.log('No match condition met, returning no-match');
     return 'no-match';
   }
 

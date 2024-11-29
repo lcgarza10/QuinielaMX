@@ -2,33 +2,34 @@
   width: 100%;
   max-width: 100%;
   margin: 10px auto 0;
-  padding: 8px;
+  padding: 10px;
   background: var(--ion-card-background);
   border-radius: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  color: var(--ion-text-color);
 }
 
 .group-info {
   text-align: center;
-  margin: 10px 0;
-  padding: 10px;
+  margin: 12px 0;
+  padding: 12px;
   background: var(--ion-color-primary);
   border-radius: 8px;
   color: white;
 
   h3 {
     margin: 0;
-    font-size: 1.2em;
+    font-size: 1.3em;
     font-weight: 500;
   }
 }
 
 .grid-header {
   display: grid;
-  grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 28px);
-  gap: 1px;
-  padding: 6px;
+  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 32px);
+  gap: 2px;
+  padding: 8px;
   background: var(--ion-color-primary);
   color: white;
   border-radius: 4px;
@@ -36,141 +37,142 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  font-size: 0.85em;
+  font-size: 0.95em;
   text-align: center;
 
   .matches-col {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
 
     .team-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1px;
+      gap: 2px;
 
       .team-logo {
-        width: 19px;
-        height: 19px;
+        width: 24px;
+        height: 24px;
         object-fit: contain;
       }
 
       .score {
-        font-size: 1.0em;
-        font-weight: 500;
+        font-size: 0.95em;
+        font-weight: 600;
+        color: var(--ion-text-color);
       }
     }
   }
 
   .playoff-round-header {
     grid-column: span 2;
-    padding: 4px;
+    padding: 6px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
-    font-size: 0.8em;
+    font-size: 0.9em;
     white-space: nowrap;
   }
 }
 
 .grid-row {
   display: grid;
-  grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 28px);
-  gap: 1px;
-  padding: 6px;
+  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 32px);
+  gap: 2px;
+  padding: 8px;
+  border-bottom: 1px solid var(--ion-color-light);
+  font-size: 0.95em;
   align-items: center;
-  border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
-  font-size: 0.85em;
-  text-align: center;
+  color: var(--ion-text-color);
 
   &.current-user {
-    background: rgba(var(--ion-color-primary-rgb), 0.1);
-    font-weight: 500;
+    background: var(--ion-color-light);
+    font-weight: 600;
   }
 
-  .prediction-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    padding: 1px;
-    border-radius: 3px;
-    font-weight: 500;
-    font-size: 1.0em;
-
-    &.exact-match {
-      background: rgba(var(--ion-color-success-rgb), 0.1);
-      color: var(--ion-color-success);
-
-      &.live {
-        animation: pulse 2s infinite;
-      }
-    }
-
-    &.partial-match {
-      background: rgba(var(--ion-color-warning-rgb), 0.1);
-      color: var(--ion-color-warning);
-
-      &.live {
-        animation: pulse 2s infinite;
-      }
-    }
-
-    &.no-match {
-      background: rgba(var(--ion-color-medium-rgb), 0.05);
-      color: var(--ion-color-medium);
-
-      &.live {
-        animation: pulse 2s infinite;
-      }
-    }
-
-    &.no-prediction {
-      background: rgba(var(--ion-color-medium-rgb), 0.05);
-      color: var(--ion-color-medium);
-      opacity: 0.5;
-    }
-
-    .pred-score {
-      min-width: 14px;
-    }
+  &:last-child {
+    border-bottom: none;
   }
-}
-
-.playoff-predictions {
-  display: flex;
-  gap: 4px;
-  padding: 2px;
-  background: rgba(var(--ion-color-light-rgb), 0.05);
-  border-radius: 4px;
 }
 
 .pos-col, .pts-col {
   font-weight: 600;
+  font-size: 0.95em;
+  color: var(--ion-text-color);
 }
 
 .pts-col {
   color: var(--ion-color-primary);
-  position: relative;
 
   .live-points {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -10px;
+    right: -10px;
     background: var(--ion-color-success);
     color: white;
-    font-size: 0.7em;
-    padding: 2px 4px;
+    font-size: 0.8em;
+    padding: 4px 6px;
     border-radius: 8px;
   }
 }
 
 .user-col {
-  padding-left: 4px;
+  padding-left: 5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: left;
+  font-size: 0.95em;
+  color: var(--ion-text-color);
+}
+
+.prediction-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 2px;
+  border-radius: 4px;
+  min-height: 45px;
+  color: var(--ion-text-color);
+
+  &.exact-match {
+    background: rgba(var(--ion-color-success-rgb), 0.1);
+    color: var(--ion-color-success);
+  }
+
+  &.partial-match {
+    background: rgba(var(--ion-color-warning-rgb), 0.1);
+    color: var(--ion-color-warning);
+  }
+
+  &.no-match {
+    background: rgba(var(--ion-color-medium-rgb), 0.05);
+    color: var(--ion-color-medium);
+  }
+
+  &.no-prediction {
+    background: rgba(var(--ion-color-medium-rgb), 0.05);
+    color: var(--ion-color-medium);
+    opacity: 0.5;
+  }
+
+  &.live {
+    animation: pulse 2s infinite;
+  }
+
+  .pred-score {
+    font-size: 0.95em;
+    font-weight: 500;
+    color: var(--ion-text-color);
+  }
+}
+
+.playoff-predictions {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: rgba(var(--ion-color-light-rgb), 0.1);
+  border-radius: 4px;
 }
 
 @keyframes pulse {
@@ -216,7 +218,7 @@
   }
 
   .user-col {
-    color: var(--ion-color-light);
+    color: var(--ion-text-color);
   }
 
   .playoff-predictions {
@@ -226,18 +228,18 @@
 
 @media (max-width: 768px) {
   .matches-grid {
-    padding: 4px;
-    margin-top: 8px;
+    padding: 6px;
+    margin-top: 10px;
   }
 
   .grid-header, .grid-row {
-    grid-template-columns: 22px 28px minmax(65px, 85px) repeat(auto-fit, 26px);
-    gap: 1px;
-    padding: 3px;
+    grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 28px);
+    gap: 2px;
+    padding: 5px;
 
     .playoff-round-header {
-      font-size: 0.7em;
-      padding: 2px;
+      font-size: 0.8em;
+      padding: 3px;
     }
   }
 
@@ -245,11 +247,11 @@
     .matches-col {
       .team-container {
         .team-logo {
-          width: 12px;
-          height: 12px;
+          width: 18px;
+          height: 18px;
         }
         .score {
-          font-size: 0.7em;
+          font-size: 0.9em;
         }
       }
     }
@@ -257,22 +259,58 @@
 
   .grid-row {
     .prediction-col {
-      font-size: 0.7em;
-      padding: 1px;
+      font-size: 0.9em;
+      padding: 3px 2px;
       
       .pred-score {
-        min-width: 12px;
+        min-width: 16px;
       }
     }
   }
 
   .user-col {
-    font-size: 0.8em;
-    padding-left: 2px;
+    font-size: 0.9em;
+    padding-left: 3px;
   }
 
   .playoff-predictions {
-    gap: 2px;
-    padding: 1px;
+    gap: 4px;
+    padding: 2px;
   }
+}
+
+// Increase table font size
+.standings-table {
+  font-size: 1.2rem;  // Increase from default or previous size
+
+  ion-row {
+    padding: 10px 6px; // Add more padding for better touch targets
+  }
+
+  .team-logo {
+    width: 36px;  // Increase from default size (likely 24-28px)
+    height: 36px;
+    margin-right: 10px;
+  }
+
+  .team-name {
+    font-size: 1.2rem;
+    font-weight: 500;
+  }
+
+  .points {
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+}
+
+// Make header row more prominent
+.header-row {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+// Add more spacing between rows
+ion-row:not(:last-child) {
+  margin-bottom: 6px;
 }

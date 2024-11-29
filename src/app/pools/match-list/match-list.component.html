@@ -41,38 +41,39 @@
               <div class="prediction-inputs">
                 <ion-input
                   type="number"
-                  [(ngModel)]="match.prediction!.homeScore"
-                  placeholder="Local"
+                  [formControl]="match.homeScoreControl"
+                  [disabled]="!canPredict(match)"
                   min="0"
-                  max="99"
-                  class="score-input"
+                  label="Local"
+                  labelPlacement="stacked"
+                  [attr.aria-label]="match.homeTeam + ' score'"
                 >
                 </ion-input>
-                <span class="score-separator">-</span>
+                <span class="vs">vs</span>
                 <ion-input
                   type="number"
-                  [(ngModel)]="match.prediction!.awayScore"
-                  placeholder="Visitante"
+                  [formControl]="match.awayScoreControl"
+                  [disabled]="!canPredict(match)"
                   min="0"
-                  max="99"
-                  class="score-input"
+                  label="Visitante"
+                  labelPlacement="stacked"
+                  [attr.aria-label]="match.awayTeam + ' score'"
                 >
                 </ion-input>
               </div>
             </ng-container>
             <ng-container *ngIf="isCompleted">
-              <div class="scores-container">
+              <div class="prediction-container" [ngClass]="getPredictionClass(match)">
                 <div class="final-score">
-                  {{ match.homeScore }} - {{ match.awayScore }}
+                  <span>{{ match.homeScore }} - {{ match.awayScore }}</span>
                 </div>
-                <div
-                  class="prediction-score"
-                  [ngClass]="getPredictionClass(match)"
-                >
-                  Tu Pronóstico: {{ match.prediction?.homeScore ?? '-' }} -
-                  {{ match.prediction?.awayScore ?? '-' }}
-                  <div class="points-badge">
-                    {{ getMatchPoints(match) }} pts
+                <div class="prediction" *ngIf="match.prediction">
+                  <div class="prediction-label">Tu Pronóstico:</div>
+                  <div class="prediction-score">
+                    {{ match.prediction.homeScore }} - {{ match.prediction.awayScore }}
+                  </div>
+                  <div class="points" *ngIf="match.points !== undefined">
+                    {{ match.points }} pts
                   </div>
                 </div>
               </div>

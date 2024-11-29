@@ -8,26 +8,24 @@
       <ion-card>
         <ion-card-content>
           <ion-item class="form-item">
-            <ion-label position="floating">
-              <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-              Correo electrónico
-            </ion-label>
             <ion-input 
               type="email" 
               formControlName="email"
-              placeholder="tucorreo@email.com">
+              placeholder="tucorreo@email.com"
+              label="Correo electrónico"
+              labelPlacement="floating">
+              <ion-icon name="mail-outline" slot="start" class="input-icon"></ion-icon>
             </ion-input>
           </ion-item>
 
           <ion-item class="form-item">
-            <ion-label position="floating">
-              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-              Contraseña
-            </ion-label>
             <ion-input 
               type="password" 
               formControlName="password"
-              placeholder="Tu contraseña">
+              placeholder="Tu contraseña"
+              label="Contraseña"
+              labelPlacement="floating">
+              <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
             </ion-input>
           </ion-item>
 

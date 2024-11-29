@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { AngularFirestore, DocumentData, QuerySnapshot, DocumentSnapshot } from '@angular/fire/compat/firestore';
 import { Observable, of, from, firstValueFrom } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { FootballService, Match } from './football.service';
 import { User } from './auth.service';
+import { FieldPath } from '@firebase/firestore';
 
 export interface Prediction {
   matchId: number;
@@ -16,6 +17,10 @@ export interface PredictionDocument {
   predictions: Prediction[];
   totalPoints: number;
   lastUpdated: Date;
+}
+
+interface UserPoints {
+  totalPoints: number;
 }
 
 @Injectable({
@@ -34,9 +39,13 @@ export class DatabaseService {
     }
 
     return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`)
-      .valueChanges()
+      .get()
       .pipe(
-        map(doc => doc?.predictions || []),
+        map(doc => {
+          if (!doc.exists) return [];
+          const data = doc.data();
+          return data?.predictions || [];
+        }),
         catchError(error => {
           console.error('Error getting predictions:', error);
           return of([]);
@@ -71,31 +80,76 @@ export class DatabaseService {
   }
 
   getAllUsers(): Observable<User[]> {
-    return this.afs.collection<User>('users', ref => 
-      ref.where('email', '!=', '')
-    ).valueChanges({ idField: 'uid' })
-    .pipe(
-      catchError(error => {
-        if (error.code === 'permission-denied') {
-          console.warn('Permission denied accessing users collection. User may not be authenticated.');
+    return this.afs.collection<User>('users')
+      .get()
+      .pipe(
+        map(snapshot => {
+          const users = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              ...data,
+              uid: doc.id
+            } as User;
+          });
+          console.debug('Fetched users from Firestore:', users.length);
+          console.debug('User details:', users.map(user => ({ uid: user.uid, email: user.email })));
+          return users;
+        }),
+        catchError(error => {
+          console.error('Error fetching users:', error);
           return of([]);
-        }
-        console.error('Error getting users:', error);
+        })
+      );
+  }
+
+  getUsersByIds(userIds: string[]): Observable<User[]> {
+    if (!userIds || userIds.length === 0) {
+      return of([]);
+    }
+
+    // Firebase has a limit of 10 'in' clauses, so we need to batch
+    const batchSize = 10;
+    const batches: Observable<User[]>[] = [];
+    
+    for (let i = 0; i < userIds.length; i += batchSize) {
+      const batch = userIds.slice(i, i + batchSize);
+      const batchQuery = this.afs.collection<User>('users', ref => 
+        ref.where('__name__', 'in', batch)
+      ).get().pipe(
+        map(snapshot => 
+          snapshot.docs.map(doc => ({
+            ...doc.data(),
+            uid: doc.id
+          } as User))
+        )
+      );
+      batches.push(batchQuery);
+    }
+
+    return from(Promise.all(batches.map(batch => firstValueFrom(batch)))).pipe(
+      map(batchResults => {
+        const users = batchResults.flat();
+        console.debug('Fetched users by IDs:', users.length);
+        return users;
+      }),
+      catchError(error => {
+        console.error('Error fetching users by IDs:', error);
         return of([]);
       })
     );
   }
 
   getAllUsersTotalPoints(): Observable<{ userId: string; totalPoints: number }[]> {
-    return this.afs.collection('userPoints')
-      .valueChanges({ idField: 'userId' })
+    return this.afs.collection<UserPoints>('userPoints')
+      .get()
       .pipe(
-        map(docs => 
-          docs.map((doc: any) => ({
-            userId: doc.userId,
-            totalPoints: doc.totalPoints || 0
-          }))
-        ),
+        map(snapshot => {
+          if (!snapshot) return [];
+          return snapshot.docs.map(doc => ({
+            userId: doc.id,
+            totalPoints: doc.data()['totalPoints'] || 0
+          }));
+        }),
         catchError(error => {
           console.error('Error getting all users total points:', error);
           return of([]);
@@ -131,7 +185,7 @@ export class DatabaseService {
             let weekPoints = 0;
 
             weekData.predictions.forEach(pred => {
-              const match = matches.find(m => m.id === pred.matchId);
+              const match = matches.find((match: Match) => match.id === pred.matchId);
               if (match && pred.homeScore !== null && pred.awayScore !== null &&
                   match.homeScore !== null && match.awayScore !== null) {
                 
@@ -188,8 +242,8 @@ export class DatabaseService {
       let weeklyPoints = 0;
       let updatedPredictions = false;
 
-      const updatedPreds = predictionsResult.map((pred: Prediction) => {
-        const match = matchesResult.find((m: Match) => m.id === pred.matchId);
+      const updatedPreds = predictionsResult.map(pred => {
+        const match = matchesResult.find((match: Match) => match.id === pred.matchId);
         let points = pred.points || 0;
 
         if (match?.status.short === 'FT' && match.homeScore !== null && match.awayScore !== null) {

@@ -14,43 +14,58 @@
       <ion-card>
         <ion-card-content>
           <ion-item>
-            <ion-label position="floating">
-              <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-              Correo Electrónico
-            </ion-label>
-            <ion-input type="email" formControlName="email"></ion-input>
+            <ion-input 
+              type="email" 
+              formControlName="email" 
+              label="Correo electrónico"
+              labelPlacement="floating"
+              placeholder="tucorreo@email.com">
+              <ion-icon name="mail-outline" slot="start"></ion-icon>
+            </ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="floating">
-              <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-              Contraseña
-            </ion-label>
-            <ion-input type="password" formControlName="password"></ion-input>
+            <ion-input 
+              type="password" 
+              formControlName="password"
+              label="Contraseña"
+              labelPlacement="floating"
+              placeholder="Tu contraseña">
+              <ion-icon name="lock-closed-outline" slot="start"></ion-icon>
+            </ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="floating">
-              <ion-icon name="person-outline" class="input-icon"></ion-icon>
-              Nombre
-            </ion-label>
-            <ion-input type="text" formControlName="firstName"></ion-input>
+            <ion-input 
+              type="text" 
+              formControlName="firstName"
+              label="Nombre"
+              labelPlacement="floating"
+              placeholder="Tu nombre">
+              <ion-icon name="person-outline" slot="start"></ion-icon>
+            </ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="floating">
-              <ion-icon name="person-outline" class="input-icon"></ion-icon>
-              Apellido
-            </ion-label>
-            <ion-input type="text" formControlName="lastName"></ion-input>
+            <ion-input 
+              type="text" 
+              formControlName="lastName"
+              label="Apellido"
+              labelPlacement="floating"
+              placeholder="Tu apellido">
+              <ion-icon name="person-outline" slot="start"></ion-icon>
+            </ion-input>
           </ion-item>
 
           <ion-item>
-            <ion-label position="floating">
-              <ion-icon name="at-outline" class="input-icon"></ion-icon>
-              Apodo
-            </ion-label>
-            <ion-input type="text" formControlName="username"></ion-input>
+            <ion-input 
+              type="text" 
+              formControlName="username"
+              label="Nombre de usuario"
+              labelPlacement="floating"
+              placeholder="Tu nombre de usuario">
+              <ion-icon name="at-outline" slot="start"></ion-icon>
+            </ion-input>
           </ion-item>
 
           <ion-button expand="block" type="submit" [disabled]="!signupForm.valid || loading" class="signup-button">

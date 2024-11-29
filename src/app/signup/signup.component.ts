@@ -4,6 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { GroupService } from '../services/group.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-signup',
@@ -15,6 +16,7 @@ export class SignupComponent implements OnInit {
   errorMessage: string = '';
   inviteCode: string | null = null;
   groupName: string | null = null;
+  error: string | null = null;
   loading = false;
 
   constructor(
@@ -35,35 +37,24 @@ export class SignupComponent implements OnInit {
     });
   }
 
-  async ngOnInit() {
-    // Check for invite code in route params first
+  ngOnInit() {
     const code = this.route.snapshot.paramMap.get('code');
     if (code) {
       this.inviteCode = code;
-      try {
-        const group = await this.groupService.getGroupByInviteCode(code);
-        if (group) {
-          this.groupName = group.name;
-        }
-      } catch (error) {
-        console.error('Error fetching group details:', error);
+      this.loadGroupInfo(code);
+    }
+  }
+
+  private async loadGroupInfo(code: string) {
+    try {
+      const group = await firstValueFrom(this.groupService.getGroupByInviteCode(code));
+      if (group) {
+        this.groupName = group.name;
+      } else {
+        this.error = 'Código de invitación inválido';
       }
-    } else {
-      // If no code in route params, check query params
-      this.route.queryParams.subscribe(async params => {
-        const queryCode = params['code'];
-        if (queryCode) {
-          this.inviteCode = queryCode;
-          try {
-            const group = await this.groupService.getGroupByInviteCode(queryCode);
-            if (group) {
-              this.groupName = group.name;
-            }
-          } catch (error) {
-            console.error('Error fetching group details:', error);
-          }
-        }
-      });
+    } catch (error) {
+      this.error = 'Error al cargar la información del grupo';
     }
   }
 

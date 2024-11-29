@@ -38,6 +38,15 @@
       (roundChange)="onRoundChange($event)">
     </app-rounds-selector>
   </ion-toolbar>
+
+  <ion-toolbar>
+    <ion-title>Tabla de Posiciones</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="manualRefresh()" [disabled]="loading">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content>

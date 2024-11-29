@@ -67,84 +67,49 @@
       <ion-list>
         <ion-item *ngFor="let match of matches">
           <ion-card class="match-card">
-            <!-- Regular season match content remains the same -->
-            <ion-card-header>
-              <ion-card-subtitle class="match-date">
-                {{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} •
-                {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}
-                <br />
-                <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
-              </ion-card-subtitle>
+            <ion-card-header class="compact-header">
+              <div class="match-info">
+                <div class="match-date">{{ match.date | date : 'EEE d MMM' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
+                <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
+              </div>
               <ion-badge
-                [class.live-status]="
-                  match.status.short === 'LIVE' || match.status.short === 'HT'
-                "
-                [color]="
-                  match.status.short === 'LIVE' || match.status.short === 'HT'
-                    ? 'success'
-                    : match.status.short === 'NS'
-                    ? 'warning'
-                    : 'medium'
-                "
+                [class.live-status]="match.status.short === 'LIVE' || match.status.short === 'HT'"
+                [color]="match.status.short === 'LIVE' || match.status.short === 'HT' ? 'success' : match.status.short === 'NS' ? 'warning' : 'medium'"
                 class="match-status"
               >
                 {{ getMatchStatus(match) }}
               </ion-badge>
             </ion-card-header>
-
-            <ion-card-content>
+            
+            <ion-card-content class="compact-content">
               <div class="teams">
-                <div class="team">
-                  <img
-                    [src]="match.homeTeamLogo"
-                    [alt]="match.homeTeam"
-                    class="team-logo"
-                  />
+                <div class="team compact">
+                  <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo" />
                   <div class="team-name">{{ match.homeTeam }}</div>
                 </div>
 
-                <div class="scores-container">
+                <div class="scores-container compact">
                   <div class="final-score">
-                    {{
-                      match.status.short === 'NS' ? '' : match.homeScore ?? ''
-                    }}
+                    {{ match.status.short === 'NS' ? '' : match.homeScore ?? '' }}
                     {{ match.status.short === 'NS' ? '' : '-' }}
-                    {{
-                      match.status.short === 'NS' ? '' : match.awayScore ?? ''
-                    }}
+                    {{ match.status.short === 'NS' ? '' : match.awayScore ?? '' }}
                   </div>
 
                   <div
                     class="prediction-score"
-                    [ngClass]="getPredictionClass(match)"
+                    [class]="getPredictionClass(match)"
                     *ngIf="match.prediction"
                   >
-                    Tu Pronóstico: {{ match.prediction.homeScore ?? '-' }} -
-                    {{ match.prediction.awayScore ?? '-' }}
-                    <div
-                      class="points-badge"
-                      *ngIf="
-                        match.status.short === 'FT' ||
-                        match.status.short === 'LIVE' ||
-                        match.status.short === 'HT'
-                      "
-                    >
-                      {{
-                        (match.status.short === 'FT'
-                          ? match.prediction.points
-                          : match.prediction.livePoints) ?? 0
-                      }}
-                      pts
+                    <span class="prediction-label">Tu Pronóstico:</span>
+                    {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
+                    <div class="points-badge" *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE' || match.status.short === 'HT'">
+                      {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
                     </div>
                   </div>
                 </div>
 
-                <div class="team">
-                  <img
-                    [src]="match.awayTeamLogo"
-                    [alt]="match.awayTeam"
-                    class="team-logo"
-                  />
+                <div class="team compact">
+                  <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo" />
                   <div class="team-name">{{ match.awayTeam }}</div>
                 </div>
               </div>
@@ -169,21 +134,19 @@
               *ngFor="let match of playoffMatches | filterByRound : round"
             >
               <ion-card class="match-card">
-                <ion-card-header>
-                  <ion-card-subtitle>
-                    {{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} •
-                    {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}
-                    <br />
-                    <small
-                      >{{ match.venue.name }}, {{ match.venue.city }}</small
-                    >
-                    <span class="leg-indicator" *ngIf="match.leg">
-                      {{ match.leg === 1 ? 'IDA' : 'VUELTA' }}
-                    </span>
-                  </ion-card-subtitle>
+                <div class="leg-indicator" *ngIf="match.leg">{{ match.leg === 1 ? 'IDA' : 'VUELTA' }}</div>
+                <ion-card-header class="compact-header">
+                  <div class="match-info">
+                    <div class="match-date">{{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
+                    <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
+                  </div>
                   <ion-badge
                     [color]="
-                      match.status.short === 'FT' ? 'success' : 'warning'
+                      match.status.short === 'LIVE' || match.status.short === 'HT'
+                        ? 'success'
+                        : match.status.short === 'NS'
+                        ? 'warning'
+                        : 'medium'
                     "
                     class="match-status"
                   >
@@ -191,9 +154,9 @@
                   </ion-badge>
                 </ion-card-header>
 
-                <ion-card-content>
+                <ion-card-content class="compact-content">
                   <div class="teams">
-                    <div class="team">
+                    <div class="team compact">
                       <img
                         [src]="match.homeTeamLogo"
                         [alt]="match.homeTeam"
@@ -202,7 +165,7 @@
                       <div class="team-name">{{ match.homeTeam }}</div>
                     </div>
 
-                    <div class="scores-container">
+                    <div class="scores-container compact">
                       <div class="final-score">
                         {{
                           match.status.short === 'NS'
@@ -219,21 +182,22 @@
 
                       <div
                         class="prediction-score"
-                        [ngClass]="getPredictionClass(match)"
+                        [class]="getPredictionClass(match)"
                         *ngIf="match.prediction"
                       >
-                        Tu Pronóstico:
-                        {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
+                        <span class="prediction-label">Tu Pronóstico:</span>
+                        {{ match.prediction.homeScore ?? '-' }} -
+                        {{ match.prediction.awayScore ?? '-' }}
                         <div
                           class="points-badge"
-                          *ngIf="match.status.short === 'FT'"
+                          *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE' || match.status.short === 'HT'"
                         >
-                          {{ match.prediction.points ?? 0 }} pts
+                          {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
                         </div>
                       </div>
                     </div>
 
-                    <div class="team">
+                    <div class="team compact">
                       <img
                         [src]="match.awayTeamLogo"
                         [alt]="match.awayTeam"

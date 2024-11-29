@@ -1,20 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { AuthService } from './services/auth.service';
-import { ConnectionService } from './services/connection.service';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 import { ToastController } from '@ionic/angular';
-import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFireFunctions } from '@angular/fire/compat/functions';
 import { environment } from '../environments/environment';
-import { PlatformService, PlatformInfo } from './services/platform.service';
+import { PlatformService } from './services/platform.service';
 import { AdsService } from './services/ads.service';
 import { SessionService } from './services/session.service';
-import { DatabaseService } from './services/database.service';
-import { FootballService } from './services/football.service';
-import { firstValueFrom } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -39,23 +33,17 @@ import { firstValueFrom } from 'rxjs';
   `]
 })
 export class AppComponent implements OnInit {
-  platformInfo: PlatformInfo | null = null;
+  platformInfo: any = null;
 
   constructor(
     private platform: Platform,
     private authService: AuthService,
-    private connectionService: ConnectionService,
     private router: Router,
     private swUpdate: SwUpdate,
     private toastController: ToastController,
-    private afs: AngularFirestore,
-    private afAuth: AngularFireAuth,
-    private afFunctions: AngularFireFunctions,
     private platformService: PlatformService,
     private adsService: AdsService,
-    private sessionService: SessionService,
-    private databaseService: DatabaseService,
-    private footballService: FootballService
+    private sessionService: SessionService
   ) {}
 
   async ngOnInit() {
@@ -66,12 +54,9 @@ export class AppComponent implements OnInit {
     await this.platform.ready();
     
     this.checkForUpdates();
-    this.setupConnectionListener();
     this.setupAuthListener();
     this.setupPlatformListener();
-    this.sessionService.initializeSession();
-    
-    await this.updateUserPoints();
+    this.setupSessionMonitoring();
     
     if (environment.production) {
       await this.adsService.setupAds();
@@ -79,12 +64,20 @@ export class AppComponent implements OnInit {
     }
   }
 
-  private async updateUserPoints() {
-    const user = await firstValueFrom(this.authService.user$);
-    if (user) {
-      const currentRound = await this.footballService.getCurrentRound();
-      await this.databaseService.updateMatchPoints(user.uid, currentRound.toString());
-    }
+  private setupSessionMonitoring() {
+    // Monitor session status
+    this.sessionService.getSessionStatus().subscribe(isActive => {
+      if (!isActive && !this.router.url.includes('/login')) {
+        this.router.navigate(['/login'], { replaceUrl: true });
+      }
+    });
+
+    // Update activity on navigation
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      this.sessionService.updateLastActivity();
+    });
   }
 
   private checkForUpdates() {
@@ -112,16 +105,10 @@ export class AppComponent implements OnInit {
     await toast.present();
   }
 
-  private setupConnectionListener() {
-    this.connectionService.getOnlineStatus().subscribe(isOnline => {
-      console.log('Connection status:', isOnline ? 'online' : 'offline');
-    });
-  }
-
   private setupAuthListener() {
     this.authService.user$.subscribe(user => {
-      if (!user) {
-        this.router.navigate(['/login']);
+      if (!user && !this.router.url.includes('/login')) {
+        this.router.navigate(['/login'], { replaceUrl: true });
       }
     });
   }

@@ -3,7 +3,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable, of } from 'rxjs';
 import { switchMap, map, catchError, tap } from 'rxjs/operators';
-import { SessionService } from './session.service';
+import { SessionStateService } from './session-state.service';
 
 export interface User {
   uid: string;
@@ -23,7 +23,7 @@ export class AuthService {
   constructor(
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore,
-    private sessionService: SessionService
+    private sessionState: SessionStateService
   ) {
     this.user$ = this.afAuth.authState.pipe(
       switchMap(user => {
@@ -66,6 +66,7 @@ export class AuthService {
       const credential = await this.afAuth.signInWithEmailAndPassword(email, password);
       if (credential.user) {
         await this.updateAuthData(credential.user);
+        this.sessionState.startSession();
       }
     } catch (error) {
       console.error('Error signing in:', error);
@@ -77,6 +78,7 @@ export class AuthService {
     try {
       const credential = await this.afAuth.createUserWithEmailAndPassword(email, password);
       await this.updateUserData(credential.user, { firstName, lastName, username, isAdmin: false });
+      this.sessionState.startSession();
     } catch (error) {
       console.error('Error signing up:', error);
       throw error;
@@ -94,12 +96,34 @@ export class AuthService {
 
   async logout(): Promise<void> {
     try {
-      this.sessionService.clearSession();
+      localStorage.clear();
+      sessionStorage.clear();
+      this.sessionState.endSession('voluntary');
       await this.afAuth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
     }
+  }
+
+  async signOut(): Promise<void> {
+    return this.logout();
+  }
+
+  async getUser(): Promise<User | null> {
+    const firebaseUser = await this.afAuth.currentUser;
+    if (!firebaseUser) return null;
+    
+    const userDoc = await this.afs.doc<User>(`users/${firebaseUser.uid}`).get().toPromise();
+    const userData = userDoc?.data();
+    
+    if (!userData) return null;
+    
+    return {
+      ...userData,
+      uid: firebaseUser.uid,
+      email: firebaseUser.email || userData.email
+    };
   }
 
   private async updateAuthData(user: any): Promise<void> {

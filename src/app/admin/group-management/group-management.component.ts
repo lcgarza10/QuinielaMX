@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { AlertController, ToastController } from '@ionic/angular';
+import { GroupService } from '../../services/group.service';
+import { DatabaseService, Prediction } from '../../services/database.service';
+import { firstValueFrom } from 'rxjs';
+import { Group } from '../../models/group.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { GroupService, Group } from '../../services/group.service';
-import { ToastController, AlertController, LoadingController } from '@ionic/angular';
-import { Observable, firstValueFrom, BehaviorSubject, combineLatest } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
-import { User } from '../../services/auth.service';
 import { FootballService } from '../../services/football.service';
-import { DatabaseService } from '../../services/database.service';
+import { User } from '../../services/auth.service';
+import { LoadingController } from '@ionic/angular';
+import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 
 interface GroupWithMembers extends Group {
@@ -52,7 +55,7 @@ export class GroupManagementComponent implements OnInit {
     this.groups$ = this.groupService.getUserGroups().pipe(
       switchMap(groups => {
         const groupsWithMembers$ = groups.map(group => 
-          this.loadGroupMembers(group).then(members => ({
+          this.loadGroupMembers(group.id!).then(members => ({
             ...group,
             membersList: members,
             memberCount: members.length
@@ -84,79 +87,60 @@ export class GroupManagementComponent implements OnInit {
     try {
       const group = await this.groupService.getGroupByInviteCode(inviteCode);
       if (group) {
-        const alert = await this.alertController.create({
-          header: 'Unirse al Grupo',
-          message: `¿Deseas unirte al grupo "${group.name}"?`,
-          buttons: [
-            {
-              text: 'Cancelar',
-              role: 'cancel'
-            },
-            {
-              text: 'Unirme',
-              handler: async () => {
-                await this.joinGroupWithCode(inviteCode);
-              }
-            }
-          ]
-        });
-        await alert.present();
+        await this.joinGroupByCode(group);
       }
     } catch (error) {
       console.error('Error handling invite code:', error);
     }
   }
 
-  private async loadGroupMembers(group: Group): Promise<GroupMemberDisplay[]> {
-    if (!group.id) return [];
-
-    try {
-      const members = await firstValueFrom(this.groupService.getGroupMembers(group.id));
-      
-      // Load predictions for all members in parallel
-      const membersWithPredictions = await Promise.all(
-        members.map(async member => {
-          try {
-            const predictions = await firstValueFrom(
-              this.databaseService.getPredictions(member.uid, this.currentRound.toString())
-            );
-
-            // Check if member has valid predictions for current round
-            const hasPredicted = predictions.length > 0 && predictions.every(pred => 
-              pred.matchId && 
-              pred.homeScore !== null && 
-              pred.awayScore !== null
-            );
-
-            return {
-              ...member,
-              hasPredicted
-            };
-          } catch (error) {
-            console.error(`Error loading predictions for member ${member.uid}:`, error);
-            return {
-              ...member,
-              hasPredicted: false
-            };
-          }
-        })
-      );
-
-      // Sort members: admins first, then by prediction status
-      return membersWithPredictions.sort((a, b) => {
-        if (a.role === b.role) {
-          // If roles are the same, sort by prediction status (pending first)
-          return (a.hasPredicted ? 1 : 0) - (b.hasPredicted ? 1 : 0);
-        }
-        // Sort by role (admins first)
-        return a.role === 'admin' ? -1 : 1;
-      });
-
-    } catch (error) {
-      console.error('Error loading group members:', error);
-      await this.showToast('Error loading group members', 'danger');
-      return [];
+  async joinGroupByCode(group: Observable<Group | null>) {
+    const groupData = await firstValueFrom(group);
+    if (!groupData) {
+      this.showError('Grupo no encontrado');
+      return;
     }
+
+    const alert = await this.alertController.create({
+      header: 'Confirmar',
+      message: `¿Deseas unirte al grupo "${groupData.name}"?`,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel'
+        },
+        {
+          text: 'Unirme',
+          handler: async () => {
+            try {
+              await this.groupService.joinGroup(groupData.id!);
+              this.showSuccess('Te has unido al grupo exitosamente');
+            } catch (error) {
+              this.showError('Error al unirte al grupo');
+            }
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private async loadGroupMembers(groupId: string): Promise<GroupMemberDisplay[]> {
+    const members = await firstValueFrom(this.groupService.getGroupMembers(groupId));
+    const predictionDocs = await firstValueFrom(this.databaseService.getPredictions(groupId, this.currentRound.toString()));
+    
+    const membersWithPredictions = members.map(member => ({
+      ...member,
+      hasPredicted: predictionDocs.length > 0
+    }));
+
+    return membersWithPredictions.sort((a, b) => {
+      if (a.role === b.role) {
+        return (a.username || a.email).localeCompare(b.username || b.email);
+      }
+      return a.role === 'admin' ? -1 : 1;
+    });
   }
 
   toggleCreateGroup() {
@@ -209,7 +193,7 @@ export class GroupManagementComponent implements OnInit {
               await this.showToast('Please enter an invitation code', 'warning');
               return false;
             }
-            await this.joinGroupWithCode(data.inviteCode);
+            await this.joinGroupByCode(this.groupService.getGroupByInviteCode(data.inviteCode));
             return true;
           }
         }
@@ -218,17 +202,34 @@ export class GroupManagementComponent implements OnInit {
     await alert.present();
   }
 
-  private async joinGroupWithCode(inviteCode: string) {
-    this.loading = true;
-    try {
-      await this.groupService.joinGroup(inviteCode);
-      await this.showToast('Successfully joined the group', 'success');
-    } catch (error) {
-      console.error('Error joining group:', error);
-      await this.showToast('Error joining group', 'danger');
-    } finally {
-      this.loading = false;
-    }
+  private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position: 'bottom',
+      color
+    });
+    await toast.present();
+  }
+
+  private async showError(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position: 'bottom',
+      color: 'danger'
+    });
+    await toast.present();
+  }
+
+  private async showSuccess(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
   }
 
   async showInviteCode(group: Group) {
@@ -288,15 +289,5 @@ export class GroupManagementComponent implements OnInit {
         </div>
       `;
     }
-  }
-
-  private async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      position: 'bottom',
-      color
-    });
-    await toast.present();
   }
 }

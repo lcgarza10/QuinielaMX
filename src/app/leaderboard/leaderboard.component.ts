@@ -1,32 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DatabaseService } from '../services/database.service';
-import { AuthService } from '../services/auth.service';
+import { AuthService, User } from '../services/auth.service';
 import { FootballService, Match, PlayoffMatch } from '../services/football.service';
-import { GroupService, Group } from '../services/group.service';
+import { GroupService } from '../services/group.service';
 import { Observable, combineLatest, of, firstValueFrom } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
-
-interface LeaderboardEntry {
-  userId: string;
-  username: string;
-  totalPoints: number;
-  weeklyPoints?: number;
-  livePoints?: number;
-  predictions?: Array<{
-    matchId: number;
-    homeScore: number;
-    awayScore: number;
-    points: number;
-  }>;
-  hasPredicted?: boolean;
-}
+import { map, take, switchMap } from 'rxjs/operators';
+import { Group } from '../models/group.model';
+import { LeaderboardEntry } from '../models/leaderboard.model';
 
 @Component({
   selector: 'app-leaderboard',
   templateUrl: './leaderboard.component.html',
   styleUrls: ['./leaderboard.component.scss']
 })
-export class LeaderboardComponent implements OnInit {
+export class LeaderboardComponent implements OnInit, OnDestroy {
   weeklyLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   overallLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
   globalLeaderboard$: Observable<LeaderboardEntry[]> = of([]);
@@ -43,7 +30,8 @@ export class LeaderboardComponent implements OnInit {
   isAdmin: boolean = false;
   phaseStarted: boolean = false;
   allPredictionsSubmitted: boolean = false;
-  
+  private refreshInterval: any;
+
   rounds: string[] = [
     ...Array.from({ length: 17 }, (_, i) => (i + 1).toString()),
     'Reclasificación',
@@ -62,18 +50,56 @@ export class LeaderboardComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    this.authService.user$.subscribe(user => {
+    // Clear any cached data
+    this.clearData();
+    
+    this.authService.user$.subscribe(async user => {
       this.currentUserId = user?.uid || null;
       this.isAdmin = this.authService.isAdmin(user);
-      if (user) {
-        this.loadUserGroup();
+      
+      if (user?.uid) {
+        await this.loadUserGroup();
+      } else {
+        this.error = 'Por favor inicia sesión para ver la tabla';
       }
     });
 
     await this.findCurrentRound();
     await this.determineCurrentPhase();
     await this.loadMatches();
+
+    // Set up auto-refresh every 30 seconds
+    this.refreshInterval = setInterval(() => {
+      this.refreshData();
+    }, 30000);
+  }
+
+  ngOnDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+  }
+
+  private clearData() {
+    this.weeklyLeaderboard$ = of([]);
+    this.overallLeaderboard$ = of([]);
+    this.globalLeaderboard$ = of([]);
+    this.weekMatches = [];
+    this.playoffMatches = [];
+    this.error = null;
+  }
+
+  async refreshData() {
+    this.clearData();
+    await this.loadMatches();
     this.setupLeaderboards();
+  }
+
+  // Add a public refresh method that can be called from the template
+  async manualRefresh() {
+    this.loading = true;
+    await this.refreshAuthAndData();
+    this.loading = false;
   }
 
   private async determineCurrentPhase() {
@@ -103,7 +129,6 @@ export class LeaderboardComponent implements OnInit {
         if (currentPhase) {
           this.selectedView = 'weekly';
           this.selectedRound = currentPhase;
-          console.log('Auto-selected playoff phase:', currentPhase);
         }
       }
     } catch (error) {
@@ -111,19 +136,150 @@ export class LeaderboardComponent implements OnInit {
     }
   }
 
-  private async loadUserGroup() {
+  async setupLeaderboards() {
+    if (!this.currentGroup) {
+      console.warn('No group loaded, cannot setup leaderboards');
+      return;
+    }
+
     try {
-      const groups = await firstValueFrom(this.groupService.getUserGroups());
-      if (groups.length > 0) {
-        this.currentGroup = groups[0];
-        this.setupLeaderboards();
+      this.loading = true;
+      
+      // Force clear any cached data
+      await this.groupService.clearGroupCache();
+      
+      // Ensure we have the latest group data
+      const currentGroup = await firstValueFrom(
+        this.groupService.getUserGroups().pipe(
+          map(groups => groups.find(g => g.id === this.currentGroup?.id))
+        )
+      );
+
+      if (!currentGroup) {
+        console.error('Failed to get latest group data');
+        return;
       }
+
+      // Update current group with latest data
+      this.currentGroup = currentGroup;
+
+      console.debug('Current group members:', this.currentGroup.members);
+
+      // Get users specifically for this group
+      const groupUsers = await firstValueFrom(
+        this.databaseService.getUsersByIds(this.currentGroup.members)
+      );
+
+      console.debug('Fetched group users:', groupUsers.map(u => ({ uid: u.uid, email: u.email })));
+
+      if (groupUsers.length !== this.currentGroup.memberCount) {
+        console.warn(`Participant count mismatch: UI shows ${groupUsers.length}, DB shows ${this.currentGroup.memberCount}`);
+        console.warn('Missing users:', this.currentGroup.members.filter(
+          memberId => !groupUsers.find(u => u.uid === memberId)
+        ));
+      }
+
+      // Setup the leaderboards with fresh data
+      const weeklyEntries = await Promise.all(
+        groupUsers.map(async user => {
+          const weekId = this.playoffPhases.includes(this.selectedRound) ? 'playoffs' : this.selectedRound;
+          const predictions = await firstValueFrom(this.databaseService.getPredictions(user.uid, weekId));
+          return {
+            userId: user.uid,
+            username: user.username || user.email || 'Unknown User',
+            totalPoints: 0,
+            weeklyPoints: this.calculateWeeklyPoints(predictions, this.weekMatches),
+            livePoints: this.calculateLivePoints(predictions, this.weekMatches),
+            predictions: predictions.map(pred => ({
+              matchId: pred.matchId,
+              homeScore: pred.homeScore!,
+              awayScore: pred.awayScore!,
+              points: pred.points || 0
+            })),
+            hasPredicted: predictions.length > 0
+          };
+        })
+      );
+
+      this.weeklyLeaderboard$ = of(weeklyEntries.sort((a, b) => {
+        const aPoints = (a.weeklyPoints || 0) + (a.livePoints || 0);
+        const bPoints = (b.weeklyPoints || 0) + (b.livePoints || 0);
+        return bPoints - aPoints;
+      }));
+
+      // Get total points for overall leaderboard
+      const pointsData = await firstValueFrom(this.databaseService.getAllUsersTotalPoints());
+      const overallEntries = groupUsers.map(user => {
+        const points = pointsData.find(p => p.userId === user.uid);
+        return {
+          userId: user.uid,
+          username: user.username || user.email || 'Unknown User',
+          totalPoints: points?.totalPoints || 0,
+          weeklyPoints: 0
+        };
+      }).sort((a, b) => b.totalPoints - a.totalPoints);
+
+      this.overallLeaderboard$ = of(overallEntries);
+      this.globalLeaderboard$ = of(groupUsers.map(user => {
+        const points = pointsData.find(p => p.userId === user.uid);
+        return {
+          userId: user.uid,
+          username: user.username || user.email || 'Unknown User',
+          totalPoints: points?.totalPoints || 0,
+          weeklyPoints: 0
+        };
+      }).sort((a, b) => b.totalPoints - a.totalPoints));
+      
     } catch (error) {
-      console.error('Error loading user group:', error);
+      console.error('Error setting up leaderboards:', error);
+      this.error = 'Error al cargar la tabla de posiciones';
+    } finally {
+      this.loading = false;
     }
   }
 
-  private async findCurrentRound() {
+  async loadUserGroup() {
+    try {
+      this.loading = true;
+      this.error = null;
+      
+      // Force clear any cached group data
+      this.currentGroup = null;
+      
+      const groups = await firstValueFrom(this.groupService.getUserGroups());
+      if (!groups || groups.length === 0) {
+        this.error = 'No se encontró ningún grupo';
+        return;
+      }
+
+      // Always get the first group for now
+      const firstGroup = groups[0];
+      if (!firstGroup.id) {
+        this.error = 'Error: Grupo inválido';
+        return;
+      }
+      
+      // Force a fresh group data fetch
+      await this.groupService.clearGroupCache();
+      const group = await firstValueFrom(this.groupService.getUserGroups().pipe(
+        map(groups => groups.find(g => g.id === firstGroup.id))
+      ));
+      
+      if (!group) {
+        this.error = 'Error al cargar el grupo';
+        return;
+      }
+
+      this.currentGroup = group;
+      await this.setupLeaderboards();
+    } catch (error) {
+      this.error = 'Error al cargar el grupo';
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async findCurrentRound() {
     this.loading = true;
     try {
       const currentRound = await this.footballService.getCurrentRound();
@@ -243,119 +399,63 @@ export class LeaderboardComponent implements OnInit {
     return 0;
   }
 
-  private setupLeaderboards() {
-    // Weekly Leaderboard with detailed predictions
-    this.weeklyLeaderboard$ = this.databaseService.getAllUsers().pipe(
-      map(users => users.filter(user => 
-        this.currentGroup ? this.currentGroup.members.includes(user.uid) : true
-      )),
-      switchMap(users => {
-        const userPredictions$ = users.map(user => {
-          const weekId = this.playoffPhases.includes(this.selectedRound) ? 'playoffs' : this.selectedRound;
-          return this.databaseService.getPredictions(user.uid, weekId).pipe(
-            map(predictions => {
-              let weeklyPoints = 0;
-              let livePoints = 0;
+  private calculateWeeklyPoints(predictions: any[], matches: Match[]): number {
+    let points = 0;
+    predictions.forEach(pred => {
+      const match = matches.find(m => m.id === pred.matchId);
+      if (match?.status.short === 'FT' && this.isValidPrediction(pred, match)) {
+        points += this.calculateMatchPoints(pred, match);
+      }
+    });
+    return points;
+  }
 
-              predictions.forEach(pred => {
-                const match = this.weekMatches.find(m => m.id === pred.matchId);
-                if (match && pred.homeScore !== null && pred.awayScore !== null &&
-                    match.homeScore !== null && match.awayScore !== null) {
-                  
-                  const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
-                  const actualResult = Math.sign(match.homeScore - match.awayScore);
-                  const isExactMatch = pred.homeScore === match.homeScore && 
-                                     pred.awayScore === match.awayScore;
-                  const isPartialMatch = predictedResult === actualResult;
+  private calculateLivePoints(predictions: any[], matches: Match[]): number {
+    let points = 0;
+    predictions.forEach(pred => {
+      const match = matches.find(m => m.id === pred.matchId);
+      if ((match?.status.short === 'LIVE' || 
+           match?.status.short === 'HT' || 
+           match?.status.short === '1H' || 
+           match?.status.short === '2H') && 
+          this.isValidPrediction(pred, match)) {
+        points += this.calculateMatchPoints(pred, match);
+      }
+    });
+    return points;
+  }
 
-                  if (match.status.short === 'FT') {
-                    if (isExactMatch) {
-                      weeklyPoints += 3;
-                    } else if (isPartialMatch) {
-                      weeklyPoints += 1;
-                    }
-                  } 
-                  else if (match.status.short === 'LIVE' || 
-                          match.status.short === 'HT' || 
-                          match.status.short === '1H' || 
-                          match.status.short === '2H') {
-                    if (isExactMatch) {
-                      livePoints += 3;
-                    } else if (isPartialMatch) {
-                      livePoints += 1;
-                    }
-                  }
-                }
-              });
+  private isValidPrediction(prediction: any, match: Match): boolean {
+    return prediction.homeScore !== null && 
+           prediction.awayScore !== null && 
+           match.homeScore !== null && 
+           match.awayScore !== null;
+  }
 
-              return {
-                userId: user.uid,
-                username: user.username || user.email || 'Unknown User',
-                totalPoints: 0,
-                weeklyPoints,
-                livePoints,
-                predictions: predictions.map(pred => ({
-                  matchId: pred.matchId,
-                  homeScore: pred.homeScore!,
-                  awayScore: pred.awayScore!,
-                  points: pred.points || 0
-                })),
-                hasPredicted: predictions.length > 0
-              };
-            })
-          );
-        });
-        return combineLatest(userPredictions$);
-      }),
-      map(entries => entries.sort((a, b) => {
-        const aPoints = (a.weeklyPoints || 0) + (a.livePoints || 0);
-        const bPoints = (b.weeklyPoints || 0) + (b.livePoints || 0);
-        return bPoints - aPoints;
-      }))
-    );
+  private calculateMatchPoints(prediction: any, match: Match): number {
+    const predictedResult = Math.sign(prediction.homeScore - prediction.awayScore);
+    const actualResult = Math.sign(match.homeScore! - match.awayScore!);
+    const isExactMatch = prediction.homeScore === match.homeScore && 
+                        prediction.awayScore === match.awayScore;
+    return isExactMatch ? 3 : (predictedResult === actualResult ? 1 : 0);
+  }
 
-    // Overall leaderboard
-    this.overallLeaderboard$ = this.databaseService.getAllUsersTotalPoints().pipe(
-      switchMap(points => {
-        const userDetails$ = points
-          .filter(point => this.currentGroup ? this.currentGroup.members.includes(point.userId) : true)
-          .map(point =>
-            this.databaseService.getAllUsers().pipe(
-              map(users => {
-                const user = users.find(u => u.uid === point.userId);
-                return {
-                  userId: point.userId,
-                  username: user?.username || user?.email || 'Unknown User',
-                  totalPoints: point.totalPoints,
-                  weeklyPoints: 0
-                };
-              })
-            )
-          );
-        return combineLatest(userDetails$);
-      }),
-      map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
-    );
+  // Add method to clear auth state
+  async clearAuthState() {
+    // Sign out using Firebase Auth
+    await this.authService.signOut();
+    // Clear any cached data
+    this.currentGroup = null;
+    this.currentUserId = null;
+    this.clearData();
+  }
 
-    // Global leaderboard
-    this.globalLeaderboard$ = this.databaseService.getAllUsersTotalPoints().pipe(
-      switchMap(points => {
-        const userDetails$ = points.map(point =>
-          this.databaseService.getAllUsers().pipe(
-            map(users => {
-              const user = users.find(u => u.uid === point.userId);
-              return {
-                userId: point.userId,
-                username: user?.username || user?.email || 'Unknown User',
-                totalPoints: point.totalPoints,
-                weeklyPoints: 0
-              };
-            })
-          )
-        );
-        return combineLatest(userDetails$);
-      }),
-      map(entries => entries.sort((a, b) => b.totalPoints - a.totalPoints))
-    );
+  // Add method to force refresh auth
+  async refreshAuthAndData() {
+    await this.clearAuthState();
+    const user = await this.authService.getUser();
+    if (user) {
+      await this.loadUserGroup();
+    }
   }
 }

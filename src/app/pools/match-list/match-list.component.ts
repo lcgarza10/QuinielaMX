@@ -73,26 +73,67 @@ export class MatchListComponent {
   }
 
   getPredictionClass(match: PredictionMatch): string {
-    const points = this.getMatchPoints(match);
-    if (points === 3) return 'exact-match';
-    if (points === 1) return 'partial-match';
-    return 'no-match';
+    // Debug logging
+    console.log('Match data:', {
+      teams: match.teams,
+      actualScore: `${match.homeScore}-${match.awayScore}`,
+      prediction: match.prediction ? `${match.prediction.homeScore}-${match.prediction.awayScore}` : 'none',
+      points: match.points
+    });
+
+    if (!match.prediction || 
+        match.homeScore === null || match.awayScore === null || 
+        match.prediction.homeScore === null || match.prediction.awayScore === null) {
+      return '';
+    }
+
+    // For exact match (3 points)
+    if (match.prediction.homeScore === match.homeScore && 
+        match.prediction.awayScore === match.awayScore) {
+      return 'correct';
+    }
+
+    // For correct result (1 point)
+    const actualDiff = match.homeScore - match.awayScore;
+    const predDiff = match.prediction.homeScore - match.prediction.awayScore;
+
+    if ((actualDiff > 0 && predDiff > 0) ||  // Both home wins
+        (actualDiff < 0 && predDiff < 0) ||  // Both away wins
+        (actualDiff === 0 && predDiff === 0)) { // Both draws
+      return 'partial';
+    }
+
+    // For incorrect prediction (0 points)
+    return 'incorrect';
+  }
+
+  private getMatchResult(homeScore: number | null, awayScore: number | null): string {
+    if (homeScore === null || awayScore === null) return 'pending';
+    if (homeScore > awayScore) return 'home';
+    if (homeScore < awayScore) return 'away';
+    return 'draw';
   }
 
   getMatchPoints(match: PredictionMatch): number {
-    if (!match.prediction?.homeScore || !match.prediction?.awayScore || 
-        match.homeScore === null || match.awayScore === null) {
+    if (!match.prediction || 
+        match.homeScore === null || match.awayScore === null ||
+        match.prediction.homeScore === null || match.prediction.awayScore === null) {
       return 0;
     }
 
-    if (match.homeScore === match.prediction.homeScore && 
-        match.awayScore === match.prediction.awayScore) {
+    // Exact score match
+    if (match.prediction.homeScore === match.homeScore && 
+        match.prediction.awayScore === match.awayScore) {
       return 3;
     }
 
-    const actualResult = Math.sign((match.homeScore || 0) - (match.awayScore || 0));
-    const predictedResult = Math.sign(match.prediction.homeScore - match.prediction.awayScore);
-    if (actualResult === predictedResult) {
+    // Correct result
+    const actualDiff = match.homeScore - match.awayScore;
+    const predDiff = match.prediction.homeScore - match.prediction.awayScore;
+
+    if ((actualDiff > 0 && predDiff > 0) ||  // Both home wins
+        (actualDiff < 0 && predDiff < 0) ||  // Both away wins
+        (actualDiff === 0 && predDiff === 0)) { // Both draws
       return 1;
     }
 

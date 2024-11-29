@@ -68,11 +68,32 @@
   50% { opacity: 0.5; }
 }
 
+:host {
+  .round-chip {
+    background: var(--ion-color-light);
+    color: var(--ion-text-color);
+
+    &.active {
+      background: var(--ion-color-primary);
+      color: white;
+      box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+    }
+
+    &.current {
+      border-color: var(--ion-color-success);
+      
+      &:not(.active) {
+        color: var(--ion-color-success);
+      }
+    }
+  }
+}
+
 // Dark mode adjustments
-:host-context(.dark) {
+:host-context(.dark-theme) {
   .round-chip {
     background: rgba(var(--ion-color-light-rgb), 0.1);
-    color: var(--ion-color-light);
+    color: var(--ion-text-color);
 
     &.active {
       background: var(--ion-color-primary);
@@ -85,7 +106,7 @@
       
       &:not(.active) {
         background: rgba(var(--ion-color-success-rgb), 0.15);
-        color: var(--ion-color-success-shade);
+        color: var(--ion-color-success);
       }
     }
   }
@@ -100,10 +121,5 @@
   .round-chip {
     padding: 6px 12px;
     font-size: 0.9em;
-    min-width: 40px;
-    
-    .live-indicator {
-      font-size: 10px;
-    }
   }
 }
