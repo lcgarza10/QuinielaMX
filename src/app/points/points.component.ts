@@ -34,6 +34,7 @@ export class PointsComponent implements OnInit {
   totalPoints: number = 0;
   isLiveRound: boolean = false;
   isRoundFinished: boolean = false;
+  playoffPhases: string[] = ['Cuartos de Final', 'Semifinal', 'Final'];
 
   constructor(
     private footballService: FootballService,
@@ -80,8 +81,33 @@ export class PointsComponent implements OnInit {
 
     if (this.userId) {
       try {
-        const matches = await firstValueFrom(this.footballService.getMatches(parseInt(this.selectedRound)));
-        const predictions = await firstValueFrom(this.databaseService.getPredictions(this.userId, this.selectedRound));
+        let matches;
+        let weekId = this.selectedRound;
+        
+        // Si es una fase de playoffs, usar la colección correspondiente
+        if (this.playoffPhases.includes(this.selectedRound)) {
+          matches = await firstValueFrom(this.footballService.getPlayoffMatches());
+          matches = matches.filter(m => m.round === this.selectedRound);
+          
+          // Mapear el nombre de la ronda al ID de la colección
+          switch (this.selectedRound) {
+            case 'Cuartos de Final':
+              weekId = 'cuartos';
+              break;
+            case 'Semifinal':
+              weekId = 'semifinal';
+              break;
+            case 'Final':
+              weekId = 'final';
+              break;
+            default:
+              weekId = this.selectedRound.toLowerCase();
+          }
+        } else {
+          matches = await firstValueFrom(this.footballService.getMatches(parseInt(this.selectedRound)));
+        }
+
+        const predictions = await firstValueFrom(this.databaseService.getPredictions(this.userId, weekId.toLowerCase()));
         
         this.isLiveRound = matches.some(match => 
           match.status.short === 'LIVE' || 

@@ -200,7 +200,25 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       // Setup the leaderboards with fresh data
       const weeklyEntries = await Promise.all(
         groupUsers.map(async user => {
-          const weekId = this.playoffPhases.includes(this.selectedRound) ? 'playoffs' : this.selectedRound;
+          let weekId;
+          if (this.playoffPhases.includes(this.selectedRound)) {
+            // Map the round name to the collection name
+            switch (this.selectedRound) {
+              case 'Cuartos de Final':
+                weekId = 'cuartos';
+                break;
+              case 'Semifinal':
+                weekId = 'semifinal';
+                break;
+              case 'Final':
+                weekId = 'final';
+                break;
+              default:
+                weekId = this.selectedRound.toLowerCase();
+            }
+          } else {
+            weekId = this.selectedRound;
+          }
           const predictions = await firstValueFrom(this.databaseService.getPredictions(user.uid, weekId));
           return {
             userId: user.uid,

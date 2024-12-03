@@ -38,16 +38,22 @@ export class DatabaseService {
       return of([]);
     }
 
+    console.debug(`Getting predictions for user ${userId} and week ${week}`);
+    
     return this.afs.doc<PredictionDocument>(`predictions/${userId}/weeks/${week}`)
       .get()
       .pipe(
         map(doc => {
-          if (!doc.exists) return [];
+          if (!doc.exists) {
+            console.debug(`No predictions found for user ${userId} and week ${week}`);
+            return [];
+          }
           const data = doc.data();
+          console.debug(`Found predictions for user ${userId} and week ${week}:`, data?.predictions);
           return data?.predictions || [];
         }),
         catchError(error => {
-          console.error('Error getting predictions:', error);
+          console.error(`Error getting predictions for user ${userId} and week ${week}:`, error);
           return of([]);
         })
       );

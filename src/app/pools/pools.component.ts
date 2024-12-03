@@ -217,9 +217,25 @@ export class PoolsComponent implements OnInit {
     this.error = null;
 
     try {
+      // Mapear el nombre de la ronda al ID de la colección
+      let weekId;
+      switch (this.selectedPlayoffRound) {
+        case 'Cuartos de Final':
+          weekId = 'cuartos';
+          break;
+        case 'Semifinal':
+          weekId = 'semifinal';
+          break;
+        case 'Final':
+          weekId = 'final';
+          break;
+        default:
+          weekId = this.selectedPlayoffRound.toLowerCase();
+      }
+
       const [matches, predictions] = await Promise.all([
         firstValueFrom(this.footballService.getPlayoffMatches()),
-        firstValueFrom(this.databaseService.getPredictions(this.userId, 'playoffs'))
+        firstValueFrom(this.databaseService.getPredictions(this.userId, weekId))
       ]);
 
       const filteredMatches = matches.filter(match => match.round === this.selectedPlayoffRound);
@@ -337,7 +353,26 @@ export class PoolsComponent implements OnInit {
       await loading.present();
 
       const matches = this.selectedView === 'playoffs' ? this.playoffMatches : this.matches;
-      const weekId = this.selectedView === 'playoffs' ? 'playoffs' : this.selectedRound;
+      let weekId;
+      
+      if (this.selectedView === 'playoffs') {
+        // Mapear el nombre de la ronda al ID de la colección
+        switch (this.selectedPlayoffRound) {
+          case 'Cuartos de Final':
+            weekId = 'cuartos';
+            break;
+          case 'Semifinal':
+            weekId = 'semifinal';
+            break;
+          case 'Final':
+            weekId = 'final';
+            break;
+          default:
+            weekId = this.selectedPlayoffRound.toLowerCase();
+        }
+      } else {
+        weekId = this.selectedRound;
+      }
 
       const predictions = matches
         .filter(m => m.canPredict && 
