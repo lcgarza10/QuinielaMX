@@ -19,6 +19,11 @@ import { NoAuthGuard } from './services/no-auth.guard';
 
 const routes: Routes = [
   { 
+    path: '', 
+    redirectTo: '/home', 
+    pathMatch: 'full' 
+  },
+  { 
     path: 'login', 
     component: LoginComponent,
     canActivate: [NoAuthGuard]
@@ -74,7 +79,6 @@ const routes: Routes = [
       { path: 'users', component: UserListComponent }
     ]
   },
-  { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' }
 ];
 

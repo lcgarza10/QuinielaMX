@@ -171,8 +171,8 @@ export class FootballService {
       );
   }
 
-  getPlayoffMatches(): Observable<PlayoffMatch[]> {
-    const cacheKey = 'playoffs';
+  getPlayoffMatches(round?: string): Observable<PlayoffMatch[]> {
+    const cacheKey = round || 'playoffs';
     const cachedMatches = this.getCachedPlayoffMatches(cacheKey);
     if (cachedMatches) {
       return of(cachedMatches);
@@ -263,7 +263,7 @@ export class FootballService {
               }
             }
 
-            if (round) {
+            if (round && (!round || round === round)) {
               console.log('Adding playoff match:', {
                 id: fixture.fixture.id,
                 date: fixture.fixture.date,
@@ -303,6 +303,40 @@ export class FootballService {
         }),
         shareReplay(1)
       );
+  }
+
+  async getCurrentPhase(): Promise<string> {
+    try {
+      // Intentar obtener partidos de semifinal primero
+      const semiMatches = await this.getPlayoffMatches('Semifinal').toPromise();
+      if (semiMatches && semiMatches.length > 0) {
+        return 'Semifinal';
+      }
+
+      // Si no hay semifinales, intentar con la final
+      const finalMatches = await this.getPlayoffMatches('Final').toPromise();
+      if (finalMatches && finalMatches.length > 0) {
+        return 'Final';
+      }
+
+      // Si no hay semifinales ni final, verificar cuartos
+      const quarterMatches = await this.getPlayoffMatches('Cuartos de Final').toPromise();
+      if (quarterMatches && quarterMatches.length > 0) {
+        return 'Cuartos de Final';
+      }
+
+      // Si no hay playoffs, intentar con reclasificación
+      const replayMatches = await this.getPlayoffMatches('Reclasificación').toPromise();
+      if (replayMatches && replayMatches.length > 0) {
+        return 'Reclasificación';
+      }
+
+      // Si no hay playoffs, devolver la última jornada regular
+      return '17';
+    } catch (error) {
+      console.error('Error getting current phase:', error);
+      return 'Semifinal'; // Default a semifinal si hay error
+    }
   }
 
   private async fetchCurrentRound(): Promise<number> {

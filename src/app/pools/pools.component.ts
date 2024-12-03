@@ -51,7 +51,7 @@ export class PoolsComponent implements OnInit {
     'Semifinal',
     'Final'
   ];
-  selectedPlayoffRound: string = 'Cuartos de Final';
+  selectedPlayoffRound: string = 'Reclasificación';
   private dataLoaded = new BehaviorSubject<boolean>(false);
 
   constructor(
@@ -66,18 +66,27 @@ export class PoolsComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // Initialize auth subscription first
-    this.authService.user$.subscribe(async user => {
+    try {
+      const user = await firstValueFrom(this.authService.user$);
       this.userId = user?.uid || null;
-      if (this.userId && !this.dataLoaded.value) {
-        await this.determineCurrentPhase();
-        this.dataLoaded.next(true);
+      
+      // Determinar la fase actual
+      this.selectedPlayoffRound = await this.footballService.getCurrentPhase();
+      
+      if (this.selectedView === 'playoffs') {
+        await this.loadPlayoffMatches();
+      } else {
+        await this.loadMatches();
       }
-    });
-
-    this.connectionService.getOnlineStatus().subscribe(status => {
-      this.isOffline = !status;
-    });
+      
+      this.setupConnectionListener();
+    } catch (error) {
+      console.error('Error in initialization:', error);
+      this.error = 'Error loading matches';
+    } finally {
+      this.loading = false;
+      this.dataLoaded.next(true);
+    }
   }
 
   private async determineCurrentPhase() {
@@ -391,5 +400,11 @@ export class PoolsComponent implements OnInit {
       ]
     });
     await toast.present();
+  }
+
+  private setupConnectionListener() {
+    this.connectionService.getOnlineStatus().subscribe(status => {
+      this.isOffline = !status;
+    });
   }
 }

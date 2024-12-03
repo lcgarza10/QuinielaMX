@@ -40,7 +40,12 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     'Final'
   ];
 
-  playoffPhases = ['Reclasificación', 'Cuartos de Final', 'Semifinal', 'Final'];
+  playoffPhases = [
+    'Reclasificación',
+    'Cuartos de Final',
+    'Semifinal',
+    'Final'
+  ];
 
   constructor(
     private databaseService: DatabaseService,
