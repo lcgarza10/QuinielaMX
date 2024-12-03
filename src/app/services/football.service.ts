@@ -197,8 +197,8 @@ export class FootballService {
       endDate = `${seasonYear}-12-15`;
     } else {
       // Clausura playoff dates (May)
-      startDate = `${seasonYear}-05-08`;
-      endDate = `${seasonYear}-05-29`;
+      startDate = `${seasonYear}-05-01`;
+      endDate = `${seasonYear}-05-31`;
     }
 
     const params = new HttpParams()
@@ -207,7 +207,7 @@ export class FootballService {
       .set('from', startDate)
       .set('to', endDate)
       .set('timezone', this.TIMEZONE)
-      .set('status', 'NS-1H-HT-2H-FT');
+      .set('status', 'NS-TBD-1H-HT-2H-FT');
 
     console.log('Fetching playoff matches with params:', {
       startDate,

@@ -408,64 +408,23 @@ export class ScoresComponent implements OnInit {
   }
 
   getPredictionClass(match: ScoreMatch | PlayoffMatch): string {
-    console.log('Match:', {
-      teams: `${match.homeTeam} vs ${match.awayTeam}`,
-      status: match.status.short,
-      prediction: match.prediction,
-      actualScore: `${match.homeScore}-${match.awayScore}`,
-      predictionScore: match.prediction ? `${match.prediction.homeScore}-${match.prediction.awayScore}` : 'none',
-      points: match.prediction?.points,
-      livePoints: match.prediction?.livePoints
-    });
+    if (!match.prediction || match.status.short === 'NS') return '';
 
-    if (!match.prediction?.homeScore || !match.prediction?.awayScore || 
-        match.homeScore === null || match.awayScore === null) {
+    // For completed matches, use final points
+    if (match.status.short === 'FT') {
+      if (match.prediction.points === 3) return 'exact-match';
+      if (match.prediction.points === 1) return 'partial-match';
       return 'no-match';
     }
 
-    // Convert points to numbers to ensure consistent comparison
-    const points = Number(match.prediction.points);
-    const livePoints = Number(match.prediction.livePoints);
-
-    console.log('Points after conversion:', { points, livePoints });
-
-    // Check points first
-    if (points === 3 || livePoints === 3) {
-      console.log('Exact match detected:', points || livePoints);
-      return match.status.short === 'FT' ? 'exact-match' : 'exact-match live';
-    }
-    if (points === 1 || livePoints === 1) {
-      console.log('Partial match detected:', points || livePoints);
-      return match.status.short === 'FT' ? 'partial-match' : 'partial-match live';
+    // For live matches, use live points
+    if (['1H', 'HT', '2H', 'LIVE'].includes(match.status.short)) {
+      if (match.prediction.livePoints === 3) return 'exact-match live';
+      if (match.prediction.livePoints === 1) return 'partial-match live';
+      return 'no-match live';
     }
 
-    // If no points are set, calculate based on scores
-    const predictedResult = Math.sign(match.prediction.homeScore - match.prediction.awayScore);
-    const actualResult = Math.sign(match.homeScore - match.awayScore);
-    const isExactMatch = match.prediction.homeScore === match.homeScore && 
-                        match.prediction.awayScore === match.awayScore;
-    const isPartialMatch = predictedResult === actualResult && !isExactMatch;
-
-    console.log('Score comparison:', {
-      predictedResult,
-      actualResult,
-      isExactMatch,
-      isPartialMatch
-    });
-
-    if (match.status.short === 'FT') {
-      if (isExactMatch) return 'exact-match';
-      if (isPartialMatch) return 'partial-match';
-    } else if (match.status.short === 'LIVE' || 
-              match.status.short === 'HT' || 
-              match.status.short === '1H' || 
-              match.status.short === '2H') {
-      if (isExactMatch) return 'exact-match live';
-      if (isPartialMatch) return 'partial-match live';
-    }
-
-    console.log('No match condition met, returning no-match');
-    return 'no-match';
+    return '';
   }
 
   private formatMatchTime(date: Date): string {

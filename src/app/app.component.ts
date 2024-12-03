@@ -71,13 +71,6 @@ export class AppComponent implements OnInit {
         this.router.navigate(['/login'], { replaceUrl: true });
       }
     });
-
-    // Update activity on navigation
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      this.sessionService.updateLastActivity();
-    });
   }
 
   private checkForUpdates() {

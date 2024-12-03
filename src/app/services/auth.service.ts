@@ -98,7 +98,7 @@ export class AuthService {
     try {
       localStorage.clear();
       sessionStorage.clear();
-      this.sessionState.endSession('voluntary');
+      this.sessionState.endSession();
       await this.afAuth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
