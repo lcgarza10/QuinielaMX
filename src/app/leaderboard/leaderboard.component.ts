@@ -112,28 +112,41 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       const allPlayoffMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
       
       if (allPlayoffMatches.length > 0) {
-        // Sort matches by date to find the most recent/upcoming match
-        const sortedMatches = [...allPlayoffMatches].sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
+        // Group matches by phase
+        const matchesByPhase = allPlayoffMatches.reduce((acc, match) => {
+          if (!acc[match.round]) {
+            acc[match.round] = [];
+          }
+          acc[match.round].push(match);
+          return acc;
+        }, {} as { [key: string]: PlayoffMatch[] });
 
         const now = new Date();
-        let currentPhase = null;
+        now.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
 
-        // Find the current phase based on match dates
-        for (const match of sortedMatches) {
-          const matchDate = new Date(match.date);
-          const daysDiff = Math.abs(now.getTime() - matchDate.getTime()) / (1000 * 60 * 60 * 24);
+        // Find the current phase
+        for (const phase of this.playoffPhases) {
+          const phaseMatches = matchesByPhase[phase] || [];
+          if (phaseMatches.length === 0) continue;
+
+          // Sort matches by date to find the last match of the phase
+          const sortedMatches = phaseMatches.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
+          const lastMatchDate = new Date(sortedMatches[0].date);
+          lastMatchDate.setHours(0, 0, 0, 0); // Set to start of day
           
-          if (daysDiff <= 3 || matchDate > now) {
-            currentPhase = match.round;
+          // Add one day to last match date to determine when to switch phases
+          const switchDate = new Date(lastMatchDate);
+          switchDate.setDate(switchDate.getDate() + 1);
+
+          // If we haven't reached the switch date for this phase yet, this is our current phase
+          if (now < switchDate) {
+            this.selectedView = 'weekly';
+            this.selectedRound = phase;
             break;
           }
-        }
-
-        if (currentPhase) {
-          this.selectedView = 'weekly';
-          this.selectedRound = currentPhase;
         }
       }
     } catch (error) {
