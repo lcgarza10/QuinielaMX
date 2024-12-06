@@ -7,6 +7,13 @@ import { Observable, combineLatest, of, firstValueFrom } from 'rxjs';
 import { map, take, switchMap } from 'rxjs/operators';
 import { Group } from '../models/group.model';
 import { LeaderboardEntry } from '../models/leaderboard.model';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+
+// Add the WeekData interface here
+interface WeekData {
+  totalPoints: number;
+  predictions?: any[];
+}
 
 @Component({
   selector: 'app-leaderboard',
@@ -48,6 +55,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   ];
 
   constructor(
+    private afs: AngularFirestore,
     private databaseService: DatabaseService,
     private authService: AuthService,
     private footballService: FootballService,
@@ -197,6 +205,9 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
         ));
       }
 
+      // Get total points for all users
+      const pointsData = await firstValueFrom(this.databaseService.getAllUsersTotalPoints());
+
       // Setup the leaderboards with fresh data
       const weeklyEntries = await Promise.all(
         groupUsers.map(async user => {
@@ -220,10 +231,22 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
             weekId = this.selectedRound;
           }
           const predictions = await firstValueFrom(this.databaseService.getPredictions(user.uid, weekId));
+          const userPoints = pointsData.find(p => p.userId === user.uid);
+          
+          // Get all weeks for total points calculation
+          const weeksSnapshot = await this.afs.collection(`predictions/${user.uid}/weeks`).get().toPromise();
+          let totalPoints = 0;
+          weeksSnapshot?.docs.forEach(doc => {
+            const weekData = doc.data() as WeekData;
+            if (weekData?.totalPoints) {
+              totalPoints += weekData.totalPoints;
+            }
+          });
+
           return {
             userId: user.uid,
             username: user.username || user.email || 'Unknown User',
-            totalPoints: 0,
+            totalPoints: totalPoints,
             weeklyPoints: this.calculateWeeklyPoints(predictions, this.weekMatches),
             livePoints: this.calculateLivePoints(predictions, this.weekMatches),
             predictions: predictions.map(pred => ({
@@ -237,35 +260,18 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
         })
       );
 
+      // Update weekly leaderboard
       this.weeklyLeaderboard$ = of(weeklyEntries.sort((a, b) => {
         const aPoints = (a.weeklyPoints || 0) + (a.livePoints || 0);
         const bPoints = (b.weeklyPoints || 0) + (b.livePoints || 0);
         return bPoints - aPoints;
       }));
 
-      // Get total points for overall leaderboard
-      const pointsData = await firstValueFrom(this.databaseService.getAllUsersTotalPoints());
-      const overallEntries = groupUsers.map(user => {
-        const points = pointsData.find(p => p.userId === user.uid);
-        return {
-          userId: user.uid,
-          username: user.username || user.email || 'Unknown User',
-          totalPoints: points?.totalPoints || 0,
-          weeklyPoints: 0
-        };
-      }).sort((a, b) => b.totalPoints - a.totalPoints);
+      // Use the same entries for overall and global leaderboards
+      const sortedByTotal = [...weeklyEntries].sort((a, b) => b.totalPoints - a.totalPoints);
+      this.overallLeaderboard$ = of(sortedByTotal);
+      this.globalLeaderboard$ = of(sortedByTotal);
 
-      this.overallLeaderboard$ = of(overallEntries);
-      this.globalLeaderboard$ = of(groupUsers.map(user => {
-        const points = pointsData.find(p => p.userId === user.uid);
-        return {
-          userId: user.uid,
-          username: user.username || user.email || 'Unknown User',
-          totalPoints: points?.totalPoints || 0,
-          weeklyPoints: 0
-        };
-      }).sort((a, b) => b.totalPoints - a.totalPoints));
-      
     } catch (error) {
       console.error('Error setting up leaderboards:', error);
       this.error = 'Error al cargar la tabla de posiciones';
