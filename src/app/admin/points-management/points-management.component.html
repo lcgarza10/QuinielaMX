@@ -1,0 +1,36 @@
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Gestión de Puntos</ion-card-title>
+      <ion-card-subtitle>Sincronizar y corregir puntos de usuarios</ion-card-subtitle>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item>
+        <ion-label position="stacked">ID de Usuario</ion-label>
+        <ion-input [(ngModel)]="userId" placeholder="Ingrese el ID del usuario"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Ronda</ion-label>
+        <ion-select [(ngModel)]="selectedRound" placeholder="Seleccione la ronda">
+          <ion-select-option *ngFor="let round of rounds" [value]="round">
+            {{ round | titlecase }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <div class="ion-padding-vertical">
+        <ion-button expand="block" (click)="syncPoints()" [disabled]="isProcessing">
+          <ion-icon name="sync-outline" slot="start"></ion-icon>
+          Sincronizar Puntos de Ronda
+        </ion-button>
+
+        <ion-button expand="block" (click)="fixAllPoints()" [disabled]="isProcessing" color="warning" class="ion-margin-top">
+          <ion-icon name="build-outline" slot="start"></ion-icon>
+          Corregir Todos los Puntos
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

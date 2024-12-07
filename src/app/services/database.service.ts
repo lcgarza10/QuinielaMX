@@ -72,38 +72,38 @@ export class DatabaseService {
     try {
       const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
       
-      // Para rondas de liguilla, preservamos predicciones existentes de partidos ya jugados
-      if (week === 'reclasificacion' || week === 'cuartos' || week === 'semifinal' || week === 'final') {
-        const docSnapshot = await docRef.get().toPromise();
-        const existingData = docSnapshot?.data() as PredictionDocument;
-        const existingPredictions = existingData?.predictions || [];
-
+      // Check if document already exists
+      const docSnapshot = await docRef.get().toPromise();
+      const existingData = docSnapshot?.data() as PredictionDocument;
+      
+      if (!docSnapshot?.exists) {
+        // If document doesn't exist, create new with initial values
+        await docRef.set({
+          predictions,
+          totalPoints: 0, // New predictions start with 0 points
+          lastUpdated: new Date()
+        });
+      } else {
+        // Document exists, preserve existing points and only update non-started matches
         const currentMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
-        
         const existingPredictionsMap = new Map(
-          existingPredictions.map(pred => [pred.matchId, pred])
+          existingData.predictions.map(pred => [pred.matchId, pred])
         );
 
+        // Only update predictions for matches that haven't started
         predictions.forEach(newPred => {
           const match = currentMatches.find(m => m.id === newPred.matchId);
-          if (match && match.status.short === 'NS') {
+          if (match?.status.short === 'NS') {
             existingPredictionsMap.set(newPred.matchId, newPred);
           }
         });
 
         const updatedPredictions = Array.from(existingPredictionsMap.values());
 
-        await docRef.set({
+        await docRef.update({
           predictions: updatedPredictions,
-          totalPoints: totalPoints,
           lastUpdated: new Date()
-        });
-      } else {
-        // Para jornadas regulares
-        await docRef.set({
-          predictions,
-          totalPoints: totalPoints,
-          lastUpdated: new Date()
+          // Don't update totalPoints, preserve existing value
         });
       }
     } catch (error) {
@@ -325,5 +325,116 @@ export class DatabaseService {
     }
 
     return 0;
+  }
+
+  async syncPointsWithStandings(userId: string, round: string): Promise<void> {
+    try {
+      const docRef = this.afs.doc(`predictions/${userId}/weeks/${round}`);
+      const docSnapshot = await docRef.get().toPromise();
+      
+      if (!docSnapshot?.exists) {
+        console.log(`No predictions found for round ${round}`);
+        return;
+      }
+
+      const existingData = docSnapshot.data() as PredictionDocument;
+      const matches = ['playoffs', 'reclasificacion', 'cuartos', 'semifinal', 'final'].includes(round.toLowerCase())
+        ? await firstValueFrom(this.footballService.getPlayoffMatches())
+        : await firstValueFrom(this.footballService.getMatches(parseInt(round)));
+
+      let totalPoints = 0;
+      const updatedPredictions = existingData.predictions.map(pred => {
+        const match = matches.find(m => m.id === pred.matchId);
+        let points = 0;
+
+        if (match?.status.short === 'FT' && 
+            match.homeScore !== null && match.awayScore !== null && 
+            pred.homeScore !== null && pred.awayScore !== null) {
+          // Calculate points based on the actual match result
+          if (pred.homeScore === match.homeScore && pred.awayScore === match.awayScore) {
+            points = 3; // Exact score
+          } else {
+            const predictedResult = Math.sign(pred.homeScore - pred.awayScore);
+            const actualResult = Math.sign(match.homeScore - match.awayScore);
+            if (predictedResult === actualResult) {
+              points = 1; // Correct winner/draw
+            }
+          }
+        }
+
+        totalPoints += points;
+        return { ...pred, points };
+      });
+
+      // Update document with correct points
+      await docRef.update({
+        predictions: updatedPredictions,
+        totalPoints,
+        lastUpdated: new Date()
+      });
+
+      console.log(`Points synchronized for round ${round}. Total points: ${totalPoints}`);
+    } catch (error) {
+      console.error(`Error syncing points for round ${round}:`, error);
+      throw error;
+    }
+  }
+
+  async fixAllUserPoints(userId: string): Promise<void> {
+    try {
+      // Get all user's prediction documents
+      const weeksSnapshot = await this.afs.collection(`predictions/${userId}/weeks`).get().toPromise();
+      
+      if (weeksSnapshot && !weeksSnapshot.empty && weeksSnapshot.docs) {
+        // Process each round
+        for (const doc of weeksSnapshot.docs) {
+          await this.syncPointsWithStandings(userId, doc.id);
+        }
+        
+        // Update total points across all rounds
+        await this.updateUserTotalPoints(userId);
+      } else {
+        console.log('No predictions found for user:', userId);
+      }
+    } catch (error) {
+      console.error('Error fixing user points:', error);
+      throw error;
+    }
+  }
+
+  async syncPointsWithStandingsForAllUsers(round: string): Promise<void> {
+    try {
+      // Get all predictions for the specified round
+      const predictionsSnapshot = await this.afs.collection(`predictions`).get().toPromise();
+      
+      if (predictionsSnapshot && !predictionsSnapshot.empty) {
+        for (const userDoc of predictionsSnapshot.docs) {
+          const userId = userDoc.id;
+          await this.syncPointsWithStandings(userId, round);
+          console.log(`Synchronized points for user ${userId} in round ${round}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing points for all users:', error);
+      throw error;
+    }
+  }
+
+  async fixAllUsersPoints(): Promise<void> {
+    try {
+      // Get all users with predictions
+      const predictionsSnapshot = await this.afs.collection('predictions').get().toPromise();
+      
+      if (predictionsSnapshot && !predictionsSnapshot.empty) {
+        for (const userDoc of predictionsSnapshot.docs) {
+          const userId = userDoc.id;
+          await this.fixAllUserPoints(userId);
+          console.log(`Fixed all points for user ${userId}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error fixing points for all users:', error);
+      throw error;
+    }
   }
 }

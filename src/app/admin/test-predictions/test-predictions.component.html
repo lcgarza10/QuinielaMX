@@ -66,6 +66,20 @@
         </ion-item>
 
         <ion-item>
+          <ion-button expand="block" (click)="syncPointsForAllUsers('semifinal')" color="warning" [disabled]="loading">
+            <ion-icon name="sync-outline" slot="start"></ion-icon>
+            Sincronizar Puntos Semifinal (Todos)
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
+          <ion-button expand="block" (click)="fixAllUsersPoints()" color="warning" [disabled]="loading">
+            <ion-icon name="build-outline" slot="start"></ion-icon>
+            Corregir Todos los Puntos (Todos)
+          </ion-button>
+        </ion-item>
+
+        <ion-item>
           <ion-button expand="block" (click)="generateRandomPredictions()" color="tertiary" [disabled]="loading">
             <ion-icon name="shuffle-outline" slot="start"></ion-icon>
             Generar Predicciones Aleatorias

@@ -612,6 +612,32 @@ export class TestPredictionsComponent implements OnInit {
     await alert.present();
   }
 
+  async syncPointsForAllUsers(round: string) {
+    try {
+      this.loading = true;
+      await this.databaseService.syncPointsWithStandingsForAllUsers(round);
+      this.presentToast('Puntos sincronizados exitosamente para todos los usuarios', 'success');
+    } catch (error) {
+      console.error('Error syncing points for all users:', error);
+      this.presentToast('Error al sincronizar puntos', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  async fixAllUsersPoints() {
+    try {
+      this.loading = true;
+      await this.databaseService.fixAllUsersPoints();
+      this.presentToast('Todos los puntos han sido corregidos para todos los usuarios', 'success');
+    } catch (error) {
+      console.error('Error fixing all users points:', error);
+      this.presentToast('Error al corregir los puntos', 'danger');
+    } finally {
+      this.loading = false;
+    }
+  }
+
   private calculatePoints(prediction: Prediction, match: Match): number {
     if (!prediction || prediction.homeScore === null || prediction.awayScore === null ||
         match.homeScore === null || match.awayScore === null) {
@@ -655,6 +681,16 @@ export class TestPredictionsComponent implements OnInit {
   }
 
   private async showToast(message: string, color: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'bottom'
+    });
+    await toast.present();
+  }
+
+  private async presentToast(message: string, color: string) {
     const toast = await this.toastController.create({
       message,
       duration: 3000,
