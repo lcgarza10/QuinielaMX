@@ -86,6 +86,17 @@ export class ScoresComponent implements OnInit {
         }
 
         if (currentPhase) {
+          // Reordenar playoffRounds para mostrar la fase actual primero
+          const phases = ['Reclasificación', 'Cuartos de Final', 'Semifinal', 'Final'];
+          const currentPhaseIndex = phases.indexOf(currentPhase);
+          
+          // Dividir las fases en actuales/futuras y pasadas
+          const currentAndFuturePhases = phases.slice(currentPhaseIndex);
+          const pastPhases = phases.slice(0, currentPhaseIndex);
+          
+          // Actualizar playoffRounds con el nuevo orden
+          this.playoffRounds = [...currentAndFuturePhases, ...pastPhases];
+          
           // Set view to playoffs and load playoff matches
           this.selectedView = 'playoffs';
           await this.loadPlayoffMatches();

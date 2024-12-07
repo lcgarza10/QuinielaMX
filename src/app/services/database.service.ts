@@ -72,52 +72,40 @@ export class DatabaseService {
     try {
       const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
       
-      // For playoff rounds, we need to preserve existing predictions for matches that have already been played
+      // Para rondas de liguilla, preservamos predicciones existentes de partidos ya jugados
       if (week === 'reclasificacion' || week === 'cuartos' || week === 'semifinal' || week === 'final') {
-        // Get existing predictions
         const docSnapshot = await docRef.get().toPromise();
         const existingData = docSnapshot?.data() as PredictionDocument;
         const existingPredictions = existingData?.predictions || [];
 
-        // Get current playoff matches to check their status
         const currentMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
         
-        // Create a map of existing predictions for quick lookup
         const existingPredictionsMap = new Map(
           existingPredictions.map(pred => [pred.matchId, pred])
         );
 
-        // For each new prediction
         predictions.forEach(newPred => {
           const match = currentMatches.find(m => m.id === newPred.matchId);
-          // Only update prediction if match hasn't started yet
           if (match && match.status.short === 'NS') {
             existingPredictionsMap.set(newPred.matchId, newPred);
           }
         });
 
-        // Convert map back to array
         const updatedPredictions = Array.from(existingPredictionsMap.values());
 
-        const updatedDoc: PredictionDocument = {
+        await docRef.set({
           predictions: updatedPredictions,
-          totalPoints,
+          totalPoints: totalPoints,
           lastUpdated: new Date()
-        };
-
-        await docRef.set(updatedDoc, { merge: true });
+        });
       } else {
-        // For regular matches, proceed as normal
-        const regularDoc: PredictionDocument = {
+        // Para jornadas regulares
+        await docRef.set({
           predictions,
-          totalPoints,
+          totalPoints: totalPoints,
           lastUpdated: new Date()
-        };
-
-        await docRef.set(regularDoc, { merge: true });
+        });
       }
-
-      await this.updateUserTotalPoints(userId);
     } catch (error) {
       console.error('Error saving predictions:', error);
       throw error;
