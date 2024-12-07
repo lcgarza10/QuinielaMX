@@ -314,3 +314,46 @@
 ion-row:not(:last-child) {
   margin-bottom: 6px;
 }
+
+// Add styling for the 'acumulado' table
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 1em;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.modern-table th, .modern-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.modern-table th {
+  background-color: #f4f4f4;
+  color: #333;
+  font-weight: bold;
+}
+
+.modern-table tr.highlight {
+  background-color: #f1f1f1;
+}
+
+.modern-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.modern-table tr:first-child {
+  background-color: #ffd700; /* Gold for 1st place */
+}
+
+.modern-table tr:nth-child(2) {
+  background-color: #c0c0c0; /* Silver for 2nd place */
+}
+
+.modern-table tr:nth-child(3) {
+  background-color: #cd7f32; /* Bronze for 3rd place */
+}

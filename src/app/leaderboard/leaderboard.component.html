@@ -112,22 +112,24 @@
 
   <!-- Overall View -->
   <ng-container *ngIf="selectedView === 'overall'">
-    <div class="group-info" *ngIf="currentGroup">
-      <h3>Tabla Grupo {{ currentGroup.name }}</h3>
-    </div>
-    <div class="matches-grid">
-      <div class="grid-header">
-        <div class="pos-col">Pos</div>
-        <div class="pos-col">Pts</div>
-        <div class="user-col">Usuario</div>
-      </div>
-      <div class="grid-row" *ngFor="let entry of overallLeaderboard$ | async; let i = index"
-           [class.current-user]="entry.userId === currentUserId">
-        <div class="pos-col">{{ i + 1 }}</div>
-        <div class="pos-col">{{ entry.totalPoints }}</div>
-        <div class="user-col">{{ entry.username }}</div>
-      </div>
-    </div>
+    <ng-container *ngIf="overallLeaderboard$ | async as overallLeaderboard">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Posición</th>
+            <th>Participante</th>
+            <th>Puntos Totales</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of overallLeaderboard; let i = index" [class.highlight]="entry.userId === currentUserId">
+            <td>{{ i + 1 }}</td>
+            <td>{{ entry.username }}</td>
+            <td>{{ entry.totalPoints }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </ng-container>
   </ng-container>
 
   <!-- Global View -->
