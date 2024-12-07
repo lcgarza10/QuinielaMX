@@ -18,10 +18,10 @@
     <div class="prediction-score" [ngClass]="getScoreClass()">
       <div class="score-label" *ngIf="canPredict || canEdit || isCompleted">
         {{
-          isCompleted
-            ? 'Tu Pronóstico .'
+          isCompleted && !canEdit
+            ? 'Tu Pronóstico'
             : canEdit
-            ? 'Aún puedes predecir:'
+            ? 'Puedes editar tu pronóstico:'
             : 'Ingresa tu Pronóstico:'
         }}
       </div>
@@ -29,7 +29,7 @@
       <!-- Vertical Score Input Interface -->
       <div
         class="score-input-vertical"
-        *ngIf="(!isCompleted && canPredict) || canEdit"
+        *ngIf="shouldShowScoreInput()"
       >
         <div class="team-score">
           <div class="score-controls">
@@ -74,7 +74,7 @@
         </div>
       </div>
 
-      <div class="score-display" *ngIf="isCompleted">
+      <div class="score-display" *ngIf="shouldShowScoreDisplay()">
         {{ prediction.homeScore ?? '-' }} - {{ prediction.awayScore ?? '-' }}
         <div class="points-badge" *ngIf="match.status.short === 'FT'">
           {{ getPoints() }} pts
@@ -82,7 +82,7 @@
       </div>
 
       <!-- Quick Score Suggestions -->
-      <div class="quick-scores" *ngIf="(!isCompleted && canPredict) || canEdit">
+      <div class="quick-scores" *ngIf="shouldShowScoreInput()">
         <div class="quick-score-label">Resultados comunes:</div>
         <div class="quick-score-buttons">
           <ion-button fill="clear" size="small" (click)="setQuickScore(1, 0)">

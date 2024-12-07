@@ -71,13 +71,52 @@ export class DatabaseService {
 
     try {
       const docRef = this.afs.doc(`predictions/${userId}/weeks/${week}`);
-      const data: PredictionDocument = {
-        predictions,
-        totalPoints,
-        lastUpdated: new Date()
-      };
+      
+      // For playoff rounds, we need to preserve existing predictions for matches that have already been played
+      if (week === 'reclasificacion' || week === 'cuartos' || week === 'semifinal' || week === 'final') {
+        // Get existing predictions
+        const docSnapshot = await docRef.get().toPromise();
+        const existingData = docSnapshot?.data() as PredictionDocument;
+        const existingPredictions = existingData?.predictions || [];
 
-      await docRef.set(data, { merge: true });
+        // Get current playoff matches to check their status
+        const currentMatches = await firstValueFrom(this.footballService.getPlayoffMatches());
+        
+        // Create a map of existing predictions for quick lookup
+        const existingPredictionsMap = new Map(
+          existingPredictions.map(pred => [pred.matchId, pred])
+        );
+
+        // For each new prediction
+        predictions.forEach(newPred => {
+          const match = currentMatches.find(m => m.id === newPred.matchId);
+          // Only update prediction if match hasn't started yet
+          if (match && match.status.short === 'NS') {
+            existingPredictionsMap.set(newPred.matchId, newPred);
+          }
+        });
+
+        // Convert map back to array
+        const updatedPredictions = Array.from(existingPredictionsMap.values());
+
+        const updatedDoc: PredictionDocument = {
+          predictions: updatedPredictions,
+          totalPoints,
+          lastUpdated: new Date()
+        };
+
+        await docRef.set(updatedDoc, { merge: true });
+      } else {
+        // For regular matches, proceed as normal
+        const regularDoc: PredictionDocument = {
+          predictions,
+          totalPoints,
+          lastUpdated: new Date()
+        };
+
+        await docRef.set(regularDoc, { merge: true });
+      }
+
       await this.updateUserTotalPoints(userId);
     } catch (error) {
       console.error('Error saving predictions:', error);
@@ -164,27 +203,24 @@ export class DatabaseService {
   }
 
   private async updateUserTotalPoints(userId: string): Promise<void> {
-    if (!userId) {
-      console.warn('Missing userId for updateUserTotalPoints');
-      return;
-    }
-
     try {
-      const weeksSnapshot = await this.afs.collection(`predictions/${userId}/weeks`)
-        .get()
-        .toPromise();
-      
       let totalPoints = 0;
+      const weeksSnapshot = await this.afs.collection(`predictions/${userId}/weeks`).get().toPromise();
       
-      if (weeksSnapshot) {
+      if (weeksSnapshot && weeksSnapshot.docs) {
+        // Get current round and ensure it's a number
         const currentRound = await this.footballService.getCurrentRound();
         
         for (const doc of weeksSnapshot.docs) {
           const weekData = doc.data() as PredictionDocument;
-          const weekNumber = parseInt(doc.id);
+          if (!weekData || !weekData.predictions) continue;  // Skip if no predictions
           
-          if (weekNumber <= currentRound || doc.id === 'playoffs') {
-            const matches = doc.id === 'playoffs' 
+          const weekNumber = parseInt(doc.id);
+          const isPlayoffRound = ['reclasificacion', 'cuartos', 'semifinal', 'final'].includes(doc.id);
+          
+          // Only process if it's a playoff round or a regular round that's already finished
+          if (isPlayoffRound || (weekNumber && weekNumber <= currentRound)) {
+            const matches = isPlayoffRound
               ? await firstValueFrom(this.footballService.getPlayoffMatches())
               : await firstValueFrom(this.footballService.getMatches(weekNumber));
 

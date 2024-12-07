@@ -126,6 +126,7 @@
                   [match]="match"
                   [prediction]="match.prediction"
                   [canPredict]="match.canPredict"
+                  [canEdit]="selectedView === 'playoffs' && match.status.short === 'NS'"
                   [isCompleted]="hasPredictions"
                   (predictionChange)="onPredictionChange(match, $event)">
                 </app-match-prediction>
@@ -164,11 +165,11 @@
 
   <!-- Submit Button -->
   <ion-button
-    *ngIf="!hasPredictions && (matches.length > 0 || playoffMatches.length > 0)"
+    *ngIf="shouldShowSubmitButton()"
     expand="block"
     (click)="submitPredictions()"
     [disabled]="isSubmitDisabled()"
     class="submit-button">
-    Guardar Predicciones
+    {{ getSubmitButtonText() }}
   </ion-button>
 </ion-content>

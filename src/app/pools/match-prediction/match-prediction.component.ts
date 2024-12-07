@@ -77,6 +77,20 @@ export class MatchPredictionComponent implements OnInit {
     this.onScoreChange();
   }
 
+  shouldShowScoreInput(): boolean {
+    // Show score input if:
+    // 1. Match hasn't been predicted yet and can be predicted
+    // 2. OR it's a playoff match that hasn't started yet (can be edited)
+    return (!this.isCompleted && this.canPredict) || this.canEdit;
+  }
+
+  shouldShowScoreDisplay(): boolean {
+    // Show score display if:
+    // 1. Predictions are completed
+    // 2. AND it's not editable
+    return this.isCompleted && !this.canEdit;
+  }
+
   private isExactMatch(): boolean {
     return this.match.homeScore === this.prediction.homeScore && 
            this.match.awayScore === this.prediction.awayScore;

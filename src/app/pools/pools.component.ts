@@ -300,6 +300,11 @@ export class PoolsComponent implements OnInit {
     const now = new Date();
     const matchDate = new Date(match.date);
     
+    // For liguilla matches that haven't started yet, allow editing even if predictions exist
+    if (this.selectedView === 'playoffs' && match.status.short === 'NS') {
+      return true;
+    }
+
     if (match.status.short === 'FT') {
       return false;
     }
@@ -329,6 +334,19 @@ export class PoolsComponent implements OnInit {
       m.prediction?.homeScore !== null && 
       m.prediction?.awayScore !== null
     );
+  }
+
+  shouldShowSubmitButton(): boolean {
+    if (this.selectedView === 'playoffs') {
+      return this.playoffMatches.some(m => m.canPredict);
+    }
+    return !this.hasPredictions && (this.matches.length > 0 || this.playoffMatches.length > 0);
+  }
+
+  getSubmitButtonText(): string {
+    return this.selectedView === 'playoffs' && this.hasPredictions 
+      ? 'Actualizar Pronósticos' 
+      : 'Guardar Predicciones';
   }
 
   async submitPredictions() {
@@ -375,9 +393,13 @@ export class PoolsComponent implements OnInit {
       }
 
       const predictions = matches
-        .filter(m => m.canPredict && 
-                    m.prediction?.homeScore !== null && 
-                    m.prediction?.awayScore !== null)
+        .filter(m => {
+          const isPlayoffMatch = this.selectedView === 'playoffs';
+          const canEditPlayoff = isPlayoffMatch && m.status?.short === 'NS';
+          return (m.canPredict || canEditPlayoff) && 
+                 m.prediction?.homeScore !== null && 
+                 m.prediction?.awayScore !== null;
+        })
         .map(m => ({
           matchId: m.id,
           homeScore: m.prediction.homeScore!,
