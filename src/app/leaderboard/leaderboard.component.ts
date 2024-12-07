@@ -81,10 +81,8 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     await this.determineCurrentPhase();
     await this.loadMatches();
 
-    // Set up auto-refresh every 30 seconds
-    this.refreshInterval = setInterval(() => {
-      this.refreshData();
-    }, 30000);
+    // Check for live matches and set up auto-refresh
+    this.checkLiveMatches();
   }
 
   ngOnDestroy() {
@@ -498,6 +496,39 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     const user = await this.authService.getUser();
     if (user) {
       await this.loadUserGroup();
+    }
+  }
+
+  private async checkLiveMatches() {
+    try {
+      const matches = await firstValueFrom(this.footballService.getMatches(this.currentRound));
+      const liveMatches = matches.filter((match: Match) => ['1H', '2H', 'HT'].includes(match.status.short));
+
+      if (liveMatches.length > 0) {
+        console.log('Live matches detected:', liveMatches.map((m: Match) => `${m.homeTeam} vs ${m.awayTeam}`));
+        this.startAutoRefresh();
+      } else {
+        console.log('No live matches. Next check in 5 minutes.');
+        this.stopAutoRefresh();
+        setTimeout(() => this.checkLiveMatches(), 300000); // Check again in 5 minutes
+      }
+    } catch (error) {
+      console.error('Error checking live matches:', error);
+    }
+  }
+
+  private startAutoRefresh() {
+    if (!this.refreshInterval) {
+      this.refreshInterval = setInterval(() => {
+        this.refreshData();
+      }, 30000); // Refresh every 30 seconds
+    }
+  }
+
+  private stopAutoRefresh() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+      this.refreshInterval = null;
     }
   }
 }
