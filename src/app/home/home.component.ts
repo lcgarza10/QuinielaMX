@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { VersionService } from '../services/version.service';
 import { AuthService } from '../services/auth.service';
-import { AdsService } from '../services/ads.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -11,25 +12,29 @@ import { AdsService } from '../services/ads.service';
 export class HomeComponent implements OnInit, OnDestroy {
   version: string;
   isAdmin: boolean = false;
+  private userSubscription: Subscription | undefined;
 
   constructor(
+    private router: Router,
     private versionService: VersionService,
-    private authService: AuthService,
-    private adsService: AdsService
+    private authService: AuthService
   ) {
     this.version = this.versionService.getVersion();
-    this.authService.user$.subscribe(user => {
+  }
+
+  ngOnInit() {
+    this.userSubscription = this.authService.user$.subscribe(user => {
       this.isAdmin = this.authService.isAdmin(user);
     });
   }
 
-  async ngOnInit() {
-    // Show banner ad when component loads
-    await this.adsService.showBanner();
+  ngOnDestroy() {
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
+    }
   }
 
-  async ngOnDestroy() {
-    // Hide banner ad when component is destroyed
-    await this.adsService.hideBanner();
+  navigateTo(path: string) {
+    this.router.navigate([path]);
   }
 }

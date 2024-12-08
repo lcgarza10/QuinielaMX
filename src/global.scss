@@ -5,7 +5,7 @@
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
-@import "@ionic/angular/css/display.css";
+@import '@ionic/angular/css/display.css';
 
 /* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
@@ -13,6 +13,26 @@
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
+
+/* Hide the old header */
+app-header {
+  display: none !important;
+}
+
+ion-header {
+  display: none !important;
+}
+
+/* Adjust content for removed header */
+ion-content {
+  --padding-top: 0 !important;
+  --offset-top: 0 !important;
+}
+
+/* Ensure bottom tab bar is always visible */
+ion-tab-bar {
+  z-index: 1000;
+}
 
 /* Your custom styles */
 body {

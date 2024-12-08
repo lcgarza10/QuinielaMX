@@ -1,155 +1,151 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Tabla General</ion-title>
-  </ion-toolbar>
+<div class="page-container">
+  <!-- View Selector and Round Selector -->
+  <div class="selector-container">
+    <ion-toolbar>
+      <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange()" mode="ios" class="custom-segment">
+        <ion-segment-button value="weekly">
+          <ion-label>
+            <ion-icon name="calendar-outline"></ion-icon>
+            Jornada
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="overall">
+          <ion-label>
+            <ion-icon name="trophy-outline"></ion-icon>
+            Acumulado
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="global">
+          <ion-label>
+            <ion-icon name="globe-outline"></ion-icon>
+            Mundial
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-toolbar>
 
-  <ion-toolbar color="primary">
-    <ion-segment [(ngModel)]="selectedView" (ionChange)="onViewChange()" mode="ios" class="custom-segment">
-      <ion-segment-button value="weekly">
-        <ion-label>
-          <ion-icon name="calendar-outline"></ion-icon>
-          Jornada
-        </ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="overall">
-        <ion-label>
-          <ion-icon name="trophy-outline"></ion-icon>
-          Acumulado
-        </ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="global">
-        <ion-label>
-          <ion-icon name="globe-outline"></ion-icon>
-          Mundial
-        </ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </ion-toolbar>
+    <ion-toolbar *ngIf="selectedView === 'weekly'" color="light">
+      <app-rounds-selector
+        [selectedRound]="selectedRound"
+        [currentRound]="currentRound"
+        [isLiveRound]="isLiveRound"
+        [rounds]="rounds"
+        (roundChange)="onRoundChange($event)">
+      </app-rounds-selector>
+    </ion-toolbar>
 
-  <ion-toolbar *ngIf="selectedView === 'weekly'" color="light">
-    <app-rounds-selector
-      [selectedRound]="selectedRound"
-      [currentRound]="currentRound"
-      [isLiveRound]="isLiveRound"
-      [rounds]="rounds"
-      (roundChange)="onRoundChange($event)">
-    </app-rounds-selector>
-  </ion-toolbar>
+    <ion-toolbar>
+      <ion-title>Tabla de Posiciones</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="manualRefresh()" [disabled]="loading">
+          <ion-icon name="refresh-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </div>
 
-  <ion-toolbar>
-    <ion-title>Tabla de Posiciones</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="manualRefresh()" [disabled]="loading">
-        <ion-icon name="refresh-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+  <ion-content [fullscreen]="true">
+    <!-- Weekly View -->
+    <ng-container *ngIf="selectedView === 'weekly'">
+      <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
+        <div class="group-info" *ngIf="currentGroup">
+          <h3>Tabla Grupo {{ currentGroup.name }}</h3>
+        </div>
 
-<ion-content>
-  <!-- Weekly View -->
-  <ng-container *ngIf="selectedView === 'weekly'">
-    <ng-container *ngIf="weeklyLeaderboard$ | async as weeklyLeaderboard">
-      <div class="group-info" *ngIf="currentGroup">
-        <h3>Tabla Grupo {{ currentGroup.name }}</h3>
+        <div class="matches-grid">
+          <!-- Header Row -->
+          <div class="grid-header">
+            <div class="pos-col">Pos</div>
+            <div class="pos-col">Pts</div>
+            <div class="user-col">Participante</div>
+            <div class="matches-col" *ngFor="let match of weekMatches">
+              <div class="team-container">
+                <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
+                <div class="score">{{ match.homeScore ?? '' }}</div>
+              </div>
+              <div class="team-container">
+                <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
+                <div class="score">{{ match.awayScore ?? '' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-row" *ngFor="let entry of weeklyLeaderboard; let i = index" 
+               [class.current-user]="entry.userId === currentUserId">
+            <div class="pos-col">{{ i + 1 }}</div>
+            <div class="pos-col">
+              {{ (entry.weeklyPoints || 0) + (entry.livePoints || 0) }}
+            </div>
+            <div class="user-col">{{ entry.username }}</div>
+            <ng-container *ngFor="let match of weekMatches">
+              <div class="prediction-col" 
+                   [class.exact-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 3"
+                   [class.partial-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 1"
+                   [class.no-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 0"
+                   [class.no-prediction]="!getPrediction(entry.predictions, match)"
+                   [class.live]="match.status.short === 'LIVE' || match.status.short === 'HT' || match.status.short === '1H' || match.status.short === '2H'">
+                <ng-container *ngIf="shouldShowPrediction(entry.userId)">
+                  <ng-container *ngIf="getPrediction(entry.predictions, match) as pred">
+                    <div class="pred-score">{{ pred.homeScore }}</div>
+                    <div class="pred-score">{{ pred.awayScore }}</div>
+                  </ng-container>
+                  <ng-container *ngIf="!getPrediction(entry.predictions, match)">
+                    <div class="pred-score">-</div>
+                    <div class="pred-score">-</div>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngIf="!shouldShowPrediction(entry.userId)">
+                  <div class="pred-score" *ngIf="entry.hasPredicted">?</div>
+                  <div class="pred-score" *ngIf="!entry.hasPredicted">-</div>
+                </ng-container>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <!-- Overall View -->
+    <ng-container *ngIf="selectedView === 'overall'">
+      <ng-container *ngIf="overallLeaderboard$ | async as overallLeaderboard">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Participante</th>
+              <th>Puntos Totales</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let entry of overallLeaderboard; let i = index" [class.highlight]="entry.userId === currentUserId">
+              <td>{{ i + 1 }}</td>
+              <td>{{ entry.username }}</td>
+              <td>{{ entry.totalPoints }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+    </ng-container>
+
+    <!-- Global View -->
+    <ng-container *ngIf="selectedView === 'global'">
+      <div class="group-info">
+        <h3>Tabla Mundial</h3>
       </div>
-
+      
       <div class="matches-grid">
-        <!-- Header Row -->
         <div class="grid-header">
           <div class="pos-col">Pos</div>
           <div class="pos-col">Pts</div>
-          <div class="user-col">Participante</div>
-          <div class="matches-col" *ngFor="let match of weekMatches">
-            <div class="team-container">
-              <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
-              <div class="score">{{ match.homeScore ?? '' }}</div>
-            </div>
-            <div class="team-container">
-              <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
-              <div class="score">{{ match.awayScore ?? '' }}</div>
-            </div>
-          </div>
+          <div class="user-col">Usuario</div>
         </div>
-
-        <div class="grid-row" *ngFor="let entry of weeklyLeaderboard; let i = index" 
+        <div class="grid-row" *ngFor="let entry of globalLeaderboard$ | async; let i = index"
              [class.current-user]="entry.userId === currentUserId">
           <div class="pos-col">{{ i + 1 }}</div>
-          <div class="pos-col">
-            {{ (entry.weeklyPoints || 0) + (entry.livePoints || 0) }}
-          </div>
+          <div class="pos-col">{{ entry.totalPoints }}</div>
           <div class="user-col">{{ entry.username }}</div>
-          <ng-container *ngFor="let match of weekMatches">
-            <div class="prediction-col" 
-                 [class.exact-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 3"
-                 [class.partial-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 1"
-                 [class.no-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 0"
-                 [class.no-prediction]="!getPrediction(entry.predictions, match)"
-                 [class.live]="match.status.short === 'LIVE' || match.status.short === 'HT' || match.status.short === '1H' || match.status.short === '2H'">
-              <ng-container *ngIf="shouldShowPrediction(entry.userId)">
-                <ng-container *ngIf="getPrediction(entry.predictions, match) as pred">
-                  <div class="pred-score">{{ pred.homeScore }}</div>
-                  <div class="pred-score">{{ pred.awayScore }}</div>
-                </ng-container>
-                <ng-container *ngIf="!getPrediction(entry.predictions, match)">
-                  <div class="pred-score">-</div>
-                  <div class="pred-score">-</div>
-                </ng-container>
-              </ng-container>
-              <ng-container *ngIf="!shouldShowPrediction(entry.userId)">
-                <div class="pred-score" *ngIf="entry.hasPredicted">?</div>
-                <div class="pred-score" *ngIf="!entry.hasPredicted">-</div>
-              </ng-container>
-            </div>
-          </ng-container>
         </div>
       </div>
     </ng-container>
-  </ng-container>
-
-  <!-- Overall View -->
-  <ng-container *ngIf="selectedView === 'overall'">
-    <ng-container *ngIf="overallLeaderboard$ | async as overallLeaderboard">
-      <table class="modern-table">
-        <thead>
-          <tr>
-            <th>Posición</th>
-            <th>Participante</th>
-            <th>Puntos Totales</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let entry of overallLeaderboard; let i = index" [class.highlight]="entry.userId === currentUserId">
-            <td>{{ i + 1 }}</td>
-            <td>{{ entry.username }}</td>
-            <td>{{ entry.totalPoints }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </ng-container>
-  </ng-container>
-
-  <!-- Global View -->
-  <ng-container *ngIf="selectedView === 'global'">
-    <div class="group-info">
-      <h3>Tabla Mundial</h3>
-    </div>
-    
-    <div class="matches-grid">
-      <div class="grid-header">
-        <div class="pos-col">Pos</div>
-        <div class="pos-col">Pts</div>
-        <div class="user-col">Usuario</div>
-      </div>
-      <div class="grid-row" *ngFor="let entry of globalLeaderboard$ | async; let i = index"
-           [class.current-user]="entry.userId === currentUserId">
-        <div class="pos-col">{{ i + 1 }}</div>
-        <div class="pos-col">{{ entry.totalPoints }}</div>
-        <div class="user-col">{{ entry.username }}</div>
-      </div>
-    </div>
-  </ng-container>
-</ion-content>
+  </ion-content>
+</div>

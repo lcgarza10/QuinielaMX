@@ -1,0 +1,17 @@
+<ion-list>
+  <ion-item lines="none">
+    <ion-label>
+      <h3>{{ email }}</h3>
+    </ion-label>
+  </ion-item>
+
+  <ion-item button (click)="toggleTheme()">
+    <ion-icon slot="start" [name]="isDark ? 'sunny-outline' : 'moon-outline'"></ion-icon>
+    <ion-label>{{ isDark ? 'Modo Claro' : 'Modo Oscuro' }}</ion-label>
+  </ion-item>
+
+  <ion-item button (click)="logout()">
+    <ion-icon slot="start" name="log-out-outline"></ion-icon>
+    <ion-label>Cerrar Sesión</ion-label>
+  </ion-item>
+</ion-list>

@@ -26,8 +26,8 @@ export class ScoresComponent implements OnInit {
   error: string | null = null;
   selectedRound: string = '1';
   currentRound: number = 1;
-  rounds: string[] = [
-    ...Array.from({ length: 17 }, (_, i) => (i + 1).toString()),
+  regularSeasonRounds: string[] = Array.from({ length: 17 }, (_, i) => (i + 1).toString());
+  playoffRounds = [
     'Reclasificación',
     'Cuartos de Final',
     'Semifinal',
@@ -39,12 +39,6 @@ export class ScoresComponent implements OnInit {
   userId: string | null = null;
   totalPoints: number = 0;
   selectedView: 'regular' | 'playoffs' = 'playoffs'; // Changed default to playoffs
-  playoffRounds = [
-    'Reclasificación',
-    'Cuartos de Final',
-    'Semifinal',
-    'Final'
-  ];
 
   constructor(
     private footballService: FootballService,

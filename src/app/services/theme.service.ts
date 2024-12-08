@@ -40,6 +40,11 @@ export class ThemeService {
     }
   }
 
+  toggleTheme() {
+    const currentTheme = this.isDarkMode();
+    this.setTheme(!currentTheme);
+  }
+
   isDarkMode(): boolean {
     return this.darkMode.value;
   }

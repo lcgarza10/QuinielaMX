@@ -357,3 +357,30 @@ ion-row:not(:last-child) {
 .modern-table tr:nth-child(3) {
   background-color: #cd7f32; /* Bronze for 3rd place */
 }
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .selector-container {
+    ion-toolbar {
+      --background: var(--ion-color-primary);
+      --color: var(--ion-color-primary-contrast);
+      
+      ion-segment {
+        --background: var(--ion-color-primary);
+      }
+      
+      ion-segment-button {
+        --color: var(--ion-color-primary-contrast);
+        --color-checked: var(--ion-color-primary-contrast);
+        --indicator-color: var(--ion-color-primary-shade);
+      }
+    }
+  }
+
+  ion-content {
+    flex: 1;
+  }
+}

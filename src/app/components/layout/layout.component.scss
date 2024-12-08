@@ -1,0 +1,21 @@
+/* Tab Bar Styling */
+ion-tab-bar {
+  --background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+ion-tab-button {
+  --color: var(--ion-color-medium);
+  --color-selected: var(--ion-color-primary);
+  
+  ion-icon {
+    font-size: 24px;
+  }
+  
+  ion-label {
+    font-size: 12px;
+    font-weight: 500;
+  }
+}

@@ -30,8 +30,8 @@ export class PoolsComponent implements OnInit {
   error: string | null = null;
   selectedRound: string = '1';
   currentRound: number = 1;
-  rounds: string[] = [
-    ...Array.from({ length: 17 }, (_, i) => (i + 1).toString()),
+  regularSeasonRounds: string[] = Array.from({ length: 17 }, (_, i) => (i + 1).toString());
+  playoffRounds: string[] = [
     'Reclasificación',
     'Cuartos de Final',
     'Semifinal',
@@ -45,12 +45,6 @@ export class PoolsComponent implements OnInit {
   savingPredictions: boolean = false;
   isLiveRound: boolean = false;
   selectedView: 'regular' | 'playoffs' = 'playoffs';
-  playoffRounds: string[] = [
-    'Reclasificación',
-    'Cuartos de Final',
-    'Semifinal',
-    'Final'
-  ];
   selectedPlayoffRound: string = 'Reclasificación';
   private dataLoaded = new BehaviorSubject<boolean>(false);
 

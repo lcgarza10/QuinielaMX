@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
@@ -16,67 +16,89 @@ import { PlayoffManagementComponent } from './admin/playoff-management/playoff-m
 import { AuthGuard } from './services/auth.guard';
 import { AdminGuard } from './services/admin.guard';
 import { NoAuthGuard } from './services/no-auth.guard';
+import { LayoutComponent } from './components/layout/layout.component';
 
 const routes: Routes = [
-  { 
-    path: '', 
-    redirectTo: '/home', 
-    pathMatch: 'full' 
-  },
-  { 
-    path: 'login', 
-    component: LoginComponent,
-    canActivate: [NoAuthGuard]
-  },
-  { 
-    path: 'signup', 
-    component: SignupComponent,
-    canActivate: [NoAuthGuard]
-  },
   {
-    path: 'groups/join/:code',
-    component: RegistrationFormComponent,
-    canActivate: [NoAuthGuard]
-  },
-  { 
-    path: 'home', 
-    component: HomeComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'scores', 
-    component: ScoresComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'pools', 
-    component: PoolsComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'playoffs', 
-    component: PlayoffManagementComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'leaderboard', 
-    component: LeaderboardComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'groups', 
-    component: GroupManagementComponent, 
-    canActivate: [AuthGuard] 
-  },
-  { 
-    path: 'admin', 
-    canActivate: [AuthGuard, AdminGuard],
+    path: '',
+    component: LayoutComponent,
     children: [
-      { path: 'test-predictions', component: TestPredictionsComponent },
-      { path: 'season', component: SeasonManagementComponent },
-      { path: 'groups', component: GroupManagementComponent },
-      { path: 'points', component: PointsComponent },
-      { path: 'users', component: UserListComponent }
+      {
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full'
+      },
+      {
+        path: 'login',
+        component: LoginComponent,
+        canActivate: [NoAuthGuard]
+      },
+      {
+        path: 'signup',
+        component: SignupComponent,
+        canActivate: [NoAuthGuard]
+      },
+      {
+        path: 'groups/join/:code',
+        component: RegistrationFormComponent,
+        canActivate: [NoAuthGuard]
+      },
+      {
+        path: 'home',
+        component: HomeComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'scores',
+        component: ScoresComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'pools',
+        component: PoolsComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'playoffs',
+        component: PlayoffManagementComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'leaderboard',
+        component: LeaderboardComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'groups',
+        component: GroupManagementComponent,
+        canActivate: [AuthGuard]
+      },
+      {
+        path: 'admin',
+        canActivate: [AuthGuard, AdminGuard],
+        children: [
+          {
+            path: 'test-predictions',
+            component: TestPredictionsComponent
+          },
+          {
+            path: 'season',
+            component: SeasonManagementComponent
+          },
+          {
+            path: 'groups',
+            component: GroupManagementComponent
+          },
+          {
+            path: 'points',
+            component: PointsComponent
+          },
+          {
+            path: 'users',
+            component: UserListComponent
+          }
+        ]
+      }
     ]
   },
   { path: '**', redirectTo: '/home' }

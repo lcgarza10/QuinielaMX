@@ -1,235 +1,232 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Marcadores</ion-title>
-  </ion-toolbar>
+<div class="page-container">
+  <!-- View Selector and Round Selector -->
+  <div class="selector-container">
+    <ion-toolbar>
+      <ion-segment
+        [(ngModel)]="selectedView"
+        (ionChange)="onViewChange()"
+        mode="ios"
+        class="custom-segment"
+      >
+        <ion-segment-button value="regular">
+          <ion-label>
+            <ion-icon name="calendar-outline"></ion-icon>
+            Temporada Regular
+          </ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="playoffs">
+          <ion-label>
+            <ion-icon name="trophy-outline"></ion-icon>
+            Liguilla
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-toolbar>
 
-  <ion-toolbar color="primary">
-    <ion-segment
-      [(ngModel)]="selectedView"
-      (ionChange)="onViewChange()"
-      mode="ios"
-      class="custom-segment"
-    >
-      <ion-segment-button value="regular">
-        <ion-label>
-          <ion-icon name="calendar-outline"></ion-icon>
-          Temporada Regular
-        </ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="playoffs">
-        <ion-label>
-          <ion-icon name="trophy-outline"></ion-icon>
-          Liguilla
-        </ion-label>
-      </ion-segment-button>
-    </ion-segment>
-  </ion-toolbar>
-
-  <ion-toolbar *ngIf="selectedView === 'regular'" color="light">
-    <app-rounds-selector
-      [selectedRound]="selectedRound"
-      [currentRound]="currentRound"
-      [isLiveRound]="isLiveRound"
-      (roundChange)="onRoundChange($event)"
-    >
-    </app-rounds-selector>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <!-- Regular Season View -->
-  <ng-container *ngIf="selectedView === 'regular'">
-    <div class="week-header">
-      <div class="round-status">
-        {{ getRoundStatus() }}
-        <ion-badge
-          [color]="
-            isLiveRound ? 'success' : isRoundFinished ? 'medium' : 'warning'
-          "
-          class="round-badge"
-        >
-          {{
-            isLiveRound
-              ? 'ACTIVA EN ESTOS MOMENTOS'
-              : isRoundFinished
-              ? 'FINALIZADA'
-              : 'PROGRAMADA'
-          }}
-        </ion-badge>
-      </div>
-    </div>
-
-    <!-- Regular Season Matches -->
-    <div class="matches-container" *ngIf="!loading && !error">
-      <ion-list>
-        <ion-item *ngFor="let match of matches">
-          <ion-card class="match-card">
-            <ion-card-header class="compact-header">
-              <div class="match-info">
-                <div class="match-date">{{ match.date | date : 'EEE d MMM' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
-                <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
-              </div>
-              <ion-badge
-                [class.live-status]="match.status.short === 'LIVE' || match.status.short === 'HT'"
-                [color]="match.status.short === 'LIVE' || match.status.short === 'HT' ? 'success' : match.status.short === 'NS' ? 'warning' : 'medium'"
-                class="match-status"
-              >
-                {{ getMatchStatus(match) }}
-              </ion-badge>
-            </ion-card-header>
-            
-            <ion-card-content class="compact-content">
-              <div class="teams">
-                <div class="team compact">
-                  <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo" />
-                  <div class="team-name">{{ match.homeTeam }}</div>
-                </div>
-
-                <div class="scores-container compact">
-                  <div class="final-score">
-                    {{ match.status.short === 'NS' ? '' : match.homeScore ?? '' }}
-                    {{ match.status.short === 'NS' ? '' : '-' }}
-                    {{ match.status.short === 'NS' ? '' : match.awayScore ?? '' }}
-                  </div>
-
-                  <div
-                    class="prediction-score"
-                    [class]="getPredictionClass(match)"
-                    *ngIf="match.prediction"
-                  >
-                    <span class="prediction-label">Tu Pronóstico:</span>
-                    {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
-                    <div class="points-badge" *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE' || match.status.short === 'HT'">
-                      {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
-                    </div>
-                  </div>
-                </div>
-
-                <div class="team compact">
-                  <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo" />
-                  <div class="team-name">{{ match.awayTeam }}</div>
-                </div>
-              </div>
-            </ion-card-content>
-          </ion-card>
-        </ion-item>
-      </ion-list>
-    </div>
-  </ng-container>
-
-  <!-- Playoff View -->
-  <ng-container *ngIf="selectedView === 'playoffs'">
-    <div *ngFor="let round of playoffRounds">
-      <ion-card class="playoff-round-card">
-        <ion-card-header>
-          <ion-card-title>{{ round }}</ion-card-title>
-        </ion-card-header>
-
-        <ion-card-content>
-          <ion-list>
-            <ion-item
-              *ngFor="let match of playoffMatches | filterByRound : round"
-            >
-              <ion-card class="match-card">
-                <div class="leg-indicator" *ngIf="match.leg">{{ match.leg === 1 ? 'IDA' : 'VUELTA' }}</div>
-                <ion-card-header class="compact-header">
-                  <div class="match-info">
-                    <div class="match-date">{{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
-                    <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
-                  </div>
-                  <ion-badge
-                    [color]="
-                      match.status.short === 'LIVE' || match.status.short === 'HT'
-                        ? 'success'
-                        : match.status.short === 'NS'
-                        ? 'warning'
-                        : 'medium'
-                    "
-                    class="match-status"
-                  >
-                    {{ getMatchStatus(match) }}
-                  </ion-badge>
-                </ion-card-header>
-
-                <ion-card-content class="compact-content">
-                  <div class="teams">
-                    <div class="team compact">
-                      <img
-                        [src]="match.homeTeamLogo"
-                        [alt]="match.homeTeam"
-                        class="team-logo"
-                      />
-                      <div class="team-name">{{ match.homeTeam }}</div>
-                    </div>
-
-                    <div class="scores-container compact">
-                      <div class="final-score">
-                        {{
-                          match.status.short === 'NS'
-                            ? ''
-                            : match.homeScore ?? ''
-                        }}
-                        {{ match.status.short === 'NS' ? '' : '-' }}
-                        {{
-                          match.status.short === 'NS'
-                            ? ''
-                            : match.awayScore ?? ''
-                        }}
-                      </div>
-
-                      <div
-                        class="prediction-score"
-                        [class]="getPredictionClass(match)"
-                        *ngIf="match.prediction"
-                      >
-                        <span class="prediction-label">Tu Pronóstico:</span>
-                        {{ match.prediction.homeScore ?? '-' }} -
-                        {{ match.prediction.awayScore ?? '-' }}
-                        <div
-                          class="points-badge"
-                          *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE' || match.status.short === 'HT'"
-                        >
-                          {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="team compact">
-                      <img
-                        [src]="match.awayTeamLogo"
-                        [alt]="match.awayTeam"
-                        class="team-logo"
-                      />
-                      <div class="team-name">{{ match.awayTeam }}</div>
-                    </div>
-                  </div>
-                </ion-card-content>
-              </ion-card>
-            </ion-item>
-          </ion-list>
-        </ion-card-content>
-      </ion-card>
-    </div>
-  </ng-container>
-
-  <!-- Loading and Error States -->
-  <div *ngIf="loading" class="loading-container">
-    <ion-spinner></ion-spinner>
-    <p>Cargando partidos...</p>
+    <ion-toolbar *ngIf="selectedView === 'regular'" color="light">
+      <app-rounds-selector
+        [selectedRound]="selectedRound"
+        [currentRound]="currentRound"
+        [isLiveRound]="isLiveRound"
+        [rounds]="regularSeasonRounds"
+        (roundChange)="onRoundChange($event)"
+      >
+      </app-rounds-selector>
+    </ion-toolbar>
   </div>
 
-  <ion-text color="warning" *ngIf="isRateLimited" class="rate-limit-warning">
-    <ion-icon name="warning-outline"></ion-icon>
-    <p>{{ error }}</p>
-  </ion-text>
+  <ion-content [fullscreen]="true" class="ion-padding">
+    <!-- Regular Season View -->
+    <ng-container *ngIf="selectedView === 'regular'">
+      <div class="week-header">
+        <div class="round-status">
+          {{ getRoundStatus() }}
+          <ion-badge
+            [color]="
+              isLiveRound ? 'success' : isRoundFinished ? 'medium' : 'warning'
+            "
+            class="round-badge"
+          >
+            {{
+              isLiveRound
+                ? 'ACTIVA EN ESTOS MOMENTOS'
+                : isRoundFinished
+                ? 'FINALIZADA'
+                : 'PROGRAMADA'
+            }}
+          </ion-badge>
+        </div>
+      </div>
 
-  <ion-text color="danger" *ngIf="error && !isRateLimited">
-    <p>{{ error }}</p>
-    <ion-button (click)="loadMatches()" size="small" fill="outline">
-      Reintentar
-    </ion-button>
-  </ion-text>
-</ion-content>
+      <!-- Regular Season Matches -->
+      <div class="matches-container" *ngIf="!loading && !error">
+        <ion-list>
+          <ion-item *ngFor="let match of matches">
+            <ion-card class="match-card">
+              <ion-card-header class="compact-header">
+                <div class="match-info">
+                  <div class="match-date">{{ match.date | date : 'EEE d MMM' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
+                  <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
+                </div>
+                <ion-badge
+                  [class.live-status]="match.status.short === 'LIVE' || match.status.short === 'HT'"
+                  [color]="match.status.short === 'LIVE' || match.status.short === 'HT' ? 'success' : match.status.short === 'NS' ? 'warning' : 'medium'"
+                  class="match-status"
+                >
+                  {{ getMatchStatus(match) }}
+                </ion-badge>
+              </ion-card-header>
+              
+              <ion-card-content class="compact-content">
+                <div class="teams">
+                  <div class="team compact">
+                    <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo" />
+                    <div class="team-name">{{ match.homeTeam }}</div>
+                  </div>
+
+                  <div class="scores-container compact">
+                    <div class="final-score">
+                      {{ match.status.short === 'NS' ? '' : match.homeScore ?? '' }}
+                      {{ match.status.short === 'NS' ? '' : '-' }}
+                      {{ match.status.short === 'NS' ? '' : match.awayScore ?? '' }}
+                    </div>
+
+                    <div
+                      class="prediction-score"
+                      [class]="getPredictionClass(match)"
+                      *ngIf="match.prediction"
+                    >
+                      <span class="prediction-label">Tu Pronóstico:</span>
+                      {{ match.prediction.homeScore ?? '-' }} - {{ match.prediction.awayScore ?? '-' }}
+                      <div class="points-badge" *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE' || match.status.short === 'HT'">
+                        {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="team compact">
+                    <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo" />
+                    <div class="team-name">{{ match.awayTeam }}</div>
+                  </div>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          </ion-item>
+        </ion-list>
+      </div>
+    </ng-container>
+
+    <!-- Playoff View -->
+    <ng-container *ngIf="selectedView === 'playoffs'">
+      <div *ngFor="let round of playoffRounds">
+        <ion-card class="playoff-round-card">
+          <ion-card-header>
+            <ion-card-title>{{ round }}</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            <ion-list>
+              <ion-item
+                *ngFor="let match of playoffMatches | filterByRound : round"
+              >
+                <ion-card class="match-card">
+                  <div class="leg-indicator" *ngIf="match.leg">{{ match.leg === 1 ? 'IDA' : 'VUELTA' }}</div>
+                  <ion-card-header class="compact-header">
+                    <div class="match-info">
+                      <div class="match-date">{{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
+                      <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
+                    </div>
+                    <ion-badge
+                      [color]="
+                        match.status.short === 'LIVE' || match.status.short === 'HT'
+                          ? 'success'
+                          : match.status.short === 'NS'
+                          ? 'warning'
+                          : 'medium'
+                      "
+                      class="match-status"
+                    >
+                      {{ getMatchStatus(match) }}
+                    </ion-badge>
+                  </ion-card-header>
+
+                  <ion-card-content class="compact-content">
+                    <div class="teams">
+                      <div class="team compact">
+                        <img
+                          [src]="match.homeTeamLogo"
+                          [alt]="match.homeTeam"
+                          class="team-logo"
+                        />
+                        <div class="team-name">{{ match.homeTeam }}</div>
+                      </div>
+
+                      <div class="scores-container compact">
+                        <div class="final-score">
+                          {{
+                            match.status.short === 'NS'
+                              ? ''
+                              : match.homeScore ?? ''
+                          }}
+                          {{ match.status.short === 'NS' ? '' : '-' }}
+                          {{
+                            match.status.short === 'NS'
+                              ? ''
+                              : match.awayScore ?? ''
+                          }}
+                        </div>
+
+                        <div
+                          class="prediction-score"
+                          [class]="getPredictionClass(match)"
+                          *ngIf="match.prediction"
+                        >
+                          <span class="prediction-label">Tu Pronóstico:</span>
+                          {{ match.prediction.homeScore ?? '-' }} -
+                          {{ match.prediction.awayScore ?? '-' }}
+                          <div
+                            class="points-badge"
+                            *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE' || match.status.short === 'HT'"
+                          >
+                            {{ (match.status.short === 'FT' ? match.prediction.points : match.prediction.livePoints) ?? 0 }} pts
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="team compact">
+                        <img
+                          [src]="match.awayTeamLogo"
+                          [alt]="match.awayTeam"
+                          class="team-logo"
+                        />
+                        <div class="team-name">{{ match.awayTeam }}</div>
+                      </div>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </ng-container>
+
+    <!-- Loading and Error States -->
+    <div *ngIf="loading" class="loading-container">
+      <ion-spinner></ion-spinner>
+      <p>Cargando partidos...</p>
+    </div>
+
+    <ion-text color="warning" *ngIf="isRateLimited" class="rate-limit-warning">
+      <ion-icon name="warning-outline"></ion-icon>
+      <p>{{ error }}</p>
+    </ion-text>
+
+    <ion-text color="danger" *ngIf="error && !isRateLimited">
+      <p>{{ error }}</p>
+      <ion-button (click)="loadMatches()" size="small" fill="outline">
+        Reintentar
+      </ion-button>
+    </ion-text>
+  </ion-content>
+</div>

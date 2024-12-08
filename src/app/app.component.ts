@@ -9,6 +9,42 @@ import { PlatformService } from './services/platform.service';
 import { AdsService } from './services/ads.service';
 import { SessionService } from './services/session.service';
 import { filter } from 'rxjs/operators';
+import { addIcons } from 'ionicons';
+import { 
+  trophy, trophyOutline,
+  football, footballOutline,
+  podium, podiumOutline,
+  people, peopleOutline,
+  calendar, calendarOutline,
+  globe, globeOutline,
+  construct, constructOutline,
+  warning, warningOutline,
+  alert, alertOutline,
+  checkmark, checkmarkOutline,
+  radio, radioOutline,
+  add, addOutline,
+  remove, removeOutline,
+  close, closeOutline,
+  create, createOutline,
+  person, personOutline,
+  mail, mailOutline,
+  lockClosed, lockClosedOutline,
+  at, atOutline,
+  logIn, logInOutline,
+  logOut, logOutOutline,
+  arrowForward, arrowForwardOutline,
+  sunny, sunnyOutline,
+  moon, moonOutline,
+  share, shareOutline,
+  shareSocial, shareSocialOutline,
+  enter, enterOutline,
+  key, keyOutline,
+  save, saveOutline,
+  refresh, refreshOutline,
+  calculator, calculatorOutline,
+  trash, trashOutline,
+  shuffle, shuffleOutline
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -44,7 +80,44 @@ export class AppComponent implements OnInit {
     private platformService: PlatformService,
     private adsService: AdsService,
     private sessionService: SessionService
-  ) {}
+  ) {
+    // Add all Ionic icons
+    addIcons({
+      trophy, trophyOutline,
+      football, footballOutline,
+      podium, podiumOutline,
+      people, peopleOutline,
+      calendar, calendarOutline,
+      globe, globeOutline,
+      construct, constructOutline,
+      warning, warningOutline,
+      alert, alertOutline,
+      checkmark, checkmarkOutline,
+      radio, radioOutline,
+      add, addOutline,
+      remove, removeOutline,
+      close, closeOutline,
+      create, createOutline,
+      person, personOutline,
+      mail, mailOutline,
+      lockClosed, lockClosedOutline,
+      at, atOutline,
+      logIn, logInOutline,
+      logOut, logOutOutline,
+      arrowForward, arrowForwardOutline,
+      sunny, sunnyOutline,
+      moon, moonOutline,
+      share, shareOutline,
+      shareSocial, shareSocialOutline,
+      enter, enterOutline,
+      key, keyOutline,
+      save, saveOutline,
+      refresh, refreshOutline,
+      calculator, calculatorOutline,
+      trash, trashOutline,
+      shuffle, shuffleOutline
+    });
+  }
 
   async ngOnInit() {
     await this.initializeApp();
