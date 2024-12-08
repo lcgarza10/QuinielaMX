@@ -1,116 +1,88 @@
 <div class="prediction-container">
   <div class="score-section">
-    <!-- Actual Score -->
-    <div
-      class="actual-score"
-      *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE'"
-    >
-      <div class="score-label">Resultado actual:</div>
-      <div class="score-display">
-        {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
-      </div>
-      <div class="status-badge" [class.live]="match.status.short === 'LIVE'">
-        {{ match.status.short === 'LIVE' ? 'EN VIVO' : 'FINAL' }}
-      </div>
-    </div>
-
-    <!-- Prediction Input/Display -->
-    <div class="prediction-score" [ngClass]="getScoreClass()">
-      <div class="score-label" *ngIf="canPredict || canEdit || isCompleted">
-        {{
-          isCompleted && !canEdit
-            ? 'Tu Pronóstico'
-            : canEdit
-            ? 'Puedes editar tu pronóstico:'
-            : 'Ingresa tu Pronóstico:'
-        }}
+    <div class="scores-row">
+      <!-- Actual Score -->
+      <div class="score-column actual-score" *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE'">
+        <div class="score-label">Resultado actual</div>
+        <div class="score-display">
+          {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
+        </div>
+        <div class="status-badge" [class.live]="match.status.short === 'LIVE'">
+          {{ match.status.short === 'LIVE' ? 'EN VIVO' : 'FINAL' }}
+        </div>
       </div>
 
-      <!-- Vertical Score Input Interface -->
-      <div
-        class="score-input-vertical"
-        *ngIf="shouldShowScoreInput()"
-      >
-        <div class="team-score">
-          <div class="score-controls">
-            <ion-button
-              fill="clear"
-              (click)="incrementScore('home')"
-              [disabled]="prediction.homeScore === 99"
-            >
-              <ion-icon name="add-circle-outline"></ion-icon>
+      <!-- Prediction Display -->
+      <div class="score-column prediction-score" [ngClass]="getScoreClass()">
+        <div class="score-label" *ngIf="canPredict || canEdit || isCompleted">
+          {{
+            isCompleted && !canEdit
+              ? 'Tu Pronóstico'
+              : canEdit
+              ? 'Puedes editar tu pronóstico:'
+              : 'Ingresa tu Pronóstico:'
+          }}
+          <span *ngIf="match.status.short !== 'NS' && match.status.short !== 'TBD'" class="points-badge">{{ getPoints() }} pts</span>
+        </div>
+        <div class="score-display" *ngIf="shouldShowScoreDisplay()">
+          {{ prediction.homeScore ?? '-' }} - {{ prediction.awayScore ?? '-' }}
+        </div>
+
+        <!-- Score Input Interface -->
+        <div class="score-input" *ngIf="shouldShowScoreInput()">
+          <div class="team-score">
+            <ion-button fill="clear" (click)="decrementScore('home')" [disabled]="prediction.homeScore === 0">
+              <ion-icon name="remove-circle-outline"></ion-icon>
             </ion-button>
             <span class="score-value">{{ prediction.homeScore ?? 0 }}</span>
-            <ion-button
-              fill="clear"
-              (click)="decrementScore('home')"
-              [disabled]="prediction.homeScore === 0"
-            >
-              <ion-icon name="remove-circle-outline"></ion-icon>
-            </ion-button>
-          </div>
-        </div>
-
-        <div class="score-separator">-</div>
-
-        <div class="team-score">
-          <div class="score-controls">
-            <ion-button
-              fill="clear"
-              (click)="incrementScore('away')"
-              [disabled]="prediction.awayScore === 99"
-            >
+            <ion-button fill="clear" (click)="incrementScore('home')" [disabled]="prediction.homeScore === 99">
               <ion-icon name="add-circle-outline"></ion-icon>
             </ion-button>
-            <span class="score-value">{{ prediction.awayScore ?? 0 }}</span>
-            <ion-button
-              fill="clear"
-              (click)="decrementScore('away')"
-              [disabled]="prediction.awayScore === 0"
-            >
+          </div>
+          <div class="score-separator">-</div>
+          <div class="team-score">
+            <ion-button fill="clear" (click)="decrementScore('away')" [disabled]="prediction.awayScore === 0">
               <ion-icon name="remove-circle-outline"></ion-icon>
+            </ion-button>
+            <span class="score-value">{{ prediction.awayScore ?? 0 }}</span>
+            <ion-button fill="clear" (click)="incrementScore('away')" [disabled]="prediction.awayScore === 99">
+              <ion-icon name="add-circle-outline"></ion-icon>
             </ion-button>
           </div>
         </div>
-      </div>
 
-      <div class="score-display" *ngIf="shouldShowScoreDisplay()">
-        {{ prediction.homeScore ?? '-' }} - {{ prediction.awayScore ?? '-' }}
-        <div class="points-badge" *ngIf="match.status.short === 'FT'">
-          {{ getPoints() }} pts
-        </div>
-      </div>
-
-      <!-- Quick Score Suggestions -->
-      <div class="quick-scores" *ngIf="shouldShowScoreInput()">
-        <div class="quick-score-label">Resultados comunes:</div>
-        <div class="quick-score-buttons">
-          <ion-button fill="clear" size="small" (click)="setQuickScore(1, 0)">
-            1-0
-          </ion-button>
-          <ion-button fill="clear" size="small" (click)="setQuickScore(2, 1)">
-            2-1
-          </ion-button>
-          <ion-button fill="clear" size="small" (click)="setQuickScore(0, 0)">
-            0-0
-          </ion-button>
-          <ion-button fill="clear" size="small" (click)="setQuickScore(1, 1)">
-            1-1
-          </ion-button>
-          <ion-button fill="clear" size="small" (click)="setQuickScore(2, 2)">
-            2-2
-          </ion-button>
+        <!-- Quick Score Suggestions -->
+        <div class="quick-scores" *ngIf="shouldShowScoreInput()">
+          <div class="quick-score-label">Resultados comunes:</div>
+          <div class="quick-score-buttons">
+            <ion-button fill="clear" size="small" (click)="setQuickScore(1, 0)">
+              1-0
+            </ion-button>
+            <ion-button fill="clear" size="small" (click)="setQuickScore(2, 1)">
+              2-1
+            </ion-button>
+            <ion-button fill="clear" size="small" (click)="setQuickScore(0, 0)">
+              0-0
+            </ion-button>
+            <ion-button fill="clear" size="small" (click)="setQuickScore(1, 1)">
+              1-1
+            </ion-button>
+            <ion-button fill="clear" size="small" (click)="setQuickScore(2, 2)">
+              2-2
+            </ion-button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div
-    class="prediction-status"
-    *ngIf="!canPredict && !canEdit && !isCompleted"
-  >
-    <ion-text color="danger">
-      <small>Los pronósticos están cerrados para este partido</small>
-    </ion-text>
+    <!-- Points Display -->
+    <div
+      class="prediction-status"
+      *ngIf="!canPredict && !canEdit && !isCompleted"
+    >
+      <ion-text color="danger">
+        <small>Los pronósticos están cerrados para este partido</small>
+      </ion-text>
+    </div>
   </div>
 </div>

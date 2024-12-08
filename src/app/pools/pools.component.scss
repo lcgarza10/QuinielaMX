@@ -26,21 +26,112 @@
 }
 
 .playoff-rounds {
-  margin: 16px 0;
+  margin: 4px 0;
+  padding: 0 4px;
   
   ion-segment {
     background: var(--ion-color-light);
     border-radius: 8px;
-    padding: 4px;
+    padding: 2px;
+
+    ion-segment-button {
+      min-height: 32px;
+      font-size: 0.9em;
+      text-transform: none;
+      --padding-top: 2px;
+      --padding-bottom: 2px;
+    }
   }
 }
 
 .playoff-matches {
-  margin-top: 16px;
+  margin-top: 4px;
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  .match-item {
+    --padding-start: 4px;
+    --padding-end: 4px;
+    --inner-padding-end: 0;
+    --background: transparent;
+    margin-bottom: 4px;
+  }
+
+  .match-card {
+    width: 100%;
+    margin: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+
+    ion-card-content {
+      padding: 8px;
+      position: relative;
+    }
+  }
+
+  .match-date {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1;
+
+    .date-text {
+      font-size: 0.95em;
+      font-weight: 500;
+      color: var(--ion-color-dark);
+    }
+
+    .leg-badge {
+      font-size: 0.9em;
+      font-weight: 600;
+      padding: 4px 8px;
+    }
+  }
+
+  .teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    padding: 0 8px;
+
+    .team {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 0 0 auto;
+      width: 80px;
+
+      .team-logo {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 4px;
+      }
+
+      .team-name {
+        font-size: 0.9em;
+        text-align: center;
+        line-height: 1.2;
+      }
+    }
+  }
+
+  .venue {
+    text-align: center;
+    font-size: 0.85em;
+    color: var(--ion-color-medium);
+    margin-top: 4px;
+  }
 }
 
 .match-info {
-  margin-top: 16px;
+  margin-top: 8px;
   text-align: center;
   position: relative;
 }

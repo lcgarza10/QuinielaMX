@@ -109,8 +109,11 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   // Add a public refresh method that can be called from the template
   async manualRefresh() {
     this.loading = true;
-    await this.refreshAuthAndData();
-    this.loading = false;
+    try {
+      await this.refreshData();
+    } finally {
+      this.loading = false;
+    }
   }
 
   private async determineCurrentPhase() {

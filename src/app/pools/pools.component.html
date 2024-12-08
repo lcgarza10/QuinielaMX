@@ -61,10 +61,16 @@
         <ion-item *ngFor="let match of matches">
           <ion-card class="match-card">
             <ion-card-content>
+              <div class="match-date">
+                <span class="date-text">{{ match.date | date:'EEE d MMM':'':'es' }} • {{ match.date | date:'h:mm a':'':'es' }}</span>
+                <ion-badge color="primary" class="leg-badge">
+                  {{ match.round }}
+                </ion-badge>
+              </div>
               <div class="teams">
                 <div class="team">
                   <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
-                  <div class="team-name">{{ match.homeTeam }}</div>
+                  <span class="team-name">{{ match.homeTeam }}</span>
                   <app-team-form *ngIf="match.homeTeamForm" [form]="match.homeTeamForm"></app-team-form>
                 </div>
 
@@ -78,19 +84,12 @@
 
                 <div class="team">
                   <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
-                  <div class="team-name">{{ match.awayTeam }}</div>
+                  <span class="team-name">{{ match.awayTeam }}</span>
                   <app-team-form *ngIf="match.awayTeamForm" [form]="match.awayTeamForm"></app-team-form>
                 </div>
               </div>
 
-              <ion-card-header>
-                <ion-card-subtitle>
-                  {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • 
-                  {{ match.date | date:'h:mm a':'':'es-MX' }}
-                  <br>
-                  <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
-                </ion-card-subtitle>
-              </ion-card-header>
+              <div class="venue">{{ match.venue.name }}, {{ match.venue.city }}</div>
             </ion-card-content>
           </ion-card>
         </ion-item>
@@ -100,7 +99,7 @@
     <!-- Playoff View -->
     <div *ngIf="selectedView === 'playoffs' && !loading && !error">
       <div class="playoff-rounds">
-        <ion-segment [(ngModel)]="selectedPlayoffRound" (ionChange)="loadPlayoffMatches()">
+        <ion-segment [(ngModel)]="selectedPlayoffRound" (ionChange)="loadPlayoffMatches()" mode="ios">
           <ion-segment-button *ngFor="let round of playoffRounds" [value]="round">
             <ion-label>{{ round }}</ion-label>
           </ion-segment-button>
@@ -109,13 +108,19 @@
 
       <div class="playoff-matches">
         <ion-list>
-          <ion-item *ngFor="let match of playoffMatches">
+          <ion-item *ngFor="let match of playoffMatches" lines="none" class="match-item">
             <ion-card class="match-card">
               <ion-card-content>
+                <div class="match-date">
+                  <span class="date-text">{{ match.date | date:'EEE d MMM':'':'es' }} • {{ match.date | date:'h:mm a':'':'es' }}</span>
+                  <ion-badge color="primary" class="leg-badge">
+                    {{ match.round }}
+                  </ion-badge>
+                </div>
                 <div class="teams">
                   <div class="team">
                     <img [src]="match.homeTeamLogo" [alt]="match.homeTeam" class="team-logo">
-                    <div class="team-name">{{ match.homeTeam }}</div>
+                    <span class="team-name">{{ match.homeTeam }}</span>
                   </div>
 
                   <app-match-prediction
@@ -129,33 +134,15 @@
 
                   <div class="team">
                     <img [src]="match.awayTeamLogo" [alt]="match.awayTeam" class="team-logo">
-                    <div class="team-name">{{ match.awayTeam }}</div>
+                    <span class="team-name">{{ match.awayTeam }}</span>
                   </div>
                 </div>
 
-                <div class="match-info">
-                  <ion-card-subtitle>
-                    {{ match.date | date:'EEEE d MMMM, y':'':'es-MX' }} • 
-                    {{ match.date | date:'h:mm a':'':'es-MX' }}
-                    <br>
-                    <small>{{ match.venue.name }}, {{ match.venue.city }}</small>
-                  </ion-card-subtitle>
-                  <div class="match-leg" *ngIf="match.leg">
-                    <ion-badge color="primary">
-                      {{ match.leg === 1 ? 'IDA' : 'VUELTA' }}
-                    </ion-badge>
-                  </div>
-                </div>
+                <div class="venue">{{ match.venue.name }}</div>
               </ion-card-content>
             </ion-card>
           </ion-item>
         </ion-list>
-
-        <div class="no-matches" *ngIf="playoffMatches.length === 0">
-          <ion-text color="medium">
-            <h2>No hay partidos programados para esta fase</h2>
-          </ion-text>
-        </div>
       </div>
     </div>
 

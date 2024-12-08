@@ -34,7 +34,12 @@ export class MatchPredictionComponent implements OnInit {
   }
 
   getScoreClass(): string {
-    if (!this.isCompleted) return '';
+    if (!this.isCompleted) {
+      if (this.match.status.short === 'NS' || this.match.status.short === 'TBD') {
+        return 'not-started';
+      }
+      return '';
+    }
     if (this.isExactMatch()) return 'exact-match';
     if (this.isPartialMatch()) return 'partial-match';
     return 'no-match';

@@ -5,7 +5,7 @@
   width: 82%;
   max-width: 320px;
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .score-section {
@@ -14,30 +14,80 @@
   gap: 8px;
 }
 
-.score-label {
-  font-size: 0.9em;
-  color: var(--ion-color-medium);
+.scores-row {
+  display: flex;
+  gap: 8px;
   margin-bottom: 8px;
-  text-align: center;
-  font-weight: 500;
 }
 
-.actual-score, .prediction-score {
+.score-column {
+  flex: 1;
   padding: 8px;
   border-radius: 8px;
   background: white;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &.prediction-score {
+    &.exact-match {
+      background: rgba(var(--ion-color-success-rgb), 0.1);
+      border: 1px solid var(--ion-color-success);
+      .points-badge {
+        background: var(--ion-color-success);
+      }
+    }
+
+    &.partial-match {
+      background: rgba(var(--ion-color-warning-rgb), 0.1);
+      border: 1px solid var(--ion-color-warning);
+      .points-badge {
+        background: var(--ion-color-warning);
+        color: var(--ion-color-dark);
+      }
+    }
+
+    &.no-match {
+      background: rgba(var(--ion-color-danger-rgb), 0.1);
+      border: 1px solid var(--ion-color-danger);
+      .points-badge {
+        background: var(--ion-color-danger);
+      }
+    }
+
+    &.not-started {
+      background: white;
+      border: 1px solid var(--ion-color-medium);
+    }
+  }
+}
+
+.editable-prediction {
   width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(var(--ion-color-danger-rgb), 0.05);
+  border: 1px solid var(--ion-color-danger);
+  margin-top: 8px;
+}
+
+.score-label {
+  font-size: 0.85em;
+  color: var(--ion-color-medium);
+  margin-bottom: 4px;
+  text-align: center;
+  font-weight: 500;
 }
 
 .score-display {
-  font-size: 1.4em;
+  font-size: 1.3em;
   font-weight: 600;
   text-align: center;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
-.status-badge {
+.status-badge, .points-badge {
   position: absolute;
   top: -6px;
   right: -6px;
@@ -45,137 +95,79 @@
   border-radius: 10px;
   font-size: 0.7em;
   font-weight: 500;
-  background: var(--ion-color-medium);
   color: white;
+  z-index: 1;
+}
+
+.status-badge {
+  background: var(--ion-color-medium);
 
   &.live {
-    background: var(--ion-color-success);
+    background: var(--ion-color-danger);
     animation: pulse 2s infinite;
   }
 }
 
-.score-input-vertical {
+.score-input {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 8px;
-  background: var(--ion-color-light);
-  border-radius: 8px;
-  margin: 8px 0;
+  gap: 4px;
+  margin: 4px 0;
+}
 
-  .team-score {
-    .score-controls {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
+.team-score {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 
-      ion-button {
-        --padding-start: 2px;
-        --padding-end: 2px;
-        height: 24px;
-        width: 24px;
-        margin: 0;
-        
-        ion-icon {
-          font-size: 16px;
-          color: var(--ion-color-primary);
-        }
-
-        &:disabled ion-icon {
-          opacity: 0.5;
-        }
-      }
-
-      .score-value {
-        font-size: 20px;
-        font-weight: 600;
-        min-width: 28px;
-        text-align: center;
-        color: var(--ion-color-dark);
-        padding: 2px 0;
-      }
-    }
+  ion-button {
+    --padding-start: 4px;
+    --padding-end: 4px;
+    height: 30px;
   }
 
-  .score-separator {
-    font-size: 20px;
-    font-weight: 500;
-    color: var(--ion-color-medium);
-    margin: 0 4px;
-    align-self: center;
+  .score-value {
+    min-width: 24px;
+    text-align: center;
+    font-weight: 600;
   }
+}
+
+.score-separator {
+  margin: 0 4px;
+  font-weight: 600;
 }
 
 .quick-scores {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
+  margin-top: 8px;
+  width: 100%;
+}
 
-  .quick-score-label {
+.quick-score-label {
+  font-size: 0.8em;
+  color: var(--ion-color-medium);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.quick-score-buttons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+
+  ion-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    height: 24px;
     font-size: 0.9em;
-    color: var(--ion-color-medium);
-    margin-bottom: 8px;
-    text-align: center;
-    font-weight: 500;
   }
-
-  .quick-score-buttons {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 4px;
-
-    ion-button {
-      --padding-start: 12px;
-      --padding-end: 12px;
-      height: 26px;
-      font-size: 0.8em;
-      --color: var(--ion-color-primary);
-      font-weight: 500;
-
-      &:hover {
-        --background: rgba(var(--ion-color-primary-rgb), 0.1);
-      }
-    }
-  }
-}
-
-.prediction-score {
-  &.exact-match {
-    background: rgba(var(--ion-color-success-rgb), 0.1);
-    border: 1px solid var(--ion-color-success);
-  }
-
-  &.partial-match {
-    background: rgba(var(--ion-color-warning-rgb), 0.1);
-    border: 1px solid var(--ion-color-warning);
-  }
-
-  &.no-match {
-    background: rgba(var(--ion-color-danger-rgb), 0.1);
-    border: 1px solid var(--ion-color-danger);
-  }
-}
-
-.points-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: var(--ion-color-primary);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 0.75em;
-  font-weight: 500;
 }
 
 .prediction-status {
   text-align: center;
-  margin-top: 6px;
+  margin-top: 4px;
   font-style: italic;
-  font-size: 0.9em;
   color: var(--ion-color-danger);
 }
 
@@ -186,62 +178,39 @@
 }
 
 // Dark mode adjustments
-:host-context(.dark) {
-  .actual-score, .prediction-score {
+:host-context(.dark-theme) {
+  .score-column {
     background: rgba(255, 255, 255, 0.05);
   }
 
-  .score-input-vertical {
-    background: rgba(255, 255, 255, 0.1);
-
-    .team-score .score-controls .score-value {
+  .score-input {
+    .team-score .score-value {
       color: var(--ion-color-light);
     }
   }
 }
 
-// Responsive styles for mobile
-@media (max-width: 768px) {
+// Small screen adjustments
+@media (max-width: 360px) {
   .prediction-container {
-    padding: 6px;
+    width: 90%;
     max-width: 280px;
   }
 
-  .score-input-vertical {
-    gap: 8px;
+  .scores-row {
+    gap: 4px;
+  }
+
+  .score-column {
     padding: 6px;
-
-    .team-score {
-      .score-controls {
-        ion-button {
-          height: 22px;
-          width: 22px;
-          
-          ion-icon {
-            font-size: 14px;
-          }
-        }
-
-        .score-value {
-          font-size: 18px;
-          min-width: 24px;
-        }
-      }
-    }
-
-    .score-separator {
-      font-size: 18px;
-    }
   }
 
   .score-display {
-    font-size: 1.2em;
+    font-size: 1.1em;
   }
 
-  .quick-scores {
-    .quick-score-buttons ion-button {
-      height: 24px;
-      font-size: 0.75em;
-    }
+  .quick-score-buttons ion-button {
+    height: 22px;
+    font-size: 0.8em;
   }
 }
