@@ -13,8 +13,8 @@
 
 .group-info {
   text-align: center;
-  margin: 16px 0;
-  padding: 16px;
+  margin: 12px 0;
+  padding: 12px;
   background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
   border-radius: 12px;
   color: white;
@@ -22,7 +22,7 @@
 
   h3 {
     margin: 0;
-    font-size: 1.4em;
+    font-size: 1.3em;
     font-weight: 600;
     letter-spacing: 0.5px;
   }
@@ -221,25 +221,28 @@ ion-row:not(:last-child) {
         letter-spacing: 0;
         white-space: nowrap;
         
-        &:first-child {  // Posición
+        &:first-child {  // #
           text-align: center;
-          padding: 4px 2px;
-          width: 40px;
+          padding: 4px 0;
+          width: 20px;
+          min-width: 20px;
         }
         
         &:nth-child(2) {  // Pts
-          width: 40px;
+          width: 25px;
+          min-width: 25px;
           text-align: center;
-          padding: 4px 2px;
+          padding: 4px 0;
         }
         
-        &:nth-child(3) {  // Participante
+        &:nth-child(3) {  // Jugador
           min-width: 100px;
-          padding-right: 2px;
+          padding-left: 2px;
+          padding-right: 4px;
         }
         
         &.match-header {
-          padding: 4px 0px;
+          padding: 4px 0;
           min-width: 42px;
           max-width: 42px;
           width: 42px;
@@ -283,30 +286,33 @@ ion-row:not(:last-child) {
         padding: 4px;
         font-size: 0.95em;
         
-        &.position-cell {  // Posición
+        &.position-cell {  // #
           text-align: center;
           font-weight: 600;
           color: var(--ion-color-primary);
-          width: 40px;
-          padding: 4px 2px;
+          width: 20px;
+          min-width: 20px;
+          padding: 4px 0;
         }
         
         &.points-cell {  // Pts
           text-align: center;
           font-weight: 600;
-          width: 40px;
-          padding: 4px 2px;
+          width: 25px;
+          min-width: 25px;
+          padding: 4px 0;
         }
         
-        &.name-cell {  // Participante
+        &.name-cell {  // Jugador
           text-align: left;
           min-width: 100px;
-          padding-right: 2px;
+          padding-left: 2px;
+          padding-right: 4px;
         }
 
         &.prediction-cell {
           text-align: center;
-          padding: 4px 0px;
+          padding: 4px 0;
           font-size: 0.9em;
           min-width: 42px;
           max-width: 42px;
@@ -376,23 +382,26 @@ ion-row:not(:last-child) {
         padding: 3px;
         font-size: 0.9em;
         
-        &:first-child {  // Posición
-          width: 35px;
-          padding: 3px 1px;
+        &:first-child {  // #
+          width: 18px;
+          min-width: 18px;
+          padding: 3px 0;
         }
         
         &:nth-child(2) {  // Pts
-          width: 35px;
-          padding: 3px 1px;
+          width: 22px;
+          min-width: 22px;
+          padding: 3px 0;
         }
         
-        &:nth-child(3) {  // Participante
+        &:nth-child(3) {  // Jugador
           min-width: 90px;
-          padding-right: 1px;
+          padding-left: 1px;
+          padding-right: 2px;
         }
         
         &.match-header {
-          padding: 3px 0px;
+          padding: 3px 0;
           min-width: 38px;
 
           .team-logos {
@@ -420,22 +429,25 @@ ion-row:not(:last-child) {
         font-size: 0.9em;
         
         &.position-cell {
-          width: 35px;
-          padding: 3px 1px;
+          width: 18px;
+          min-width: 18px;
+          padding: 3px 0;
         }
         
         &.points-cell {
-          width: 35px;
-          padding: 3px 1px;
+          width: 22px;
+          min-width: 22px;
+          padding: 3px 0;
         }
         
         &.name-cell {
           min-width: 90px;
-          padding-right: 1px;
+          padding-left: 1px;
+          padding-right: 2px;
         }
 
         &.prediction-cell {
-          padding: 3px 0px;
+          padding: 3px 0;
           min-width: 38px;
           font-size: 0.85em;
         }
