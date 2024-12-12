@@ -51,6 +51,36 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  async loginWithGoogle() {
+    try {
+      await this.authService.signInWithGoogle();
+      const toast = await this.toastController.create({
+        message: '¡Bienvenido!',
+        duration: 2000,
+        position: 'top',
+        color: 'success'
+      });
+      await toast.present();
+      this.router.navigate(['/home']);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      
+      if (error.message === 'NEEDS_PROFILE_SETUP') {
+        // Redirect to signup page for new Google users
+        this.router.navigate(['/signup'], { queryParams: { provider: 'google' } });
+        return;
+      }
+      
+      // If it's a Firebase error, use the code
+      if (error.code) {
+        this.errorMessage = this.getErrorMessage(error.code);
+      } else {
+        // If it's our custom error, use the message
+        this.errorMessage = error.message;
+      }
+    }
+  }
+
   async forgotPassword() {
     const alert = await this.alertController.create({
       header: 'Restablecer Contraseña',
@@ -112,6 +142,14 @@ export class LoginComponent implements OnInit {
         return 'Esta cuenta ha sido deshabilitada';
       case 'auth/too-many-requests':
         return 'Demasiados intentos fallidos. Por favor, intenta más tarde';
+      case 'auth/popup-closed-by-user':
+        return 'Inicio de sesión cancelado. Por favor intenta de nuevo.';
+      case 'auth/popup-blocked':
+        return 'El navegador bloqueó la ventana emergente. Por favor permite ventanas emergentes e intenta de nuevo.';
+      case 'auth/cancelled-popup-request':
+        return 'Operación cancelada. Por favor intenta de nuevo.';
+      case 'auth/network-request-failed':
+        return 'Error de conexión. Por favor verifica tu conexión a internet.';
       default:
         return 'Error al iniciar sesión. Por favor, intenta de nuevo';
     }

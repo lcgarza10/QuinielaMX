@@ -34,7 +34,6 @@
     "@capacitor/core": "^5.7.8",
     "@capacitor/ios": "^5.5.1",
     "@ionic/angular": "^7.8.6",
-    "firebase": "^11.0.1",
     "node-fetch": "^3.3.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -47,6 +46,7 @@
     "@capacitor/cli": "^5.7.8",
     "@ionic/angular-toolkit": "latest",
     "@types/node": "^20.11.0",
+    "firebase": "^11.1.0",
     "firebase-admin": "^13.0.1",
     "typescript": "~5.1.3"
   }

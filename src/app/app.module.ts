@@ -37,6 +37,7 @@ import { PlayoffManagementComponent } from './admin/playoff-management/playoff-m
 import { MatchPredictionComponent } from './pools/match-prediction/match-prediction.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
 import { PlayoffRoundPipe } from './pipes/playoff-round.pipe';
+import { AdsenseComponent } from './components/adsense/adsense.component';
 
 import { FootballService } from './services/football.service';
 import { DatabaseService } from './services/database.service';
@@ -50,6 +51,7 @@ import { PlatformService } from './services/platform.service';
 import { ThemeService } from './services/theme.service';
 import { SessionService } from './services/session.service';
 import { NoAuthGuard } from './services/no-auth.guard';
+import { AdsenseService } from './services/adsense.service';
 
 @NgModule({
   declarations: [
@@ -72,7 +74,8 @@ import { NoAuthGuard } from './services/no-auth.guard';
     LeaderboardComponent,
     LayoutComponent,
     UserMenuComponent,
-    PlayoffRoundPipe
+    PlayoffRoundPipe,
+    AdsenseComponent
   ],
   imports: [
     BrowserModule,
@@ -108,7 +111,8 @@ import { NoAuthGuard } from './services/no-auth.guard';
     SessionService,
     NoAuthGuard,
     ScreenTrackingService,
-    UserTrackingService
+    UserTrackingService,
+    AdsenseService
   ],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]

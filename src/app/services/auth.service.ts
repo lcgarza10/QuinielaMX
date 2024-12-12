@@ -4,6 +4,10 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable, of } from 'rxjs';
 import { switchMap, map, catchError, tap } from 'rxjs/operators';
 import { SessionStateService } from './session-state.service';
+import { Router } from '@angular/router';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { environment } from '../../environments/environment';
 
 export interface User {
   uid: string;
@@ -19,11 +23,13 @@ export interface User {
 })
 export class AuthService {
   user$: Observable<User | null>;
+  private app = initializeApp(environment.firebase);
 
   constructor(
     private afAuth: AngularFireAuth,
     private afs: AngularFirestore,
-    private sessionState: SessionStateService
+    private sessionState: SessionStateService,
+    private router: Router
   ) {
     this.user$ = this.afAuth.authState.pipe(
       switchMap(user => {
@@ -126,52 +132,122 @@ export class AuthService {
     };
   }
 
-  private async updateAuthData(user: any): Promise<void> {
-    if (!user) return;
-
-    const userRef = this.afs.doc(`users/${user.uid}`);
+  async signInWithGoogle(): Promise<void> {
     try {
-      const existingUser = await userRef.get().toPromise();
-      const existingData = existingUser?.data() as User | undefined;
+      console.log('Starting Google sign in...');
+      const auth = getAuth(this.app);
+      const provider = new GoogleAuthProvider();
+      const credential = await signInWithPopup(auth, provider);
+      console.log('Got Google credential:', credential.user?.uid);
       
-      const updatedData: User = {
-        uid: user.uid,
-        email: user.email || '',
-        firstName: existingData?.firstName,
-        lastName: existingData?.lastName,
-        username: existingData?.username,
-        isAdmin: existingData?.isAdmin ?? false
-      };
+      if (credential.user) {
+        // First create the user document
+        const userData = {
+          uid: credential.user.uid,
+          email: credential.user.email || '',  
+          firstName: credential.user.displayName?.split(' ')[0] || '',
+          lastName: credential.user.displayName?.split(' ').slice(1).join(' ') || '',
+          username: '', 
+          isAdmin: false
+        } as User;  
+        
+        console.log('Creating initial user document:', userData);
+        await this.updateUserData(credential.user, userData);
+        
+        // Check if we need additional information (like username)
+        if (!userData.username) {
+          console.log('Username needed - redirecting to profile setup');
+          // Store data for signup component
+          sessionStorage.setItem('googleSignUpData', JSON.stringify(userData));
+          
+          // Redirect to signup with query param
+          this.router.navigate(['/signup'], { 
+            queryParams: { 
+              source: 'google',
+              email: credential.user.email 
+            }
+          });
+          return;
+        }
+        
+        console.log('User setup complete - proceeding to home');
+        this.sessionState.startSession();
+        this.router.navigate(['/home']);
+      }
+    } catch (error: any) {
+      console.error('Full error object:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        throw new Error('Inicio de sesión cancelado. Por favor intenta de nuevo.');
+      } else if (error.code === 'auth/popup-blocked') {
+        throw new Error('El navegador bloqueó la ventana emergente. Por favor permite ventanas emergentes e intenta de nuevo.');
+      } else {
+        throw error;
+      }
+    }
+  }
 
-      await userRef.set(updatedData, { merge: true });
+  async completeGoogleSignUp(username: string): Promise<void> {
+    const googleData = sessionStorage.getItem('googleSignUpData');
+    if (!googleData) {
+      throw new Error('No Google sign-up data found');
+    }
+
+    const { uid, email, firstName, lastName } = JSON.parse(googleData);
+    
+    try {
+      await this.updateUserData({ uid, email }, {
+        firstName,
+        lastName,
+        username,
+        isAdmin: false
+      });
+      
+      sessionStorage.removeItem('googleSignUpData');
+      this.sessionState.startSession();
     } catch (error) {
-      console.error('Error updating auth data:', error);
+      console.error('Error completing Google sign-up:', error);
       throw error;
     }
   }
 
   private async updateUserData(user: any, additionalData?: Partial<User>): Promise<void> {
-    if (!user) return;
-
-    const userRef = this.afs.doc(`users/${user.uid}`);
     try {
-      const existingUser = await userRef.get().toPromise();
-      const existingData = existingUser?.data() as User | undefined;
+      if (!user?.uid) {
+        console.error('No user UID provided');
+        return;
+      }
 
       const userData: User = {
         uid: user.uid,
-        email: user.email || existingData?.email || '',
-        firstName: additionalData?.firstName || existingData?.firstName,
-        lastName: additionalData?.lastName || existingData?.lastName,
-        username: additionalData?.username || existingData?.username,
-        isAdmin: existingData?.isAdmin ?? false
+        email: user.email || '',
+        firstName: additionalData?.firstName || user.displayName?.split(' ')[0] || '',
+        lastName: additionalData?.lastName || user.displayName?.split(' ').slice(1).join(' ') || '',
+        username: additionalData?.username || '',
+        isAdmin: additionalData?.isAdmin || false
       };
 
-      await userRef.set(userData, { merge: true });
-      console.log('User data updated in Firestore');
+      // Only remove undefined values, keep empty strings
+      const cleanedUserData = Object.fromEntries(
+        Object.entries(userData).filter(([_, v]) => v !== undefined)
+      );
+
+      console.log('Saving user data to Firestore:', cleanedUserData);
+      await this.afs.doc(`users/${user.uid}`).set(cleanedUserData, { merge: true });
+      console.log('Successfully saved user data');
     } catch (error) {
       console.error('Error updating user data:', error);
       throw error;
+    }
+  }
+
+  private async updateAuthData(user: any): Promise<void> {
+    if (!user?.uid) return;
+    const userDoc = await this.afs.doc(`users/${user.uid}`).get().toPromise();
+    if (!userDoc?.exists) {
+      await this.updateUserData(user);
     }
   }
 

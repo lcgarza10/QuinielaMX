@@ -148,6 +148,62 @@
   opacity: 0.7;
 }
 
+.social-login {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 20px;
+
+  .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--ion-color-light);
+
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--ion-color-light);
+    }
+
+    span {
+      padding: 0 10px;
+      color: var(--ion-color-light);
+      font-size: 14px;
+    }
+  }
+
+  .google-btn {
+    --background: #ffffff;
+    --color: #757575;
+    --border-color: #dadce0;
+    --border-style: solid;
+    --border-width: 1px;
+    --box-shadow: none;
+    --border-radius: 8px;
+    --padding-top: 14px;
+    --padding-bottom: 14px;
+    margin: 0;
+    font-family: 'Google Sans', 'Roboto', sans-serif;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0.25px;
+
+    &:hover {
+      --background: #f6f9fe;
+      --border-color: #d2e3fc;
+      --color: #174ea6;
+    }
+
+    .google-icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 12px;
+    }
+  }
+}
+
 @media (max-width: 480px) {
   .login-container {
     padding: 16px;

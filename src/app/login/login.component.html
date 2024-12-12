@@ -47,6 +47,20 @@
       </ion-card>
     </form>
 
+    <div class="social-login">
+      <div class="divider">
+        <span>O</span>
+      </div>
+      <ion-button 
+        (click)="loginWithGoogle()" 
+        expand="block" 
+        fill="outline" 
+        class="google-btn">
+        <img src="assets/google-logo.svg" alt="Google" class="google-icon">
+        Continuar con Google
+      </ion-button>
+    </div>
+
     <ion-text color="danger" *ngIf="errorMessage" class="error-message">
       <p>{{ errorMessage }}</p>
     </ion-text>

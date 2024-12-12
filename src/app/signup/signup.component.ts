@@ -43,6 +43,26 @@ export class SignupComponent implements OnInit {
       this.inviteCode = code;
       this.loadGroupInfo(code);
     }
+
+    // Check if coming from Google Sign-In
+    const source = this.route.snapshot.queryParamMap.get('source');
+    if (source === 'google') {
+      const googleData = sessionStorage.getItem('googleSignUpData');
+      if (googleData) {
+        const userData = JSON.parse(googleData);
+        // Pre-fill the form with Google data
+        this.signupForm.patchValue({
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName
+        });
+        // Disable email field since it comes from Google
+        this.signupForm.get('email')?.disable();
+        // Remove password requirement for Google sign-up
+        this.signupForm.get('password')?.clearValidators();
+        this.signupForm.get('password')?.updateValueAndValidity();
+      }
+    }
   }
 
   private async loadGroupInfo(code: string) {
@@ -69,7 +89,14 @@ export class SignupComponent implements OnInit {
 
       try {
         const { email, password, firstName, lastName, username } = this.signupForm.value;
-        await this.authService.signUpWithEmail(email, password, firstName, lastName, username);
+        
+        // Check if this is a Google Sign-In completion
+        const source = this.route.snapshot.queryParamMap.get('source');
+        if (source === 'google') {
+          await this.authService.completeGoogleSignUp(username);
+        } else {
+          await this.authService.signUpWithEmail(email, password, firstName, lastName, username);
+        }
         
         const toast = await this.toastController.create({
           message: '¡Cuenta creada exitosamente!',
