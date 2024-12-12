@@ -2,10 +2,15 @@
   padding: 8px;
   border-radius: 12px;
   background: var(--ion-color-light);
-  width: 82%;
+  width: 100%;
   max-width: 320px;
   margin: 0 auto;
   overflow: visible;
+  
+  @media (max-width: 480px) {
+    width: 95%;
+    padding: 6px;
+  }
 }
 
 .score-section {
@@ -111,31 +116,48 @@
 .score-input {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 4px;
-  margin: 4px 0;
+  
+  .team-score {
+    display: flex;
+    align-items: center;
+    min-width: 80px;
+    justify-content: space-between;
+    
+    @media (max-width: 480px) {
+      min-width: 60px;
+    }
+    
+    ion-button {
+      --padding-start: 4px;
+      --padding-end: 4px;
+    }
+  }
+  
+  .score-separator {
+    margin: 0 4px;
+  }
 }
 
-.team-score {
+.team-info {
   display: flex;
   align-items: center;
-  gap: 2px;
-
-  ion-button {
-    --padding-start: 4px;
-    --padding-end: 4px;
-    height: 30px;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 8px;
+  
+  .team-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    
+    @media (max-width: 480px) {
+      width: 24px;
+      height: 24px;
+    }
   }
-
-  .score-value {
-    min-width: 24px;
-    text-align: center;
-    font-weight: 600;
-  }
-}
-
-.score-separator {
-  margin: 0 4px;
-  font-weight: 600;
 }
 
 .quick-scores {
