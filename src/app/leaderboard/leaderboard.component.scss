@@ -177,21 +177,42 @@ ion-row:not(:last-child) {
 }
 
 .modern-table {
-  width: calc(100% - 32px);
-  max-width: 800px;
+  width: 100%;
+  min-width: fit-content;
   background: var(--ion-card-background);
   border-radius: 16px;
+  margin: 16px auto;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  border-collapse: separate;
-  border-spacing: 0;
-  margin: 16px auto;
+  padding: 0;
+  
+  table {
+    width: auto;
+    border-collapse: separate;
+    border-spacing: 0;
+    white-space: nowrap;
+  }
   
   thead {
     background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    
+    tr:first-child {
+      th:first-child {
+        border-top-left-radius: 16px;
+      }
+      th:last-child {
+        border-top-right-radius: 16px;
+      }
+    }
     
     tr {
       th {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        
         color: white;
         padding: 4px;
         font-weight: 600;
@@ -220,6 +241,8 @@ ion-row:not(:last-child) {
         &.match-header {
           padding: 4px 0px;
           min-width: 42px;
+          max-width: 42px;
+          width: 42px;
           text-align: center;
 
           .team-logos {
@@ -255,8 +278,9 @@ ion-row:not(:last-child) {
       }
       
       td {
-        padding: 4px;
         border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
+        
+        padding: 4px;
         font-size: 0.95em;
         
         &.position-cell {  // Posición
@@ -285,6 +309,8 @@ ion-row:not(:last-child) {
           padding: 4px 0px;
           font-size: 0.9em;
           min-width: 42px;
+          max-width: 42px;
+          width: 42px;
           
           .pred-score {
             display: inline;
