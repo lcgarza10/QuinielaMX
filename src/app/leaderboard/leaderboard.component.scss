@@ -237,15 +237,15 @@ ion-row:not(:last-child) {
         
         &:nth-child(3) {  // Jugador
           min-width: 100px;
-          padding-left: 2px;
-          padding-right: 4px;
+          padding-left: 2.5px;
+          padding-right: 2px;
         }
         
         &.match-header {
           padding: 4px 0;
-          min-width: 42px;
-          max-width: 42px;
-          width: 42px;
+          min-width: 40px;
+          max-width: 40px;
+          width: 40px;
           text-align: center;
 
           .team-logos {
@@ -306,17 +306,17 @@ ion-row:not(:last-child) {
         &.name-cell {  // Jugador
           text-align: left;
           min-width: 100px;
-          padding-left: 2px;
-          padding-right: 4px;
+          padding-left: 2.5px;
+          padding-right: 2px;
         }
 
         &.prediction-cell {
           text-align: center;
           padding: 4px 0;
           font-size: 0.9em;
-          min-width: 42px;
-          max-width: 42px;
-          width: 42px;
+          min-width: 40px;
+          max-width: 40px;
+          width: 40px;
           
           .pred-score {
             display: inline;
@@ -396,13 +396,13 @@ ion-row:not(:last-child) {
         
         &:nth-child(3) {  // Jugador
           min-width: 90px;
-          padding-left: 1px;
-          padding-right: 2px;
+          padding-left: 1.5px;
+          padding-right: 1px;
         }
         
         &.match-header {
           padding: 3px 0;
-          min-width: 38px;
+          min-width: 36px;
 
           .team-logos {
             gap: 1px;
@@ -442,13 +442,15 @@ ion-row:not(:last-child) {
         
         &.name-cell {
           min-width: 90px;
-          padding-left: 1px;
-          padding-right: 2px;
+          padding-left: 1.5px;
+          padding-right: 1px;
         }
 
         &.prediction-cell {
           padding: 3px 0;
-          min-width: 38px;
+          min-width: 36px;
+          max-width: 36px;
+          width: 36px;
           font-size: 0.85em;
         }
       }
