@@ -14,6 +14,7 @@ export class LayoutComponent {
   isAdmin: boolean = false;
   isAuthenticated: boolean = false;
   userEmail: string = '';
+  username: string = '';
 
   constructor(
     private router: Router,
@@ -25,6 +26,7 @@ export class LayoutComponent {
       this.isAdmin = this.authService.isAdmin(user);
       this.isAuthenticated = !!user;
       this.userEmail = user?.email || '';
+      this.username = user?.username || user?.email?.split('@')[0] || 'Perfil';
     });
   }
 

@@ -307,25 +307,25 @@ export class FootballService {
 
   async getCurrentPhase(): Promise<string> {
     try {
-      // Intentar obtener partidos de semifinal primero
-      const semiMatches = await this.getPlayoffMatches('Semifinal').toPromise();
-      if (semiMatches && semiMatches.length > 0) {
-        return 'Semifinal';
-      }
-
-      // Si no hay semifinales, intentar con la final
+      // Intentar obtener partidos de la final primero
       const finalMatches = await this.getPlayoffMatches('Final').toPromise();
       if (finalMatches && finalMatches.length > 0) {
         return 'Final';
       }
 
-      // Si no hay semifinales ni final, verificar cuartos
+      // Si no hay final, intentar con semifinal
+      const semiMatches = await this.getPlayoffMatches('Semifinal').toPromise();
+      if (semiMatches && semiMatches.length > 0) {
+        return 'Semifinal';
+      }
+
+      // Si no hay semifinales, verificar cuartos
       const quarterMatches = await this.getPlayoffMatches('Cuartos de Final').toPromise();
       if (quarterMatches && quarterMatches.length > 0) {
         return 'Cuartos de Final';
       }
 
-      // Si no hay playoffs, intentar con reclasificación
+      // Si no hay cuartos, intentar con reclasificación
       const replayMatches = await this.getPlayoffMatches('Reclasificación').toPromise();
       if (replayMatches && replayMatches.length > 0) {
         return 'Reclasificación';
@@ -335,7 +335,7 @@ export class FootballService {
       return '17';
     } catch (error) {
       console.error('Error getting current phase:', error);
-      return 'Semifinal'; // Default a semifinal si hay error
+      return 'Final'; // Default a final si hay error
     }
   }
 
