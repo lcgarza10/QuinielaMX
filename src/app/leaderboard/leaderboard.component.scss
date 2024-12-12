@@ -193,49 +193,53 @@ ion-row:not(:last-child) {
     tr {
       th {
         color: white;
-        padding: 12px 8px;
+        padding: 4px;
         font-weight: 600;
         text-align: left;
-        font-size: 1.1em;
-        letter-spacing: 0.5px;
+        font-size: 1em;
+        letter-spacing: 0;
         white-space: nowrap;
         
-        &:first-child {
+        &:first-child {  // Posición
           text-align: center;
-          padding-left: 8px;
-          width: 60px;
+          padding: 4px 2px;
+          width: 40px;
         }
         
-        &:nth-child(2) {
-          width: 60px;
+        &:nth-child(2) {  // Pts
+          width: 40px;
           text-align: center;
+          padding: 4px 2px;
         }
         
-        &:nth-child(3) {
-          min-width: 120px;
+        &:nth-child(3) {  // Participante
+          min-width: 100px;
+          padding-right: 2px;
         }
         
         &.match-header {
-          padding: 6px 4px;
-          min-width: 100px;
+          padding: 4px 0px;
+          min-width: 42px;
+          text-align: center;
 
-          .team-container {
+          .team-logos {
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            gap: 6px;
-            margin: 3px 0;
+            justify-content: center;
+            gap: 1px;
+            margin-bottom: 1px;
 
             .team-logo {
-              width: 20px;
-              height: 20px;
+              width: 18px;
+              height: 18px;
               object-fit: contain;
             }
+          }
 
-            .score {
-              min-width: 16px;
-              text-align: center;
-            }
+          .score-display {
+            font-size: 1em;
+            white-space: nowrap;
+            font-weight: 600;
           }
         }
       }
@@ -251,37 +255,39 @@ ion-row:not(:last-child) {
       }
       
       td {
-        padding: 12px 8px;
+        padding: 4px;
         border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.1);
-        font-size: 1em;
+        font-size: 0.95em;
         
-        &.position-cell {
+        &.position-cell {  // Posición
           text-align: center;
           font-weight: 600;
           color: var(--ion-color-primary);
-          width: 60px;
-          padding-left: 8px;
+          width: 40px;
+          padding: 4px 2px;
         }
         
-        &.points-cell {
+        &.points-cell {  // Pts
           text-align: center;
           font-weight: 600;
-          width: 60px;
+          width: 40px;
+          padding: 4px 2px;
         }
         
-        &.name-cell {
+        &.name-cell {  // Participante
           text-align: left;
-          min-width: 120px;
+          min-width: 100px;
+          padding-right: 2px;
         }
 
         &.prediction-cell {
           text-align: center;
-          padding: 6px 4px;
+          padding: 4px 0px;
+          font-size: 0.9em;
+          min-width: 42px;
           
           .pred-score {
-            display: inline-block;
-            min-width: 16px;
-            margin: 0 2px;
+            display: inline;
           }
 
           &.exact-match {
@@ -341,37 +347,42 @@ ion-row:not(:last-child) {
     
     thead tr {
       th {
-        padding: 10px 6px;
-        font-size: 0.95em;
+        padding: 3px;
+        font-size: 0.9em;
         
-        &:first-child {
-          width: 50px;
-          padding-left: 6px;
+        &:first-child {  // Posición
+          width: 35px;
+          padding: 3px 1px;
         }
         
-        &:nth-child(2) {
-          width: 50px;
+        &:nth-child(2) {  // Pts
+          width: 35px;
+          padding: 3px 1px;
         }
         
-        &:nth-child(3) {
-          min-width: 100px;
+        &:nth-child(3) {  // Participante
+          min-width: 90px;
+          padding-right: 1px;
         }
         
         &.match-header {
-          padding: 4px 2px;
-          min-width: 90px;
+          padding: 3px 0px;
+          min-width: 38px;
 
-          .team-container {
-            gap: 4px;
+          .team-logos {
+            gap: 1px;
+            margin-bottom: 1px;
             
             .team-logo {
-              width: 18px;
-              height: 18px;
+              width: 16px;
+              height: 16px;
+              object-fit: contain;
             }
-            
-            .score {
-              min-width: 14px;
-            }
+          }
+
+          .score-display {
+            font-size: 0.9em;
+            font-weight: 600;
           }
         }
       }
@@ -379,28 +390,28 @@ ion-row:not(:last-child) {
     
     tbody tr {
       td {
-        padding: 10px 6px;
+        padding: 3px;
+        font-size: 0.9em;
         
         &.position-cell {
-          width: 50px;
-          padding-left: 6px;
+          width: 35px;
+          padding: 3px 1px;
         }
         
         &.points-cell {
-          width: 50px;
+          width: 35px;
+          padding: 3px 1px;
         }
         
         &.name-cell {
-          min-width: 100px;
+          min-width: 90px;
+          padding-right: 1px;
         }
 
         &.prediction-cell {
-          padding: 4px 2px;
-          
-          .pred-score {
-            min-width: 14px;
-            margin: 0 1px;
-          }
+          padding: 3px 0px;
+          min-width: 38px;
+          font-size: 0.85em;
         }
       }
     }

@@ -1,39 +1,41 @@
 .prediction-container {
-  padding: 8px;
-  border-radius: 12px;
+  padding: 2px;
+  border-radius: 8px;
   background: var(--ion-color-light);
   width: 100%;
-  max-width: 320px;
+  max-width: 295px;
   margin: 0 auto;
   overflow: visible;
   
   @media (max-width: 480px) {
-    width: 95%;
-    padding: 6px;
+    width: 90%;
+    padding: 1px;
   }
 }
 
 .score-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 1px;
 }
 
 .scores-row {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 3px;
+  margin-bottom: 1px;
 }
 
 .score-column {
   flex: 1;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 1px 3px;
+  border-radius: 4px;
   background: white;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
+  max-width: 145px;
 
   &.prediction-score {
     &.exact-match {
@@ -70,37 +72,44 @@
 
 .editable-prediction {
   width: 100%;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 8px;
+  border-radius: 8px;
   background: rgba(var(--ion-color-danger-rgb), 0.05);
   border: 1px solid var(--ion-color-danger);
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .score-label {
-  font-size: 0.85em;
+  font-size: 0.7em;
   color: var(--ion-color-medium);
-  margin-bottom: 4px;
+  margin: 2px 0 0 0;
   text-align: center;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  padding: 0;
+  line-height: 1;
 }
 
 .score-display {
-  font-size: 1.3em;
+  font-size: 1.1em;
   font-weight: 600;
   text-align: center;
-  margin: 4px 0;
+  margin: 0;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .status-badge, .points-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 0.7em;
-  font-weight: 500;
-  color: white;
+  top: -1px;
+  right: -1px;
+  padding: 0px 2px;
+  border-radius: 4px;
+  font-size: 0.6em;
+  line-height: 1;
   z-index: 1;
 }
 
@@ -116,28 +125,36 @@
 .score-input {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  gap: 4px;
+  gap: 1px;
+  margin: 0;
   
   .team-score {
     display: flex;
     align-items: center;
-    min-width: 80px;
-    justify-content: space-between;
-    
-    @media (max-width: 480px) {
-      min-width: 60px;
-    }
+    gap: 0;
     
     ion-button {
-      --padding-start: 4px;
-      --padding-end: 4px;
+      --padding-start: 3px;
+      --padding-end: 3px;
+      margin: 0;
+      height: 20px;
+      
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+    
+    .score-value {
+      min-width: 18px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.9em;
     }
   }
   
   .score-separator {
-    margin: 0 4px;
+    margin: 0;
+    color: var(--ion-color-medium);
   }
 }
 
@@ -146,49 +163,49 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   
   .team-logo {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     object-fit: contain;
     
     @media (max-width: 480px) {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
     }
   }
 }
 
 .quick-scores {
-  margin-top: 8px;
+  margin-top: 4px;
   width: 100%;
 }
 
 .quick-score-label {
-  font-size: 0.8em;
+  font-size: 0.7em;
   color: var(--ion-color-medium);
   text-align: center;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .quick-score-buttons {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 2px;
 
   ion-button {
-    --padding-start: 8px;
-    --padding-end: 8px;
-    height: 24px;
-    font-size: 0.9em;
+    --padding-start: 6px;
+    --padding-end: 6px;
+    height: 20px;
+    font-size: 0.8em;
   }
 }
 
 .prediction-status {
   text-align: center;
-  margin-top: 4px;
+  margin-top: 2px;
   font-style: italic;
   color: var(--ion-color-danger);
 }
@@ -220,19 +237,19 @@
   }
 
   .scores-row {
-    gap: 4px;
+    gap: 2px;
   }
 
   .score-column {
-    padding: 6px;
+    padding: 1px;
   }
 
   .score-display {
-    font-size: 1.1em;
+    font-size: 0.9em;
   }
 
   .quick-score-buttons ion-button {
-    height: 22px;
-    font-size: 0.8em;
+    height: 18px;
+    font-size: 0.7em;
   }
 }

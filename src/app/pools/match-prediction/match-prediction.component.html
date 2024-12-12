@@ -19,7 +19,7 @@
             isCompleted && !canEdit
               ? 'Tu Pronóstico'
               : canEdit
-              ? 'Puedes editar tu pronóstico:'
+              ? '¿Quieres actualizarlo?'
               : 'Ingresa tu Pronóstico:'
           }}
           <span *ngIf="match.status.short !== 'NS' && match.status.short !== 'TBD'" class="points-badge">{{ getPoints() }} pts</span>
