@@ -234,6 +234,17 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
           const predictions = await firstValueFrom(this.databaseService.getPredictions(user.uid, weekId));
           const userPoints = pointsData.find(p => p.userId === user.uid);
           
+          // Calculate current points for the week
+          const weeklyPoints = this.calculateWeeklyPoints(predictions, this.weekMatches);
+          const livePoints = this.calculateLivePoints(predictions, this.weekMatches);
+          const currentWeekTotalPoints = (weeklyPoints || 0) + (livePoints || 0);
+
+          // Update totalPoints in Firestore for the current week
+          if (predictions.length > 0) {
+            const weekRef = this.afs.doc(`predictions/${user.uid}/weeks/${weekId}`);
+            await weekRef.update({ totalPoints: currentWeekTotalPoints });
+          }
+
           // Get all weeks for total points calculation
           const weeksSnapshot = await this.afs.collection(`predictions/${user.uid}/weeks`).get().toPromise();
           let totalPoints = 0;
@@ -248,8 +259,8 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
             userId: user.uid,
             username: user.username || user.email || 'Unknown User',
             totalPoints: totalPoints,
-            weeklyPoints: this.calculateWeeklyPoints(predictions, this.weekMatches),
-            livePoints: this.calculateLivePoints(predictions, this.weekMatches),
+            weeklyPoints: weeklyPoints,
+            livePoints: livePoints,
             predictions: predictions.map(pred => ({
               matchId: pred.matchId,
               homeScore: pred.homeScore!,
