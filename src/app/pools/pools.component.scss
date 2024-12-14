@@ -53,37 +53,45 @@
   }
 
   .match-item {
-    --padding-start: 4px;
-    --padding-end: 4px;
+    --padding-start: 8px;
+    --padding-end: 8px;
     --inner-padding-end: 0;
     --background: transparent;
-    margin-bottom: 4px;
+
+    &::part(native) {
+      padding: 0;
+    }
   }
 
   .match-card {
     width: 100%;
     margin: 0;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    background: var(--ion-card-background);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
 
     ion-card-content {
-      padding: 8px;
+      padding: 0;
       position: relative;
     }
   }
 
   .match-date {
     position: relative;
-    margin-bottom: 8px;
-    padding-top: 24px;
+    padding: 16px;
     text-align: center;
+    border-bottom: 1px solid rgba(var(--ion-color-medium-rgb), 0.2);
+    background: rgba(var(--ion-color-light-rgb), 0.5);
 
     .badges {
       display: flex;
       align-items: center;
       gap: 4px;
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 50%;
+      left: 8px;
+      transform: translateY(-50%);
 
       .leg-badge {
         font-size: 0.8em;
@@ -94,8 +102,9 @@
 
     .time-badge {
       position: absolute;
-      top: 0;
-      right: 0;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
       font-size: 0.8em;
       padding: 4px 8px;
     }
@@ -105,9 +114,9 @@
       color: var(--ion-text-color);
       font-size: 0.85em;
       line-height: 1.4;
-      margin-top: 2px;
       opacity: 0.9;
       font-weight: 400;
+      margin: 0;
 
       br {
         content: '';
@@ -119,10 +128,11 @@
 
   .teams {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-top: 32px;
-    padding: 0 8px;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 16px;
+    background: var(--ion-card-background);
 
     .team {
       display: flex;
@@ -132,6 +142,13 @@
       flex: 1;
       min-width: 0;
       padding: 0 4px;
+
+      .team-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        margin-bottom: 4px;
+      }
 
       .team-name {
         font-size: 0.9em;
@@ -204,19 +221,6 @@
       padding: 4px 8px;
       border-radius: 12px;
     }
-  }
-}
-
-.match-card {
-  width: 100%;
-  margin: 0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background: var(--ion-card-background);
-
-  ion-card-header {
-    position: relative;
-    padding-bottom: 8px;
   }
 }
 
