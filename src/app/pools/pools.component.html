@@ -66,10 +66,10 @@
                   <ion-badge color="primary" class="leg-badge">
                     {{ match.round }}
                   </ion-badge>
+                  <ion-badge color="warning" class="time-badge">
+                    {{ match.date | date:'h:mm a':'':'es' }}
+                  </ion-badge>
                 </div>
-                <ion-badge color="warning" class="time-badge">
-                  {{ match.date | date:'h:mm a':'':'es' }}
-                </ion-badge>
                 <span class="date-text">
                   {{ match.date | date:'EEEE d MMMM, yyyy':'':'es' }}
                   <br>
@@ -125,10 +125,10 @@
                     <ion-badge color="tertiary" class="leg-badge">
                       {{ match.leg === 1 ? 'IDA' : 'VUELTA' }}
                     </ion-badge>
+                    <ion-badge color="warning" class="time-badge">
+                      {{ match.date | date:'h:mm a':'':'es' }}
+                    </ion-badge>
                   </div>
-                  <ion-badge color="warning" class="time-badge">
-                    {{ match.date | date:'h:mm a':'':'es' }}
-                  </ion-badge>
                   <span class="date-text">
                     {{ match.date | date:'EEEE d MMMM, yyyy':'':'es' }}
                     <br>
