@@ -1,33 +1,33 @@
 .prediction-container {
-  padding: 2px;
+  padding: 4px;
   border-radius: 8px;
   background: var(--ion-color-light);
   width: 100%;
-  max-width: 295px;
+  max-width: 305px;
   margin: 0 auto;
   overflow: visible;
   
   @media (max-width: 480px) {
-    width: 90%;
-    padding: 1px;
+    width: 92%;
+    padding: 2px;
   }
 }
 
 .score-section {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
 .scores-row {
   display: flex;
-  gap: 3px;
-  margin-bottom: 1px;
+  gap: 4px;
+  margin-bottom: 2px;
 }
 
 .score-column {
   flex: 1;
-  padding: 1px 3px;
+  padding: 3px 5px;
   border-radius: 4px;
   background: white;
   position: relative;
@@ -35,7 +35,7 @@
   flex-direction: column;
   align-items: center;
   min-width: 0;
-  max-width: 145px;
+  max-width: 150px;
 
   &.prediction-score {
     &.exact-match {
@@ -80,26 +80,26 @@
 }
 
 .score-label {
-  font-size: 0.7em;
+  font-size: 0.95em;
   color: var(--ion-color-medium);
-  margin: 2px 0 0 0;
+  margin: 3px 0;
   text-align: center;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
-  padding: 0;
-  line-height: 1;
+  padding: 0 4px;
+  line-height: 1.2;
 }
 
 .score-display {
-  font-size: 1.15em;
+  font-size: 1.25em;
   font-weight: 600;
   text-align: center;
-  margin: 0;
+  margin: 2px 0;
   white-space: nowrap;
-  line-height: 1;
+  padding: 3px 0;
 }
 
 .status-badge, .points-badge {

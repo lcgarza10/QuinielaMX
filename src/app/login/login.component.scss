@@ -3,9 +3,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
+  min-height: 100vh;
+  width: 100vw;
+  margin: 0;
   padding: 20px;
-  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
 }
 
 .logo-container {
@@ -13,229 +19,147 @@
   margin-bottom: 2rem;
   color: white;
 
-  .logo-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-  }
-
   h1 {
     font-size: 2rem;
     font-weight: 700;
     margin: 0;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-
-  .subtitle {
-    font-size: 1rem;
-    opacity: 0.9;
-    margin-top: 0.5rem;
-  }
 }
 
 .logo {
-   width: 17.88%; /* Reduce size to one-third (100% / 300%) */
-   height: auto; /* Maintain aspect ratio */
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1.5rem;
+  border-radius: 25px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  object-fit: contain;
 }
 
 .login-form {
   width: 100%;
   max-width: 400px;
 
-  ion-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(8px);
-    margin: 0;
+  ion-item {
+    --background: rgba(255, 255, 255, 0.1);
+    --border-color: rgba(255, 255, 255, 0.2);
+    --border-radius: 12px;
+    --border-width: 1px;
+    --border-style: solid;
+    --padding-start: 16px;
+    --padding-end: 16px;
+    --highlight-height: 0;
+    margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 
-    ion-card-content {
-      padding: 24px;
+    &:last-of-type {
+      margin-bottom: 20px;
     }
-  }
-}
 
-.form-item {
-  --background: transparent;
-  --border-color: var(--ion-color-medium);
-  --border-radius: 8px;
-  --border-width: 1px;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  margin-bottom: 16px;
+    ion-label {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+    }
 
-  &:last-of-type {
-    margin-bottom: 12px;
-  }
+    ion-input {
+      --color: white;
+      --placeholder-color: rgba(255, 255, 255, 0.6);
+      font-size: 1rem;
+    }
 
-  .input-icon {
-    margin-right: 8px;
-    color: var(--ion-color-medium);
+    .input-icon {
+      color: rgba(255, 255, 255, 0.8);
+      margin-right: 12px;
+    }
   }
 }
 
 .forgot-password {
   text-align: right;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 
   ion-button {
-    --color: var(--ion-color-medium);
+    --color: rgba(255, 255, 255, 0.9);
     font-size: 0.9em;
     text-transform: none;
     font-weight: 400;
 
     &:hover {
-      --color: var(--ion-color-primary);
+      --color: white;
     }
   }
 }
 
 .login-button {
-  margin-top: 16px;
-  --border-radius: 8px;
-  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+  margin: 8px 0;
+  --border-radius: 12px;
+  --background: rgba(255, 255, 255, 0.2);
+  --background-hover: rgba(255, 255, 255, 0.3);
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   font-weight: 600;
   height: 48px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   
   ion-icon {
     margin-right: 8px;
   }
 }
 
-.error-message {
+.google-button {
+  --background: white;
+  --color: #757575;
+  margin-top: 24px;
+  --border-radius: 12px;
+  height: 48px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  img {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.divider {
+  display: flex;
+  align-items: center;
   text-align: center;
-  margin: 16px 0;
+  margin: 24px 0;
+  color: rgba(255, 255, 255, 0.7);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  &::before {
+    margin-right: 1em;
+  }
+
+  &::after {
+    margin-left: 1em;
+  }
+}
+
+.error-message {
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
   padding: 12px;
   border-radius: 8px;
-  background: rgba(var(--ion-color-danger-rgb), 0.1);
-
-  p {
-    margin: 0;
-    color: var(--ion-color-danger);
-    font-size: 0.9rem;
-  }
+  margin: 16px 0;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.signup-prompt {
+.version {
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
   margin-top: 24px;
-  text-align: center;
-  color: white;
-
-  p {
-    margin: 0;
-    font-size: 0.95rem;
-  }
-
-  .signup-link {
-    --color: white;
-    font-weight: 600;
-    text-decoration: none;
-    
-    ion-icon {
-      margin-left: 4px;
-    }
-  }
-}
-
-.version-info {
-  position: absolute;
-  bottom: 10px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: white;
-  font-size: 14px;
-  padding: 8px;
-  opacity: 0.7;
-}
-
-.social-login {
-  width: 100%;
-  max-width: 400px;
-  margin-top: 20px;
-
-  .divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 20px 0;
-    color: var(--ion-color-light);
-
-    &::before,
-    &::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid var(--ion-color-light);
-    }
-
-    span {
-      padding: 0 10px;
-      color: var(--ion-color-light);
-      font-size: 14px;
-    }
-  }
-
-  .google-btn {
-    --background: #ffffff;
-    --color: #757575;
-    --border-color: #dadce0;
-    --border-style: solid;
-    --border-width: 1px;
-    --box-shadow: none;
-    --border-radius: 8px;
-    --padding-top: 14px;
-    --padding-bottom: 14px;
-    margin: 0;
-    font-family: 'Google Sans', 'Roboto', sans-serif;
-    font-weight: 500;
-    text-transform: none;
-    letter-spacing: 0.25px;
-
-    &:hover {
-      --background: #f6f9fe;
-      --border-color: #d2e3fc;
-      --color: #174ea6;
-    }
-
-    .google-icon {
-      width: 18px;
-      height: 18px;
-      margin-right: 12px;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .login-container {
-    padding: 16px;
-  }
-
-  .logo-container {
-    .logo-icon {
-      font-size: 3rem;
-    }
-
-    h1 {
-      font-size: 1.75rem;
-    }
-  }
-
-  .login-form {
-    ion-card {
-      margin: 0;
-    }
-  }
-}
-
-:host-context(.dark) {
-  .login-form ion-card {
-    background: rgba(var(--ion-card-background-rgb), 0.9);
-  }
-
-  .error-message {
-    background: rgba(var(--ion-color-danger-rgb), 0.15);
-  }
-
-  .forgot-password ion-button {
-    --color: var(--ion-color-light);
-  }
+  font-size: 0.8em;
 }

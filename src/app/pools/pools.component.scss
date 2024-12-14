@@ -72,25 +72,35 @@
   }
 
   .match-date {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    right: 8px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 1;
+    flex-direction: column;
+    margin-bottom: 16px;
+    position: relative;
 
     .date-text {
-      font-size: 0.95em;
-      font-weight: 500;
-      color: var(--ion-color-dark);
+      color: var(--ion-color-medium);
+      font-size: 0.9em;
+      margin-top: 24px;
     }
 
-    .leg-badge {
-      font-size: 0.9em;
-      font-weight: 600;
-      padding: 4px 8px;
+    .badges {
+      display: flex;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      .leg-badge {
+        font-size: 0.8em;
+        padding: 4px 8px;
+        font-weight: bold;
+      }
+    }
+
+    .time-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
     }
   }
 

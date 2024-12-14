@@ -75,7 +75,7 @@
                   [class.highlight]="entry.userId === currentUserId">
                 <td class="position-cell">{{ i + 1 }}</td>
                 <td class="points-cell">{{ (entry.weeklyPoints || 0) + (entry.livePoints || 0) }}</td>
-                <td class="name-cell">{{ entry.username }}{{i === 0 ? ' 👑' : ''}}</td>
+                <td class="name-cell" [title]="entry.username">{{ entry.username }}{{i === 0 ? ' 👑' : ''}}</td>
                 <td *ngFor="let match of weekMatches" class="prediction-cell"
                     [class.exact-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 3"
                     [class.partial-match]="shouldShowPrediction(entry.userId) && getPredictionPoints(entry.predictions, match) === 1"
@@ -108,9 +108,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let entry of overallLeaderboard; let i = index" [class.highlight]="entry.userId === currentUserId">
+              <tr *ngFor="let entry of overallLeaderboard; let i = index" 
+                  [class.highlight]="entry.userId === currentUserId">
                 <td class="position-cell">{{ i + 1 }}</td>
-                <td class="name-cell">{{ entry.username }}{{i === 0 ? ' 👑' : ''}}</td>
+                <td class="name-cell" [title]="entry.username">{{ entry.username }}{{i === 0 ? ' 👑' : ''}}</td>
                 <td class="points-cell">{{ entry.totalPoints }}</td>
               </tr>
             </tbody>
@@ -134,7 +135,7 @@
             <tr *ngFor="let entry of globalLeaderboard$ | async; let i = index"
                 [class.highlight]="entry.userId === currentUserId">
               <td class="position-cell">{{ i + 1 }}</td>
-              <td class="name-cell">{{ entry.username }}{{i === 0 ? ' 👑' : ''}}</td>
+              <td class="name-cell" [title]="entry.username">{{ entry.username }}{{i === 0 ? ' 👑' : ''}}</td>
               <td class="points-cell">{{ entry.totalPoints }}</td>
             </tr>
           </tbody>

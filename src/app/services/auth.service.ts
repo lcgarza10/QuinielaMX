@@ -82,6 +82,11 @@ export class AuthService {
 
   async signUpWithEmail(email: string, password: string, firstName: string, lastName: string, username: string): Promise<void> {
     try {
+      // Validar longitud del nombre de usuario
+      if (username.length > 10) {
+        throw new Error('El nombre de usuario no puede tener más de 10 caracteres');
+      }
+
       const credential = await this.afAuth.createUserWithEmailAndPassword(email, password);
       await this.updateUserData(credential.user, { firstName, lastName, username, isAdmin: false });
       this.sessionState.startSession();

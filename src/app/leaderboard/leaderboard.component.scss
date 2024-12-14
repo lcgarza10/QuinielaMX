@@ -30,7 +30,7 @@
 
 .grid-header {
   display: grid;
-  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 32px);
+  grid-template-columns: 30px 35px minmax(80px, 90px) repeat(auto-fit, 32px);
   gap: 4px;
   padding: 12px 8px;
   background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
@@ -67,7 +67,7 @@
 
 .grid-row {
   display: grid;
-  grid-template-columns: 30px 35px minmax(80px, 100px) repeat(auto-fit, 32px);
+  grid-template-columns: 30px 35px minmax(80px, 90px) repeat(auto-fit, 32px);
   gap: 4px;
   padding: 12px 8px;
   align-items: center;
@@ -94,10 +94,13 @@
 
   .user-col {
     text-align: left;
-    padding-left: 8px;
+    padding-left: 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 90px;
+    min-width: 80px;
+    cursor: help;
   }
 
   .prediction-col {
@@ -236,7 +239,7 @@ ion-row:not(:last-child) {
         }
         
         &:nth-child(3) {  // Jugador
-          min-width: 100px;
+          min-width: 80px;
           padding-left: 2.5px;
           padding-right: 2px;
         }
@@ -305,9 +308,13 @@ ion-row:not(:last-child) {
         
         &.name-cell {  // Jugador
           text-align: left;
-          min-width: 100px;
-          padding-left: 2.5px;
-          padding-right: 2px;
+          padding: 0 6px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 90px;
+          min-width: 80px;
+          cursor: help;
         }
 
         &.prediction-cell {
@@ -395,7 +402,7 @@ ion-row:not(:last-child) {
         }
         
         &:nth-child(3) {  // Jugador
-          min-width: 90px;
+          min-width: 70px;
           padding-left: 1.5px;
           padding-right: 1px;
         }
@@ -441,7 +448,7 @@ ion-row:not(:last-child) {
         }
         
         &.name-cell {
-          min-width: 90px;
+          min-width: 70px;
           padding-left: 1.5px;
           padding-right: 1px;
         }
@@ -465,7 +472,7 @@ ion-row:not(:last-child) {
   }
 
   .grid-header, .grid-row {
-    grid-template-columns: 25px 30px minmax(70px, 90px) repeat(auto-fit, 28px);
+    grid-template-columns: 25px 30px minmax(70px, 80px) repeat(auto-fit, 28px);
     gap: 2px;
     padding: 5px;
 

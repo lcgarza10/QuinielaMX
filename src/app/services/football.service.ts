@@ -194,7 +194,7 @@ export class FootballService {
     if (isApertura) {
       // Apertura playoff dates (November-December)
       startDate = `${seasonYear}-11-20`;
-      endDate = `${seasonYear}-12-15`;
+      endDate = `${seasonYear}-12-20`; // Extendido hasta el 20 de diciembre
     } else {
       // Clausura playoff dates (May)
       startDate = `${seasonYear}-05-01`;
@@ -207,13 +207,15 @@ export class FootballService {
       .set('from', startDate)
       .set('to', endDate)
       .set('timezone', this.TIMEZONE)
-      .set('status', 'NS-TBD-1H-HT-2H-FT');
+      .set('status', 'NS-PST-CANC-TBD-1H-HT-2H-ET-BT-P-SUSP-INT-FT-AET-PEN-LIVE-ALL');
 
     console.log('Fetching playoff matches with params:', {
       startDate,
       endDate,
       isApertura,
-      seasonYear
+      seasonYear,
+      timezone: this.TIMEZONE,
+      status: 'NS-PST-CANC-TBD-1H-HT-2H-ET-BT-P-SUSP-INT-FT-AET-PEN-LIVE-ALL'
     });
 
     return this.http.get<ApiResponse>(`${this.API_URL}/fixtures`, { headers, params })
@@ -225,45 +227,63 @@ export class FootballService {
           }
 
           console.log('Found playoff matches:', response.response.length);
+          console.log('Raw matches data:', response.response.map(fixture => ({
+            id: fixture.fixture.id,
+            date: fixture.fixture.date,
+            status: fixture.fixture.status,
+            home: fixture.teams.home.name,
+            away: fixture.teams.away.name
+          })));
           
           const matches: PlayoffMatch[] = [];
 
+          // Primero agrupamos los partidos por ronda
+          const roundMatches = new Map<string, FixtureResponse[]>();
           for (const fixture of response.response) {
             const matchDate = new Date(fixture.fixture.date);
             let round: PlayoffMatch['round'] | undefined;
-            let leg: 1 | 2 | undefined;
 
             if (isApertura) {
-              // Apertura playoff rounds
               if (matchDate >= new Date(`${seasonYear}-11-20`) && matchDate <= new Date(`${seasonYear}-11-24`)) {
                 round = 'Reclasificación';
               } else if (matchDate >= new Date(`${seasonYear}-11-27`) && matchDate <= new Date(`${seasonYear}-12-03`)) {
                 round = 'Cuartos de Final';
-                leg = matchDate <= new Date(`${seasonYear}-11-30`) ? 1 : 2;
               } else if (matchDate >= new Date(`${seasonYear}-12-04`) && matchDate <= new Date(`${seasonYear}-12-10`)) {
                 round = 'Semifinal';
-                leg = matchDate <= new Date(`${seasonYear}-12-07`) ? 1 : 2;
-              } else if (matchDate >= new Date(`${seasonYear}-12-11`) && matchDate <= new Date(`${seasonYear}-12-15`)) {
+              } else if (matchDate >= new Date(`${seasonYear}-12-11`) && matchDate <= new Date(`${seasonYear}-12-20`)) {
                 round = 'Final';
-                leg = matchDate <= new Date(`${seasonYear}-12-13`) ? 1 : 2;
               }
             } else {
-              // Clausura playoff rounds
               if (matchDate >= new Date(`${seasonYear}-05-08`) && matchDate <= new Date(`${seasonYear}-05-12`)) {
                 round = 'Reclasificación';
               } else if (matchDate >= new Date(`${seasonYear}-05-15`) && matchDate <= new Date(`${seasonYear}-05-21`)) {
                 round = 'Cuartos de Final';
-                leg = matchDate <= new Date(`${seasonYear}-05-18`) ? 1 : 2;
               } else if (matchDate >= new Date(`${seasonYear}-05-22`) && matchDate <= new Date(`${seasonYear}-05-26`)) {
                 round = 'Semifinal';
-                leg = matchDate <= new Date(`${seasonYear}-05-24`) ? 1 : 2;
               } else if (matchDate >= new Date(`${seasonYear}-05-27`) && matchDate <= new Date(`${seasonYear}-05-29`)) {
                 round = 'Final';
-                leg = matchDate <= new Date(`${seasonYear}-05-28`) ? 1 : 2;
               }
             }
 
-            if (round && (!round || round === round)) {
+            if (round) {
+              if (!roundMatches.has(round)) {
+                roundMatches.set(round, []);
+              }
+              roundMatches.get(round)?.push(fixture);
+            }
+          }
+
+          // Ahora procesamos cada ronda, ordenando los partidos por fecha
+          for (const [round, fixtures] of roundMatches) {
+            // Ordenamos los partidos por fecha
+            const sortedFixtures = fixtures.sort((a, b) => 
+              new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
+            );
+
+            // Asignamos leg basado en el orden cronológico
+            sortedFixtures.forEach((fixture, index) => {
+              const leg = fixtures.length > 1 ? (index === 0 ? 1 : 2) : undefined;
+
               console.log('Adding playoff match:', {
                 id: fixture.fixture.id,
                 date: fixture.fixture.date,
@@ -284,13 +304,13 @@ export class FootballService {
                 awayScore: fixture.goals.away,
                 status: fixture.fixture.status,
                 venue: fixture.fixture.venue,
-                round,
+                round: round as PlayoffMatch['round'],
                 leg,
                 weekNumber: 0
               };
 
               matches.push(match);
-            }
+            });
           }
 
           const sortedMatches = matches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
