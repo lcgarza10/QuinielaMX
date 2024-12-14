@@ -314,7 +314,7 @@ export class TestPredictionsComponent implements OnInit {
   async updateRound16Predictions() {
     const alert = await this.alertController.create({
       header: 'Confirmar actualización',
-      message: '¿Estás seguro de que deseas actualizar las predicciones de la jornada 16 para agregar puntos iniciales?',
+      message: '¿Estás seguro de que deseas actualizar los pronósticos de la jornada 16 para agregar puntos iniciales?',
       buttons: [
         {
           text: 'Cancelar',
@@ -359,19 +359,19 @@ export class TestPredictionsComponent implements OnInit {
               if (updatedCount > 0) {
                 await batch.commit();
                 await this.showToast(
-                  `Se actualizaron las predicciones de ${updatedCount} usuarios para la jornada 16`,
+                  `Se actualizaron los pronósticos de ${updatedCount} usuarios para la jornada 16`,
                   'success'
                 );
               } else {
                 await this.showToast(
-                  'No se encontraron predicciones para actualizar en la jornada 16',
+                  'No se encontraron pronósticos para actualizar en la jornada 16',
                   'warning'
                 );
               }
             } catch (error) {
               console.error('Error updating round 16 predictions:', error);
               await this.showToast(
-                'Error al actualizar las predicciones de la jornada 16',
+                'Error al actualizar los pronósticos de la jornada 16',
                 'danger'
               );
             } finally {
@@ -387,7 +387,7 @@ export class TestPredictionsComponent implements OnInit {
   async generateRandomPredictions() {
     const alert = await this.alertController.create({
       header: 'Confirmar generación',
-      message: '¿Estás seguro de que deseas generar predicciones aleatorias para partidos pasados?',
+      message: '¿Estás seguro de que deseas generar pronósticos aleatorios para partidos pasados?',
       buttons: [
         {
           text: 'Cancelar',
@@ -433,7 +433,7 @@ export class TestPredictionsComponent implements OnInit {
               await batch.commit();
 
               const toast = await this.toastController.create({
-                message: 'Predicciones aleatorias generadas exitosamente para partidos pasados',
+                message: 'Pronósticos aleatorios generados exitosamente para partidos pasados',
                 duration: 2000,
                 color: 'success'
               });
@@ -441,7 +441,7 @@ export class TestPredictionsComponent implements OnInit {
             } catch (error) {
               console.error('Error generating predictions:', error);
               const toast = await this.toastController.create({
-                message: 'Error al generar predicciones aleatorias',
+                message: 'Error al generar pronósticos aleatorios',
                 duration: 2000,
                 color: 'danger'
               });
@@ -459,7 +459,7 @@ export class TestPredictionsComponent implements OnInit {
   async clearPredictions() {
     const alert = await this.alertController.create({
       header: 'Confirmar eliminación',
-      message: '¿Estás seguro de que deseas eliminar todas las predicciones? Esta acción no se puede deshacer.',
+      message: '¿Estás seguro de que deseas eliminar todos los pronósticos? Esta acción no se puede deshacer.',
       buttons: [
         {
           text: 'Cancelar',
@@ -485,7 +485,7 @@ export class TestPredictionsComponent implements OnInit {
               await batch.commit();
 
               const toast = await this.toastController.create({
-                message: 'Predicciones eliminadas exitosamente',
+                message: 'Pronósticos eliminados exitosamente',
                 duration: 2000,
                 color: 'success'
               });
@@ -493,7 +493,7 @@ export class TestPredictionsComponent implements OnInit {
             } catch (error) {
               console.error('Error clearing predictions:', error);
               const toast = await this.toastController.create({
-                message: 'Error al eliminar las predicciones',
+                message: 'Error al eliminar los pronósticos',
                 duration: 2000,
                 color: 'danger'
               });

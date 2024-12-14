@@ -31,13 +31,23 @@
   flex: 1;
   padding: 1px 3px;
   border-radius: 4px;
-  background: white;
+  background: var(--ion-background-color);
+  color: var(--ion-text-color);
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   min-width: 0;
   max-width: 145px;
+  border: 1px solid var(--ion-color-medium);
+
+  &.actual-score {
+    background: var(--ion-color-light);
+    border: 1px solid var(--ion-color-medium);
+    .score-display {
+      color: var(--ion-text-color);
+    }
+  }
 
   &.prediction-score {
     &.exact-match {
@@ -66,8 +76,11 @@
     }
 
     &.not-started {
-      background: white;
+      background: var(--ion-color-light);
       border: 1px solid var(--ion-color-medium);
+      .score-display {
+        color: var(--ion-text-color);
+      }
     }
   }
 }
@@ -83,7 +96,7 @@
 
 .score-label {
   font-size: 0.7em;
-  color: var(--ion-color-medium);
+  color: var(--ion-text-color);
   margin: 3px 0;
   text-align: center;
   font-weight: 500;
@@ -102,6 +115,7 @@
   margin: 2px 0;
   white-space: nowrap;
   padding: 3px 0;
+  color: var(--ion-text-color);
 }
 
 .status-badge {

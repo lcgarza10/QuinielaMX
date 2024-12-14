@@ -17,9 +17,9 @@
         <div class="score-label" *ngIf="canPredict || canEdit || isCompleted">
           {{
             isCompleted && !canEdit
-              ? 'Tu Pronóstico'
+              ? 'Pronóstico'
               : canEdit
-              ? 'Tu Pronóstico:'
+              ? 'Pronóstico'
               : 'Ingresa tu Pronóstico:'
           }}
           <span *ngIf="match.status.short !== 'NS' && match.status.short !== 'TBD'" class="points-badge">{{ getPoints() }} pts</span>

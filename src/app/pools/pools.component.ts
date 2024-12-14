@@ -340,7 +340,7 @@ export class PoolsComponent implements OnInit {
   getSubmitButtonText(): string {
     return this.selectedView === 'playoffs' && this.hasPredictions 
       ? 'Actualizar Pronósticos' 
-      : 'Guardar Predicciones';
+      : 'Guardar Pronósticos';
   }
 
   async submitPredictions() {
@@ -359,7 +359,7 @@ export class PoolsComponent implements OnInit {
 
     try {
       loading = await this.loadingController.create({
-        message: 'Guardando predicciones...',
+        message: 'Guardando pronósticos...',
         spinner: 'crescent'
       });
       await loading.present();
@@ -401,7 +401,7 @@ export class PoolsComponent implements OnInit {
         }));
 
       if (predictions.length === 0) {
-        throw new Error('No hay predicciones válidas para guardar');
+        throw new Error('No hay pronósticos válidos para guardar');
       }
 
       await this.databaseService.savePredictions(
@@ -412,7 +412,7 @@ export class PoolsComponent implements OnInit {
       );
 
       await this.showToast(
-        `Se guardaron ${predictions.length} predicciones exitosamente`, 
+        `Se guardaron ${predictions.length} pronósticos exitosamente`, 
         'success'
       );
 
@@ -426,7 +426,7 @@ export class PoolsComponent implements OnInit {
     } catch (error) {
       console.error('Error saving predictions:', error);
       await this.showToast(
-        typeof error === 'string' ? error : 'Error al guardar las predicciones',
+        typeof error === 'string' ? error : 'Error al guardar los pronósticos',
         'danger'
       );
     } finally {

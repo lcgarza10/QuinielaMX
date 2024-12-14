@@ -102,10 +102,18 @@
 
     .date-text {
       display: block;
-      color: var(--ion-color-medium);
-      font-size: 0.9em;
-      line-height: 1.3;
+      color: var(--ion-text-color);
+      font-size: 0.85em;
+      line-height: 1.4;
       margin-top: 2px;
+      opacity: 0.9;
+      font-weight: 400;
+
+      br {
+        content: '';
+        display: block;
+        margin: 2px 0;
+      }
     }
   }
 
@@ -120,19 +128,20 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      flex: 0 0 auto;
-      width: 80px;
-
-      .team-logo {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 4px;
-      }
+      text-align: center;
+      flex: 1;
+      min-width: 0;
+      padding: 0 4px;
 
       .team-name {
         font-size: 0.9em;
-        text-align: center;
-        line-height: 1.2;
+        font-weight: 500;
+        margin: 4px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 100%;
+        color: var(--ion-text-color);
       }
     }
   }
