@@ -65,7 +65,7 @@
             <ion-card class="match-card">
               <ion-card-header class="compact-header">
                 <div class="match-info">
-                  <div class="match-date">{{ match.date | date : 'EEE d MMM' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
+                  <div class="match-date">{{ match.date | date : 'EEE d MMM' : '' : 'es-MX' }}</div>
                   <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
                 </div>
                 <ion-badge
@@ -133,7 +133,7 @@
                   <div class="leg-indicator" *ngIf="match.leg">{{ match.leg === 1 ? 'IDA' : 'VUELTA' }}</div>
                   <ion-card-header class="compact-header">
                     <div class="match-info">
-                      <div class="match-date">{{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }} • {{ match.date | date : 'h:mm a' : '' : 'es-MX' }}</div>
+                      <div class="match-date">{{ match.date | date : 'EEEE d MMMM, y' : '' : 'es-MX' }}</div>
                       <div class="venue-info">{{ match.venue.name }}, {{ match.venue.city }}</div>
                     </div>
                     <ion-badge

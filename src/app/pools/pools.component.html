@@ -66,10 +66,10 @@
                   <ion-badge color="primary" class="leg-badge">
                     {{ match.round }}
                   </ion-badge>
-                  <ion-badge color="warning" class="time-badge">
-                    {{ match.date | date:'h:mm a':'':'es' }}
-                  </ion-badge>
                 </div>
+                <ion-badge color="warning" class="time-badge">
+                  {{ match.date | date:'h:mm a':'':'es' }}
+                </ion-badge>
                 <span class="date-text">
                   {{ match.date | date:'EEEE d MMMM, yyyy':'':'es' }}
                   <br>
@@ -97,8 +97,6 @@
                   <app-team-form *ngIf="match.awayTeamForm" [form]="match.awayTeamForm"></app-team-form>
                 </div>
               </div>
-
-              <div class="venue">{{ match.venue.name }}, {{ match.venue.city }}</div>
             </ion-card-content>
           </ion-card>
         </ion-item>
@@ -125,10 +123,10 @@
                     <ion-badge color="tertiary" class="leg-badge">
                       {{ match.leg === 1 ? 'IDA' : 'VUELTA' }}
                     </ion-badge>
-                    <ion-badge color="warning" class="time-badge">
-                      {{ match.date | date:'h:mm a':'':'es' }}
-                    </ion-badge>
                   </div>
+                  <ion-badge color="warning" class="time-badge">
+                    {{ match.date | date:'h:mm a':'':'es' }}
+                  </ion-badge>
                   <span class="date-text">
                     {{ match.date | date:'EEEE d MMMM, yyyy':'':'es' }}
                     <br>
@@ -155,8 +153,6 @@
                     <span class="team-name">{{ match.awayTeam }}</span>
                   </div>
                 </div>
-
-                <div class="venue">{{ match.venue.name }}</div>
               </ion-card-content>
             </ion-card>
           </ion-item>

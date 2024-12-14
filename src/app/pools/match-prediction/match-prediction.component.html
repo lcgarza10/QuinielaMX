@@ -3,7 +3,7 @@
     <div class="scores-row">
       <!-- Actual Score -->
       <div class="score-column actual-score" *ngIf="match.status.short === 'FT' || match.status.short === 'LIVE'">
-        <div class="score-label">Resultado actual</div>
+        <div class="score-label">Resultado</div>
         <div class="score-display">
           {{ match.homeScore ?? '-' }} - {{ match.awayScore ?? '-' }}
         </div>
@@ -19,7 +19,7 @@
             isCompleted && !canEdit
               ? 'Tu Pronóstico'
               : canEdit
-              ? '¿Quieres actualizarlo?'
+              ? 'Tu Pronóstico:'
               : 'Ingresa tu Pronóstico:'
           }}
           <span *ngIf="match.status.short !== 'NS' && match.status.short !== 'TBD'" class="points-badge">{{ getPoints() }} pts</span>
