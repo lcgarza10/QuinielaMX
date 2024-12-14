@@ -49,7 +49,32 @@
 
   ion-list {
     background: transparent;
-    padding: 0;
+    padding: 4px;
+
+    ion-item {
+      --background: transparent;
+      margin-bottom: 16px;
+      position: relative;
+
+      &:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 5%;
+        width: 90%;
+        height: 2px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          var(--ion-color-primary-tint),
+          var(--ion-color-primary),
+          var(--ion-color-primary-tint),
+          transparent
+        );
+        opacity: 0.7;
+        border-radius: 2px;
+      }
+    }
   }
 
   .match-item {

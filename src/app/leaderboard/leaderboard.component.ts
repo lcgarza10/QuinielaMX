@@ -37,6 +37,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   isAdmin: boolean = false;
   phaseStarted: boolean = false;
   allPredictionsSubmitted: boolean = false;
+  showFinalScores: boolean = false;
   private refreshInterval: any;
 
   rounds: string[] = [
@@ -365,6 +366,15 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
 
       // Check if phase has started
       const now = new Date();
+
+      // Verificar si es tiempo de mostrar los marcadores de la final
+      if (this.selectedRound === 'Final') {
+        const revealDate = new Date('2024-12-15T19:00:00-06:00'); // 7pm tiempo de México
+        this.showFinalScores = now >= revealDate;
+      } else {
+        this.showFinalScores = true; // Para otras rondas, siempre mostrar
+      }
+
       const firstMatch = this.weekMatches[0];
       if (firstMatch) {
         const firstMatchDate = new Date(firstMatch.date);
@@ -412,12 +422,23 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   }
 
   shouldShowPrediction(userId: string): boolean {
-    return (
-      this.isAdmin ||
-      userId === this.currentUserId ||
-      this.phaseStarted ||
-      this.allPredictionsSubmitted
-    );
+    // Si es administrador, siempre mostrar
+    if (this.isAdmin) {
+      return true;
+    }
+
+    // Si es el usuario actual, siempre mostrar sus propias predicciones
+    if (userId === this.currentUserId) {
+      return true;
+    }
+
+    // Si es la final y no es tiempo de mostrar los resultados
+    if (this.selectedRound === 'Final' && !this.showFinalScores) {
+      return false;
+    }
+
+    // Para otros casos, mostrar si la fase ha comenzado o todos han enviado predicciones
+    return this.phaseStarted || this.allPredictionsSubmitted;
   }
 
   getPrediction(predictions: any[] | undefined, match: Match) {
