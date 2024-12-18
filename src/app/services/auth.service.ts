@@ -146,26 +146,35 @@ export class AuthService {
       console.log('Got Google credential:', credential.user?.uid);
       
       if (credential.user) {
-        // First create the user document
+        // Verificar si el usuario ya existe en Firestore
+        const userDoc = await this.afs.doc<User>(`users/${credential.user.uid}`).get().toPromise();
+        const existingUser = userDoc?.data();
+        
+        if (existingUser && existingUser.username) {
+          // Usuario existente con nombre de usuario - proceder al inicio de sesión
+          console.log('Existing user found - proceeding to home');
+          this.sessionState.startSession();
+          this.router.navigate(['/home']);
+          return;
+        }
+        
+        // Si el usuario no existe o no tiene nombre de usuario, crear/actualizar documento
         const userData = {
           uid: credential.user.uid,
           email: credential.user.email || '',  
           firstName: credential.user.displayName?.split(' ')[0] || '',
           lastName: credential.user.displayName?.split(' ').slice(1).join(' ') || '',
-          username: '', 
-          isAdmin: false
+          username: existingUser?.username || '', 
+          isAdmin: existingUser?.isAdmin || false
         } as User;  
         
-        console.log('Creating initial user document:', userData);
+        console.log('Creating/updating user document:', userData);
         await this.updateUserData(credential.user, userData);
         
-        // Check if we need additional information (like username)
+        // Si no hay nombre de usuario, redirigir a la configuración del perfil
         if (!userData.username) {
           console.log('Username needed - redirecting to profile setup');
-          // Store data for signup component
           sessionStorage.setItem('googleSignUpData', JSON.stringify(userData));
-          
-          // Redirect to signup with query param
           this.router.navigate(['/signup'], { 
             queryParams: { 
               source: 'google',
