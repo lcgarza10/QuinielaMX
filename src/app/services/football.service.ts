@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { map, catchError, shareReplay } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
+import { SeasonService } from './season.service';
+import { Season } from '../models/season.model';
 
 export interface Venue {
   id?: number;
@@ -79,6 +81,10 @@ interface ApiResponse {
   response: FixtureResponse[];
 }
 
+interface RoundsApiResponse {
+  response: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -87,20 +93,38 @@ export class FootballService {
   private readonly API_URL = `https://${this.API_HOST}`;
   private readonly API_KEY = 'c141edc534ff1faa37eb2b951c0642d1';
   private readonly LIGA_MX_ID = '262';
-  private readonly CURRENT_SEASON = '2024';
   private readonly TIMEZONE = 'America/Mexico_City';
   private readonly CACHE_DURATION = 30 * 1000; // 30 seconds cache
-  
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 2000;
-
   private readonly matchesCache = new Map<number, { timestamp: number; matches: Match[] }>();
   private readonly playoffMatchesCache = new Map<string, { timestamp: number; matches: PlayoffMatch[] }>();
   private currentRoundSubject = new BehaviorSubject<number>(1);
   private currentRoundPromise: Promise<number> | null = null;
+  private currentSeason: string = '2024';
 
-  constructor(private http: HttpClient) {
-    this.initializeCurrentRound();
+  constructor(
+    private http: HttpClient,
+    private seasonService: SeasonService
+  ) {
+    this.initializeCurrentSeason();
+  }
+
+  private initializeCurrentSeason() {
+    this.seasonService.getActiveSeason().subscribe(season => {
+      if (season) {
+        // Extraer el año del nombre de la temporada (ej: "Clausura 2022" -> "2022")
+        const year = season.name.split(' ')[1];
+        if (year !== this.currentSeason) {
+          this.currentSeason = year;
+          // Limpiar los caches cuando cambia la temporada
+          this.matchesCache.clear();
+          this.playoffMatchesCache.clear();
+          // Reinicializar la ronda actual
+          this.initializeCurrentRound();
+        }
+      }
+    });
   }
 
   private async initializeCurrentRound() {
@@ -109,6 +133,7 @@ export class FootballService {
       this.currentRoundSubject.next(round);
     } catch (error) {
       console.error('Error initializing current round:', error);
+      this.currentRoundSubject.next(1);
     }
   }
 
@@ -130,13 +155,13 @@ export class FootballService {
       return of(cachedMatches);
     }
 
-    const headers = new HttpHeaders({
-      'x-apisports-key': this.API_KEY
-    });
+    const headers = new HttpHeaders()
+      .set('x-rapidapi-host', this.API_HOST)
+      .set('x-rapidapi-key', this.API_KEY);
 
     const params = new HttpParams()
       .set('league', this.LIGA_MX_ID)
-      .set('season', this.CURRENT_SEASON)
+      .set('season', this.currentSeason)
       .set('round', this.getRoundString(round))
       .set('timezone', this.TIMEZONE);
 
@@ -172,51 +197,26 @@ export class FootballService {
   }
 
   getPlayoffMatches(round?: string): Observable<PlayoffMatch[]> {
-    const cacheKey = round || 'playoffs';
+    const cacheKey = round || 'all';
     const cachedMatches = this.getCachedPlayoffMatches(cacheKey);
     if (cachedMatches) {
       return of(cachedMatches);
     }
 
-    const headers = new HttpHeaders({
-      'x-apisports-key': this.API_KEY
-    });
+    const headers = new HttpHeaders()
+      .set('x-rapidapi-host', this.API_HOST)
+      .set('x-rapidapi-key', this.API_KEY);
 
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    const isApertura = currentMonth >= 7;
-    const seasonYear = isApertura ? currentYear : currentYear;
-
-    let startDate: string;
-    let endDate: string;
-
-    if (isApertura) {
-      // Apertura playoff dates (November-December)
-      startDate = `${seasonYear}-11-20`;
-      endDate = `${seasonYear}-12-20`; // Extendido hasta el 20 de diciembre
-    } else {
-      // Clausura playoff dates (May)
-      startDate = `${seasonYear}-05-01`;
-      endDate = `${seasonYear}-05-31`;
-    }
+    const startDate = this.getPlayoffStartDate();
+    const endDate = this.getPlayoffEndDate();
 
     const params = new HttpParams()
       .set('league', this.LIGA_MX_ID)
-      .set('season', this.CURRENT_SEASON)
+      .set('season', this.currentSeason)
       .set('from', startDate)
       .set('to', endDate)
       .set('timezone', this.TIMEZONE)
       .set('status', 'NS-PST-CANC-TBD-1H-HT-2H-ET-BT-P-SUSP-INT-FT-AET-PEN-LIVE-ALL');
-
-    console.log('Fetching playoff matches with params:', {
-      startDate,
-      endDate,
-      isApertura,
-      seasonYear,
-      timezone: this.TIMEZONE,
-      status: 'NS-PST-CANC-TBD-1H-HT-2H-ET-BT-P-SUSP-INT-FT-AET-PEN-LIVE-ALL'
-    });
 
     return this.http.get<ApiResponse>(`${this.API_URL}/fixtures`, { headers, params })
       .pipe(
@@ -243,24 +243,24 @@ export class FootballService {
             const matchDate = new Date(fixture.fixture.date);
             let round: PlayoffMatch['round'] | undefined;
 
-            if (isApertura) {
-              if (matchDate >= new Date(`${seasonYear}-11-20`) && matchDate <= new Date(`${seasonYear}-11-24`)) {
+            if (this.isApertura()) {
+              if (matchDate >= new Date(`${this.currentSeason}-11-20`) && matchDate <= new Date(`${this.currentSeason}-11-24`)) {
                 round = 'Reclasificación';
-              } else if (matchDate >= new Date(`${seasonYear}-11-27`) && matchDate <= new Date(`${seasonYear}-12-03`)) {
+              } else if (matchDate >= new Date(`${this.currentSeason}-11-27`) && matchDate <= new Date(`${this.currentSeason}-12-03`)) {
                 round = 'Cuartos de Final';
-              } else if (matchDate >= new Date(`${seasonYear}-12-04`) && matchDate <= new Date(`${seasonYear}-12-10`)) {
+              } else if (matchDate >= new Date(`${this.currentSeason}-12-04`) && matchDate <= new Date(`${this.currentSeason}-12-10`)) {
                 round = 'Semifinal';
-              } else if (matchDate >= new Date(`${seasonYear}-12-11`) && matchDate <= new Date(`${seasonYear}-12-20`)) {
+              } else if (matchDate >= new Date(`${this.currentSeason}-12-11`) && matchDate <= new Date(`${this.currentSeason}-12-20`)) {
                 round = 'Final';
               }
             } else {
-              if (matchDate >= new Date(`${seasonYear}-05-08`) && matchDate <= new Date(`${seasonYear}-05-12`)) {
+              if (matchDate >= new Date(`${this.currentSeason}-05-08`) && matchDate <= new Date(`${this.currentSeason}-05-12`)) {
                 round = 'Reclasificación';
-              } else if (matchDate >= new Date(`${seasonYear}-05-15`) && matchDate <= new Date(`${seasonYear}-05-21`)) {
+              } else if (matchDate >= new Date(`${this.currentSeason}-05-15`) && matchDate <= new Date(`${this.currentSeason}-05-21`)) {
                 round = 'Cuartos de Final';
-              } else if (matchDate >= new Date(`${seasonYear}-05-22`) && matchDate <= new Date(`${seasonYear}-05-26`)) {
+              } else if (matchDate >= new Date(`${this.currentSeason}-05-22`) && matchDate <= new Date(`${this.currentSeason}-05-26`)) {
                 round = 'Semifinal';
-              } else if (matchDate >= new Date(`${seasonYear}-05-27`) && matchDate <= new Date(`${seasonYear}-05-29`)) {
+              } else if (matchDate >= new Date(`${this.currentSeason}-05-27`) && matchDate <= new Date(`${this.currentSeason}-05-29`)) {
                 round = 'Final';
               }
             }
@@ -361,23 +361,43 @@ export class FootballService {
 
   private async fetchCurrentRound(): Promise<number> {
     const headers = new HttpHeaders({
-      'x-apisports-key': this.API_KEY
+      'x-rapidapi-host': this.API_HOST,
+      'x-rapidapi-key': this.API_KEY
     });
 
     const params = new HttpParams()
       .set('league', this.LIGA_MX_ID)
-      .set('season', this.CURRENT_SEASON)
+      .set('season', this.currentSeason)
       .set('current', 'true');
 
     try {
       const response = await firstValueFrom(
-        this.http.get<any>(`${this.API_URL}/fixtures/rounds`, { headers, params })
+        this.http.get<RoundsApiResponse>(`${this.API_URL}/fixtures/rounds`, { headers, params })
       );
 
       if (response && Array.isArray(response.response) && response.response.length > 0) {
-        const currentRound = response.response[response.response.length - 1];
-        const roundNumber = this.extractWeekNumber(currentRound);
-        return roundNumber;
+        // Buscar la ronda actual basada en la fecha
+        const now = new Date();
+        const matchesPromises = response.response.map((round: string) => 
+          firstValueFrom(this.getMatches(this.extractWeekNumber(round)))
+        );
+        
+        const allMatches = await Promise.all(matchesPromises);
+        
+        for (let i = 0; i < allMatches.length; i++) {
+          const matches = allMatches[i];
+          const roundMatches = matches.filter((match: Match) => {
+            const matchDate = new Date(match.date);
+            return matchDate >= now;
+          });
+          
+          if (roundMatches.length > 0) {
+            return this.extractWeekNumber(response.response[i]);
+          }
+        }
+        
+        // Si no encontramos una ronda futura, devolver la última
+        return this.extractWeekNumber(response.response[response.response.length - 1]);
       }
 
       console.warn('Invalid response from rounds API, defaulting to round 1');
@@ -435,6 +455,44 @@ export class FootballService {
   private extractWeekNumber(round: string): number {
     const match = round.match(/\d+$/);
     return match ? parseInt(match[0], 10) : 1;
+  }
+
+  private getPlayoffStartDate(): string {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const isApertura = currentMonth >= 7;
+    const seasonYear = isApertura ? currentYear : currentYear;
+
+    if (isApertura) {
+      // Apertura playoff dates (November-December)
+      return `${seasonYear}-11-20`;
+    } else {
+      // Clausura playoff dates (May)
+      return `${seasonYear}-05-01`;
+    }
+  }
+
+  private getPlayoffEndDate(): string {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const isApertura = currentMonth >= 7;
+    const seasonYear = isApertura ? currentYear : currentYear;
+
+    if (isApertura) {
+      // Apertura playoff dates (November-December)
+      return `${seasonYear}-12-20`; // Extendido hasta el 20 de diciembre
+    } else {
+      // Clausura playoff dates (May)
+      return `${seasonYear}-05-31`;
+    }
+  }
+
+  private isApertura(): boolean {
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1;
+    return currentMonth >= 7;
   }
 
   getOrdinalSuffix(position: number): string {

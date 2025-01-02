@@ -76,28 +76,7 @@ const routes: Routes = [
       {
         path: 'admin',
         canActivate: [AuthGuard, AdminGuard],
-        children: [
-          {
-            path: 'test-predictions',
-            component: TestPredictionsComponent
-          },
-          {
-            path: 'season',
-            component: SeasonManagementComponent
-          },
-          {
-            path: 'groups',
-            component: GroupManagementComponent
-          },
-          {
-            path: 'points',
-            component: PointsComponent
-          },
-          {
-            path: 'users',
-            component: UserListComponent
-          }
-        ]
+        loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
       }
     ]
   },

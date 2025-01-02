@@ -25,19 +25,15 @@ import { SignupComponent } from './signup/signup.component';
 import { HomeComponent } from './home/home.component';
 import { ScoresComponent } from './scores/scores.component';
 import { PoolsComponent } from './pools/pools.component';
-import { GroupManagementComponent } from './admin/group-management/group-management.component';
 import { RegistrationFormComponent } from './components/registration-form/registration-form.component';
 import { RoundsSelectorComponent } from './components/rounds-selector/rounds-selector.component';
 import { TeamFormComponent } from './components/team-form/team-form.component';
-import { TestPredictionsComponent } from './admin/test-predictions/test-predictions.component';
-import { SeasonManagementComponent } from './admin/season-management/season-management.component';
 import { PointsComponent } from './points/points.component';
 import { UserListComponent } from './user-list/user-list.component';
-import { PlayoffManagementComponent } from './admin/playoff-management/playoff-management.component';
 import { MatchPredictionComponent } from './pools/match-prediction/match-prediction.component';
 import { LeaderboardComponent } from './leaderboard/leaderboard.component';
-import { PlayoffRoundPipe } from './pipes/playoff-round.pipe';
 import { AdsenseComponent } from './components/adsense/adsense.component';
+import { SharedModule } from './shared/shared.module';
 
 import { FootballService } from './services/football.service';
 import { DatabaseService } from './services/database.service';
@@ -61,20 +57,15 @@ import { AdsenseService } from './services/adsense.service';
     HomeComponent,
     ScoresComponent,
     PoolsComponent,
-    GroupManagementComponent,
     RegistrationFormComponent,
     RoundsSelectorComponent,
     TeamFormComponent,
-    TestPredictionsComponent,
-    SeasonManagementComponent,
     PointsComponent,
     UserListComponent,
-    PlayoffManagementComponent,
     MatchPredictionComponent,
     LeaderboardComponent,
     LayoutComponent,
     UserMenuComponent,
-    PlayoffRoundPipe,
     AdsenseComponent
   ],
   imports: [
@@ -84,6 +75,7 @@ import { AdsenseService } from './services/adsense.service';
     FormsModule,
     ReactiveFormsModule,
     AppRoutingModule,
+    SharedModule,
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
       registrationStrategy: 'registerWhenStable:30000'

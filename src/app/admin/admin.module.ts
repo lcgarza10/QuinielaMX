@@ -1,8 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
+import { SharedModule } from '../shared/shared.module';
 
 import { GroupManagementComponent } from './group-management/group-management.component';
 import { PlayoffManagementComponent } from './playoff-management/playoff-management.component';
@@ -11,12 +12,11 @@ import { TestPredictionsComponent } from './test-predictions/test-predictions.co
 import { PointsManagementComponent } from './points-management/points-management.component';
 
 const routes: Routes = [
+  { path: 'test-predictions', component: TestPredictionsComponent },
+  { path: 'season', component: SeasonManagementComponent },
   { path: 'groups', component: GroupManagementComponent },
-  { path: 'playoffs', component: PlayoffManagementComponent },
-  { path: 'seasons', component: SeasonManagementComponent },
-  { path: 'test', component: TestPredictionsComponent },
   { path: 'points', component: PointsManagementComponent },
-  { path: '', redirectTo: 'points', pathMatch: 'full' }
+  { path: '', redirectTo: 'test-predictions', pathMatch: 'full' }
 ];
 
 @NgModule({
@@ -24,7 +24,9 @@ const routes: Routes = [
     CommonModule,
     IonicModule,
     FormsModule,
-    RouterModule.forChild(routes)
+    ReactiveFormsModule,
+    RouterModule.forChild(routes),
+    SharedModule
   ],
   declarations: [
     GroupManagementComponent,

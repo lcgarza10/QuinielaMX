@@ -139,14 +139,22 @@ export class AuthService {
 
   async signInWithGoogle(): Promise<void> {
     try {
-      console.log('Starting Google sign in...');
+      console.log('Starting Google sign in...', window.location.hostname);
       const auth = getAuth(this.app);
       const provider = new GoogleAuthProvider();
+      
+      // Agregar configuración adicional al provider
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+
+      console.log('Opening Google popup...');
       const credential = await signInWithPopup(auth, provider);
       console.log('Got Google credential:', credential.user?.uid);
       
       if (credential.user) {
         // Verificar si el usuario ya existe en Firestore
+        console.log('Checking if user exists in Firestore...');
         const userDoc = await this.afs.doc<User>(`users/${credential.user.uid}`).get().toPromise();
         const existingUser = userDoc?.data();
         
@@ -154,7 +162,7 @@ export class AuthService {
           // Usuario existente con nombre de usuario - proceder al inicio de sesión
           console.log('Existing user found - proceeding to home');
           this.sessionState.startSession();
-          this.router.navigate(['/home']);
+          await this.router.navigate(['/home']);
           return;
         }
         
@@ -175,7 +183,7 @@ export class AuthService {
         if (!userData.username) {
           console.log('Username needed - redirecting to profile setup');
           sessionStorage.setItem('googleSignUpData', JSON.stringify(userData));
-          this.router.navigate(['/signup'], { 
+          await this.router.navigate(['/signup'], { 
             queryParams: { 
               source: 'google',
               email: credential.user.email 
@@ -186,19 +194,24 @@ export class AuthService {
         
         console.log('User setup complete - proceeding to home');
         this.sessionState.startSession();
-        this.router.navigate(['/home']);
+        await this.router.navigate(['/home']);
       }
     } catch (error: any) {
       console.error('Full error object:', error);
       console.error('Error code:', error.code);
       console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      console.error('Current hostname:', window.location.hostname);
+      console.error('Current origin:', window.location.origin);
       
       if (error.code === 'auth/popup-closed-by-user') {
         throw new Error('Inicio de sesión cancelado. Por favor intenta de nuevo.');
       } else if (error.code === 'auth/popup-blocked') {
         throw new Error('El navegador bloqueó la ventana emergente. Por favor permite ventanas emergentes e intenta de nuevo.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        throw new Error('Este dominio no está autorizado para iniciar sesión con Google. Por favor contacta al administrador.');
       } else {
-        throw error;
+        throw new Error(`Error al iniciar sesión: ${error.message}`);
       }
     }
   }

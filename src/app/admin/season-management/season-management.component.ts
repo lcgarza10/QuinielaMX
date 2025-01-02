@@ -22,12 +22,39 @@ export class SeasonManagementComponent implements OnInit {
     private toastController: ToastController,
     private router: Router
   ) {
-    // Initialize with Clausura 2024 as default
+    // Por defecto, configuramos para Apertura 2022
+    const defaultStartDate = new Date(2022, 6, 1); // 1 de julio 2022
+    const defaultEndDate = new Date(2022, 11, 31); // 31 de diciembre 2022
+
     this.seasonForm = this.fb.group({
-      name: ['Apertura 2024', [Validators.required]],
-      startDate: ['2024-07-01', [Validators.required]], // Apertura 2024 start
-      endDate: ['2024-12-16', [Validators.required]], // Apertura 2024 end
+      name: ['Apertura 2022', [Validators.required]],
+      startDate: [this.formatDateForInput(defaultStartDate), [Validators.required]],
+      endDate: [this.formatDateForInput(defaultEndDate), [Validators.required]],
       isActive: [true]
+    });
+
+    // Actualizar fechas cuando cambia la temporada
+    this.seasonForm.get('name')?.valueChanges.subscribe(name => {
+      if (!name) return;
+      
+      let startDate: Date;
+      let endDate: Date;
+
+      if (name === 'Apertura 2022') {
+        startDate = new Date(2022, 6, 1);  // 1 de julio 2022
+        endDate = new Date(2022, 11, 31);  // 31 de diciembre 2022
+      } else if (name === 'Apertura 2024') {
+        startDate = new Date(2024, 6, 1);  // 1 de julio 2024
+        endDate = new Date(2024, 11, 31);  // 31 de diciembre 2024
+      } else if (name === 'Clausura 2024') {
+        startDate = new Date(2025, 0, 1);  // 1 de enero 2025
+        endDate = new Date(2025, 4, 31);   // 31 de mayo 2025
+      }
+
+      this.seasonForm.patchValue({
+        startDate: this.formatDateForInput(startDate!),
+        endDate: this.formatDateForInput(endDate!)
+      }, { emitEvent: false });
     });
   }
 
@@ -40,14 +67,13 @@ export class SeasonManagementComponent implements OnInit {
       const season = await firstValueFrom(this.seasonService.getActiveSeason());
       if (season) {
         this.currentSeason = season;
-        // Format dates to YYYY-MM-DD for input[type="date"]
-        const startDate = this.formatDateForInput(season.startDate);
-        const endDate = this.formatDateForInput(season.endDate);
+        const startDate = this.formatDateForInput(new Date(season.startDate));
+        const endDate = this.formatDateForInput(new Date(season.endDate));
         
         this.seasonForm.patchValue({
           name: season.name,
-          startDate: startDate,
-          endDate: endDate,
+          startDate,
+          endDate,
           isActive: season.isActive
         });
 
@@ -58,23 +84,30 @@ export class SeasonManagementComponent implements OnInit {
           isActive: season.isActive
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading season:', error);
-      this.error = 'Error al cargar la configuración de la temporada';
+      this.error = 'Error al cargar la configuración de la temporada: ' + (error.message || 'Error desconocido');
     }
   }
 
   private formatDateForInput(date: Date): string {
-    if (!date) return '';
-    const d = new Date(date);
-    let month = '' + (d.getMonth() + 1);
-    let day = '' + d.getDate();
-    const year = d.getFullYear();
+    try {
+      if (!date) return '';
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return '';
+      
+      let month = '' + (d.getMonth() + 1);
+      let day = '' + d.getDate();
+      const year = d.getFullYear();
 
-    if (month.length < 2) month = '0' + month;
-    if (day.length < 2) day = '0' + day;
+      if (month.length < 2) month = '0' + month;
+      if (day.length < 2) day = '0' + day;
 
-    return [year, month, day].join('-');
+      return [year, month, day].join('-');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
   }
 
   async saveSeason() {
@@ -83,13 +116,18 @@ export class SeasonManagementComponent implements OnInit {
       this.error = null;
       
       try {
-        const { name, startDate, endDate, isActive } = this.seasonForm.value;
-        await this.seasonService.saveSeason({
-          name,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          isActive
-        });
+        const formValues = this.seasonForm.value;
+        console.log('Form values before save:', formValues);
+
+        const seasonData = {
+          name: formValues.name,
+          startDate: new Date(formValues.startDate + 'T00:00:00'),
+          endDate: new Date(formValues.endDate + 'T23:59:59'),
+          isActive: formValues.isActive
+        };
+
+        console.log('Season data to save:', seasonData);
+        await this.seasonService.saveSeason(seasonData);
 
         const toast = await this.toastController.create({
           message: 'Configuración de temporada guardada exitosamente',
@@ -99,13 +137,14 @@ export class SeasonManagementComponent implements OnInit {
         await toast.present();
         
         this.router.navigate(['/admin/test-predictions']);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error saving season:', error);
-        this.error = 'Error al guardar la configuración de la temporada';
+        const errorMessage = error?.message || 'Error desconocido';
+        this.error = 'Error al guardar la configuración de la temporada: ' + errorMessage;
         
         const toast = await this.toastController.create({
-          message: 'Error al guardar la configuración',
-          duration: 2000,
+          message: 'Error al guardar la configuración: ' + errorMessage,
+          duration: 3000,
           color: 'danger'
         });
         await toast.present();
